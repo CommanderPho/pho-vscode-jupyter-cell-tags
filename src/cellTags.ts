@@ -52,19 +52,19 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
 			});
 		});
 
-		if (items.length) {
-			// add insert tag status bar item
-			items.push({
-				text: '$(plus) Tag',
-				tooltip: 'Add Tag',
-				command: {
-					title: 'Add Tag',
-					command: 'jupyter-cell-tags.addTag',
-					arguments: [cell]
-				},
-				alignment: vscode.NotebookCellStatusBarAlignment.Left,
-			});
-		}
+		// if (items.length) {
+		// add insert tag status bar item
+		items.push({
+			text: '$(plus) Tag',
+			tooltip: 'Add Tag',
+			command: {
+				title: 'Add Tag',
+				command: 'jupyter-cell-tags.addTag',
+				arguments: [cell]
+			},
+			alignment: vscode.NotebookCellStatusBarAlignment.Left,
+		});
+		// }
 
 		return items;
 	}
@@ -76,13 +76,28 @@ export function getActiveCell() {
 	if (!editor) {
 		return;
 	}
+	if (editor.selections[0].start >= editor.notebook.cellCount) {
+		return;
+	}
+	return editor.notebook.cellAt(editor.selections[0].start);
+}
+
+
+export function getActiveCells() {
+	// find all selected cells
+	const editor = vscode.window.activeNotebookEditor;
+	if (!editor) {
+		return;
+	}
 
 	if (editor.selections[0].start >= editor.notebook.cellCount) {
 		return;
 	}
 
-	return editor.notebook.cellAt(editor.selections[0].start);
+	return editor.notebook.getCells(editor.selections[0]);
 }
+
+
 
 export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): vscode.NotebookCell | undefined {
 	if (!args) {
