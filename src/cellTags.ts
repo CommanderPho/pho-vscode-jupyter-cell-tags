@@ -4,7 +4,9 @@
 import * as vscode from 'vscode';
 import * as json from './json';
 
+
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
+	console.log("addCellTag");
 	const oldTags = cell.metadata.custom?.metadata?.tags ?? [];
     const newTags: string[] = [];
     for (const tag of tags) {
@@ -52,19 +54,19 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
 			});
 		});
 
-		// if (items.length) {
-		// add insert tag status bar item
-		items.push({
-			text: '$(plus) Tag',
-			tooltip: 'Add Tag',
-			command: {
-				title: 'Add Tag',
-				command: 'jupyter-cell-tags.addTag',
-				arguments: [cell]
-			},
-			alignment: vscode.NotebookCellStatusBarAlignment.Left,
-		});
-		// }
+		if (items.length) {
+			// add insert tag status bar item
+			items.push({
+				text: '$(plus) Tag',
+				tooltip: 'Add Tag',
+				command: {
+					title: 'Add Tag',
+					command: 'jupyter-cell-tags.addTag',
+					arguments: [cell]
+				},
+				alignment: vscode.NotebookCellStatusBarAlignment.Left,
+			});
+		}
 
 		return items;
 	}
@@ -83,18 +85,17 @@ export function getActiveCell() {
 }
 
 
-export function getActiveCells() {
-	// find all selected cells
-	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) {
-		return;
-	}
+export function getActiveCells(): vscode.NotebookCell[] | undefined {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor) {
+        return;
+    }
 
-	if (editor.selections[0].start >= editor.notebook.cellCount) {
-		return;
-	}
-
-	return editor.notebook.getCells(editor.selections[0]);
+    let cells: vscode.NotebookCell[] = [];
+    for (const selection of editor.selections) {
+        cells = cells.concat(editor.notebook.getCells(selection));
+    }
+    return cells.length > 0 ? cells : undefined;
 }
 
 
@@ -169,11 +170,35 @@ export function register(context: vscode.ExtensionContext) {
         }
 	}));
 
-	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
-		cell = reviveCell(cell);
+	// context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
+	// 	cell = reviveCell(cell);
 		
-		if (!cell) {
-			return;
+	// 	if (!cell) {
+	// 		return;
+	// 	}
+
+	// 	const tag = await vscode.window.showInputBox({
+	// 		placeHolder: 'Type to create a cell tag'
+	// 	});
+
+	// 	if (tag) {
+	// 		await addCellTag(cell, [tag]);
+	// 	}
+	// }));
+
+	// Modified to allow multi-selection:
+	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cellOrUri: vscode.NotebookCell | vscode.Uri | undefined | string) => {
+		let cells: vscode.NotebookCell[];
+
+		if (typeof cellOrUri === 'string') {
+			// Handle the case where the argument is a string
+			// You might need to retrieve the cell(s) differently in this case
+		} else if (cellOrUri instanceof vscode.Uri || cellOrUri instanceof vscode.NotebookCell) {
+			// Single cell selected, or a URI is provided
+			cells = [reviveCell(cellOrUri)].filter(c => c !== undefined) as vscode.NotebookCell[];
+		} else {
+			// No specific cell provided, use the current selection
+			cells = getActiveCells() || [];
 		}
 
 		const tag = await vscode.window.showInputBox({
@@ -181,9 +206,12 @@ export function register(context: vscode.ExtensionContext) {
 		});
 
 		if (tag) {
-			await addCellTag(cell, [tag]);
+			for (const cell of cells) {
+				await addCellTag(cell, [tag]);
+			}
 		}
 	}));
+
 
 	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.paramaterize', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
 		cell = reviveCell(cell);
