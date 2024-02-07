@@ -170,45 +170,44 @@ export function register(context: vscode.ExtensionContext) {
         }
 	}));
 
-	// context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
-	// 	cell = reviveCell(cell);
-		
-	// 	if (!cell) {
-	// 		return;
-	// 	}
+	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
+		cell = reviveCell(cell);
 
-	// 	const tag = await vscode.window.showInputBox({
-	// 		placeHolder: 'Type to create a cell tag'
-	// 	});
-
-	// 	if (tag) {
-	// 		await addCellTag(cell, [tag]);
-	// 	}
-	// }));
-
-	// Modified to allow multi-selection:
-	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTag', async (cellOrUri: vscode.NotebookCell | vscode.Uri | undefined | string) => {
-		let cells: vscode.NotebookCell[];
-
-		if (typeof cellOrUri === 'string') {
-			// Handle the case where the argument is a string
-			// You might need to retrieve the cell(s) differently in this case
-		} else if (cellOrUri instanceof vscode.Uri || cellOrUri instanceof vscode.NotebookCell) {
-			// Single cell selected, or a URI is provided
-			cells = [reviveCell(cellOrUri)].filter(c => c !== undefined) as vscode.NotebookCell[];
-		} else {
-			// No specific cell provided, use the current selection
-			cells = getActiveCells() || [];
+		if (!cell) {
+			return;
 		}
-
-		const tag = await vscode.window.showInputBox({
-			placeHolder: 'Type to create a cell tag'
-		});
-
-		if (tag) {
-			for (const cell of cells) {
+		const disposables: vscode.Disposable[] = [];
+		try {
+			const knownTags =  cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+			const knownTagsLowerCased =  new Set(knownTags.map(tag => tag.toLowerCase()));
+			const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+			const quickPick = vscode.window.createQuickPick();
+			disposables.push(quickPick);
+			quickPick.placeholder = 'Type to select or create a cell tag';
+			quickPick.items = knownTagQuickPickItems;
+			quickPick.show();
+			quickPick.onDidChangeValue(e => {
+				e = e.trim().toLowerCase();
+				if (!e || knownTagsLowerCased.has(e)) {
+					return;
+				}
+				quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+			}, undefined, disposables);
+			const tag = await new Promise<string>(resolve => {
+				quickPick.onDidHide(() => resolve(''), undefined, disposables);
+				quickPick.onDidAccept(() => {
+					if (quickPick.selectedItems.length) {
+						resolve(quickPick.selectedItems[0].label);
+						quickPick.hide();
+					}
+				}, undefined, disposables);
+			});
+			if (tag) {
 				await addCellTag(cell, [tag]);
 			}
+		}
+		finally{
+			disposables.forEach(d => d.dispose());
 		}
 	}));
 
