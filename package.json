@@ -3,7 +3,7 @@
 	"displayName": "Jupyter Cell Tags",
 	"description": "Jupyter Cell Tags support for VS Code",
 	"version": "0.2.0",
-	"publisher": "ms-toolsai",
+	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
 	"galleryBanner": {
