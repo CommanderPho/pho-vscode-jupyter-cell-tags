@@ -352,6 +352,4 @@ MigrationBackup/
 out/
 FM-{7662D23C-059D-49A6-8E51-3CD18465969A}.ico
 desktop.ini
-vscode-jupyter-cell-tags-0.1.8.vsix
-vscode-jupyter-cell-tags-0.1.9.vsix
 *.vsix
