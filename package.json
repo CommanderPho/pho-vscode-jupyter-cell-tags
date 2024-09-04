@@ -2,7 +2,7 @@
 	"name": "vscode-jupyter-cell-tags",
 	"displayName": "Jupyter Cell Tags",
 	"description": "Jupyter Cell Tags support for VS Code",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"publisher": "ms-toolsai",
 	"preview": true,
 	"icon": "icon.png",
@@ -21,10 +21,8 @@
 	],
 	"activationEvents": [
 		"onNotebook:jupyter-notebook",
-		"onCommand:jupyter-cell-tags.removeTag",
-		"onCommand:jupyter-cell-tags.addTag",
-		"onCommand:jupyter-cell-tags.editTagsInJSON",
-		"onCommand:jupyter-cell-tags.paramaterize"
+        "onNotebookEditor:editor.selection",
+        "onNotebookEditor:editor.onDidChangeActiveNotebookEditor"
 	],
 	"repository": {
 		"type": "git",
@@ -39,11 +37,16 @@
 				"title": "Remove Cell Tag",
 				"icon": "$(close)"
 			},
-			{
-				"command": "jupyter-cell-tags.addTag",
-				"title": "Add Cell Tag",
-				"icon": "$(add)"
-			},
+            {
+                "command": "jupyter-cell-tags.addTag",
+                "title": "Add Tag to Cell",
+                "when": "jupyter-cell-tags.singleCellSelected"
+            },
+            {
+                "command": "jupyter-cell-tags.addTagsToSelectedCells",
+                "title": "Add Tags to Selected Cells",
+                "when": "jupyter-cell-tags.multipleCellsSelected"
+            },
 			{
 				"command": "jupyter-cell-tags.editTagsInJSON",
 				"title": "Edit Cell Tags (JSON)",
@@ -116,6 +119,9 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
+  "enabledApiProposals": [
+    "notebookCellExecutionState"
+  ],
 	"devDependencies": {
 		"@types/vscode": "^1.73.0",
 		"@types/glob": "^7.1.3",
