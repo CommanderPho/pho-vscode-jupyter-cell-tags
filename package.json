@@ -61,23 +61,54 @@
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
+                    "when": "jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags@1"
 				},
+                {
+                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
+                    "when": "jupyter-cell-tags.multipleCellsSelected",
+                    "group": "jupytercelltags@2"
+                },
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
-					"group": "jupytercelltags@2"
+					"group": "jupytercelltags@3"
 				},
 				{
 					"command": "jupyter-cell-tags.paramaterize",
-					"group": "jupytercelltags@2"
+					"group": "jupytercelltags@4"
 				}
 			],
+            "notebook/cell/context": [
+                {
+                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
+                    "when": "jupyter-cell-tags.multipleCellsSelected",
+                    "group": "navigation"
+                },
+                {
+                    "command": "jupyter-cell-tags.addTag",
+                    "when": "jupyter-cell-tags.singleCellSelected",
+                    "group": "navigation"
+                }
+            ],
+            "notebook/cell/execute": [
+                {
+                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
+                    "when": "jupyter-cell-tags.multipleCellsSelected",
+                    "group": "navigation"
+                },
+                {
+                    "command": "jupyter-cell-tags.addTag",
+                    "when": "jupyter-cell-tags.singleCellSelected",
+                    "group": "navigation"
+                }
+            ],
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
 					"when": "view == cell-tag",
 					"group": "navigation"
 				},
+
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
 					"when": "view == cell-tag",
@@ -91,6 +122,7 @@
 					"group": "inline"
 				}
 			]
+
 		},
 		"views": {
 			"jupyter-variables": [
