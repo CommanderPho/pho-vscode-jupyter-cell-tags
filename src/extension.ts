@@ -10,14 +10,23 @@ import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags';
 import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
 
+let debugSelectedCellsStatusBarItem: vscode.StatusBarItem;
+
+
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
 	registerCellTagsView(context);
+
+    // Create a new status bar item
+    debugSelectedCellsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    context.subscriptions.push(debugSelectedCellsStatusBarItem);
 
     // Update context when the active editor or selection changes
     vscode.window.onDidChangeActiveNotebookEditor(updateContext);
     vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
+    // Initialize the status bar
+    updateContext();
 }
 
 function updateContext() {
@@ -26,6 +35,7 @@ function updateContext() {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
         console.log('No active notebook editor');
+        debugSelectedCellsStatusBarItem.hide();
         return;
     }
 
@@ -36,8 +46,15 @@ function updateContext() {
     console.log(`Selection count: ${selectionCount}`);
     console.log(`Single cell selected: ${selectionCount === 1}`);
     console.log(`Multiple cells selected: ${selectionCount > 1}`);
+
+    debugSelectedCellsStatusBarItem.text = `$(notebook) ${selectionCount} Cell(s) Selected`;
+    debugSelectedCellsStatusBarItem.show();
 }
 
 
 
-export function deactivate() {}
+export function deactivate() {
+    if (debugSelectedCellsStatusBarItem) {
+        debugSelectedCellsStatusBarItem.dispose();
+    }
+}

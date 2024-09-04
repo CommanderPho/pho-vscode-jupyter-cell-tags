@@ -21,8 +21,8 @@
 	],
 	"activationEvents": [
 		"onNotebook:jupyter-notebook",
-        "onNotebookEditor:editor.selection",
-        "onNotebookEditor:editor.onDidChangeActiveNotebookEditor"
+		"onNotebookEditor:editor.selection",
+		"onNotebookEditor:editor.onDidChangeActiveNotebookEditor"
 	],
 	"repository": {
 		"type": "git",
@@ -34,22 +34,22 @@
 		"commands": [
 			{
 				"command": "jupyter-cell-tags.removeTag",
-				"title": "Remove Cell Tag",
+				"title": "🏷️➖ Remove Cell Tag",
 				"icon": "$(close)"
 			},
-            {
-                "command": "jupyter-cell-tags.addTag",
-                "title": "Add Tag to Cell",
-                "when": "jupyter-cell-tags.singleCellSelected"
-            },
-            {
-                "command": "jupyter-cell-tags.addTagsToSelectedCells",
-                "title": "Add Tags to Selected Cells",
-                "when": "jupyter-cell-tags.multipleCellsSelected"
-            },
+			{
+				"command": "jupyter-cell-tags.addTag",
+				"title": "🏷️➕ Add Tag to Cell",
+				"when": "jupyter-cell-tags.singleCellSelected"
+			},
+			{
+				"command": "jupyter-cell-tags.addTagsToSelectedCells",
+				"title": "🏷️➕🗂️ Add Tags to Selected Cells",
+				"when": "jupyter-cell-tags.multipleCellsSelected"
+			},
 			{
 				"command": "jupyter-cell-tags.editTagsInJSON",
-				"title": "Edit Cell Tags (JSON)",
+				"title": "🗂️ Edit Cell Tags (JSON)",
 				"icon": "$(go-to-file)"
 			},
 			{
@@ -61,14 +61,14 @@
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
-                    "when": "jupyter-cell-tags.singleCellSelected",
+					"when": "jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags@1"
 				},
-                {
-                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
-                    "when": "jupyter-cell-tags.multipleCellsSelected",
-                    "group": "jupytercelltags@2"
-                },
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "jupytercelltags@2"
+				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
 					"group": "jupytercelltags@3"
@@ -78,37 +78,36 @@
 					"group": "jupytercelltags@4"
 				}
 			],
-            "notebook/cell/context": [
-                {
-                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
-                    "when": "jupyter-cell-tags.multipleCellsSelected",
-                    "group": "navigation"
-                },
-                {
-                    "command": "jupyter-cell-tags.addTag",
-                    "when": "jupyter-cell-tags.singleCellSelected",
-                    "group": "navigation"
-                }
-            ],
-            "notebook/cell/execute": [
-                {
-                    "command": "jupyter-cell-tags.addTagsToSelectedCells",
-                    "when": "jupyter-cell-tags.multipleCellsSelected",
-                    "group": "navigation"
-                },
-                {
-                    "command": "jupyter-cell-tags.addTag",
-                    "when": "jupyter-cell-tags.singleCellSelected",
-                    "group": "navigation"
-                }
-            ],
+			"notebook/cell/context": [
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTag",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				}
+			],
+			"notebook/cell/execute": [
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTag",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				}
+			],
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
 					"when": "view == cell-tag",
 					"group": "navigation"
 				},
-
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
 					"when": "view == cell-tag",
@@ -122,7 +121,6 @@
 					"group": "inline"
 				}
 			]
-
 		},
 		"views": {
 			"jupyter-variables": [
@@ -151,22 +149,22 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
-  "enabledApiProposals": [
-    "notebookCellExecutionState"
-  ],
+	"enabledApiProposals": [
+		"notebookCellExecutionState"
+	],
 	"devDependencies": {
-		"@types/vscode": "^1.73.0",
 		"@types/glob": "^7.1.3",
 		"@types/mocha": "^8.2.2",
-		"eslint": "^7.27.0",
-		"@types/node": "^16.18.40",
+		"@types/node": "^16.18.107",
+		"@types/vscode": "^1.73.0",
 		"@typescript-eslint/eslint-plugin": "^4.26.0",
 		"@typescript-eslint/parser": "^4.26.0",
+		"eslint": "^7.27.0",
 		"glob": "^7.1.7",
 		"mocha": "^10.0.0",
-		"typescript": "^4.3.2",
-		"vscode-test": "^1.5.2",
 		"ts-loader": "^9.1.1",
+		"typescript": "^5.5.4",
+		"vscode-test": "^1.5.2",
 		"webpack": "^5.76.0",
 		"webpack-cli": "^4.6.0"
 	}
