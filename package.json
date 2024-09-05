@@ -94,12 +94,12 @@
 				{
 					"command": "jupyter-cell-tags.addTagsToSelectedCells",
 					"when": "jupyter-cell-tags.multipleCellsSelected",
-					"group": "navigation"
+					"group": "3_other"
 				},
 				{
 					"command": "jupyter-cell-tags.addTag",
 					"when": "jupyter-cell-tags.singleCellSelected",
-					"group": "navigation"
+					"group": "3_other"
 				}
 			],
 			"view/title": [
