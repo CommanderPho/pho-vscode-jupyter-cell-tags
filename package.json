@@ -90,18 +90,6 @@
 					"group": "navigation"
 				}
 			],
-			"notebook/cell/execute": [
-				{
-					"command": "jupyter-cell-tags.addTagsToSelectedCells",
-					"when": "jupyter-cell-tags.multipleCellsSelected",
-					"group": "3_other"
-				},
-				{
-					"command": "jupyter-cell-tags.addTag",
-					"when": "jupyter-cell-tags.singleCellSelected",
-					"group": "3_other"
-				}
-			],
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
