@@ -185,8 +185,8 @@ export function register(context: vscode.ExtensionContext) {
 		}
 		const disposables: vscode.Disposable[] = [];
 		try {
-			const knownTags =  cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
-			const knownTagsLowerCased =  new Set(knownTags.map(tag => tag.toLowerCase()));
+			const knownTags = cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+			const knownTagsLowerCased = new Set(knownTags.map(tag => tag.toLowerCase()));
 			const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
 			const quickPick = vscode.window.createQuickPick();
 			disposables.push(quickPick);
