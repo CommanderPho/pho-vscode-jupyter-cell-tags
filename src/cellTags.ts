@@ -4,9 +4,12 @@
 import * as vscode from 'vscode';
 import * as json from './json';
 
+import { myOutputChannel as myOutputChannel } from './helper';
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
 	console.log("addCellTag");
+    myOutputChannel.appendLine("addCellTag");
+
 	const oldTags = cell.metadata.custom?.metadata?.tags ?? [];
     const newTags: string[] = [];
     for (const tag of tags) {
@@ -39,6 +42,8 @@ export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
 }
 
 export async function addTagsToMultipleCells(cells: vscode.NotebookCell[], tags: string[]) {
+    myOutputChannel.appendLine("addTagsToMultipleCells");
+
     for (const cell of cells) {
         await addCellTag(cell, tags);
     }

@@ -3,6 +3,11 @@
 
 import * as vscode from 'vscode';
 
+export const myOutputChannel = vscode.window.createOutputChannel("Pho Hale Extension - Jupyter Cell Tags");
+myOutputChannel.appendLine("This is a log message from my extension");
+myOutputChannel.show(true);
+
+
 export function getCellTags(cell: vscode.NotebookCell): string[] {
     const currentTags =
         (useCustomMetadata() ? cell.metadata.custom?.metadata?.tags : cell.metadata.metadata?.tags) ?? [];
