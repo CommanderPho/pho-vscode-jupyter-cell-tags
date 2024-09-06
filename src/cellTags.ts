@@ -184,30 +184,35 @@ export function register(context: vscode.ExtensionContext) {
 	    }
 	    const disposables: vscode.Disposable[] = [];
 	    try {
-	        const knownTags = activeCells.map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
-	        const knownTagsLowerCased = new Set(knownTags.map(tag => tag.toLowerCase()));
-	        const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
-	        const quickPick = vscode.window.createQuickPick();
-	        disposables.push(quickPick);
-	        quickPick.placeholder = 'Type to select or create a cell tag';
-	        quickPick.items = knownTagQuickPickItems;
-	        quickPick.show();
-	        quickPick.onDidChangeValue(e => {
-	            e = e.trim().toLowerCase();
-	            if (!e || knownTagsLowerCased.has(e)) {
-	                return;
-	            }
-	            quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
-	        }, undefined, disposables);
-	        const tag = await new Promise<string>(resolve => {
-	            quickPick.onDidHide(() => resolve(''), undefined, disposables);
-	            quickPick.onDidAccept(() => {
-	                if (quickPick.selectedItems.length) {
-	                    resolve(quickPick.selectedItems[0].label);
-	                    quickPick.hide();
-	                }
-	            }, undefined, disposables);
-	        });
+	        // const knownTags = activeCells.map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+	        // const knownTagsLowerCased = new Set(knownTags.map(tag => tag.toLowerCase()));
+	        // const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+	        // // const quickPick = vscode.window.createQuickPick();
+	        // // disposables.push(quickPick);
+	        // // quickPick.placeholder = 'Type to select or create a cell tag';
+	        // // quickPick.items = knownTagQuickPickItems;
+	        // // quickPick.show();
+	        // // quickPick.onDidChangeValue(e => {
+	        // //     e = e.trim().toLowerCase();
+	        // //     if (!e || knownTagsLowerCased.has(e)) {
+	        // //         return;
+	        // //     }
+	        // //     quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+	        // // }, undefined, disposables);
+	        // const tag = await new Promise<string>(resolve => {
+	        //     quickPick.onDidHide(() => resolve(''), undefined, disposables);
+	        //     quickPick.onDidAccept(() => {
+	        //         if (quickPick.selectedItems.length) {
+	        //             resolve(quickPick.selectedItems[0].label);
+	        //             quickPick.hide();
+	        //         }
+	        //     }, undefined, disposables);
+	        // });
+
+			const tag = await vscode.window.showInputBox({
+				placeHolder: 'Type to create a cell tag'
+			});
+
 	        if (tag) {
 	            await addTagsToMultipleCells(activeCells, [tag]);
 	        }

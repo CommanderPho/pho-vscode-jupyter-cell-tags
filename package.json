@@ -49,7 +49,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.addTagsToSelectedCells",
-				"title": "🏷️➕🗂️ Add Tags to Selected Cells",
+				"title": "Add Tags to Selected Cells",
 				"icon": "$(add)",
 				"when": "jupyter-cell-tags.multipleCellsSelected"
 			},			
@@ -73,7 +73,7 @@
 				{
 					"command": "jupyter-cell-tags.addTagsToSelectedCells",
 					"when": "jupyter-cell-tags.multipleCellsSelected",
-					"group": "jupytercelltags@2"
+					"group": "jupytercelltags@1"
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",

@@ -23,7 +23,6 @@ function updateContext() {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
         console.log('No active notebook editor');
-        debugSelectedCellsStatusBarItem.hide();
         return;
     }
 
@@ -35,8 +34,6 @@ function updateContext() {
     console.log(`Single cell selected: ${selectionCount === 1}`);
     console.log(`Multiple cells selected: ${selectionCount > 1}`);
 
-    debugSelectedCellsStatusBarItem.text = `$(notebook) ${selectionCount} Cell(s) Selected`;
-    debugSelectedCellsStatusBarItem.show();
 }
 
 
