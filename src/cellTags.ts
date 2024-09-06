@@ -20,6 +20,12 @@ export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
     await updateCellTags(cell, oldTags);
 }
 
+export async function addTagsToMultipleCells(cells: vscode.NotebookCell[], tags: string[]) {
+    for (const cell of cells) {
+        await addCellTag(cell, tags);
+    }
+}
+
 export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarItemProvider {
     provideCellStatusBarItems(
         cell: vscode.NotebookCell,
@@ -69,6 +75,20 @@ export function getActiveCell() {
     }
 
     return editor.notebook.cellAt(editor.selections[0].start);
+}
+
+
+export function getActiveCells(): vscode.NotebookCell[] | undefined {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor) {
+        return;
+    }
+
+    let cells: vscode.NotebookCell[] = [];
+    for (const selection of editor.selections) {
+        cells = cells.concat(editor.notebook.getCells(selection));
+    }
+    return cells.length > 0 ? cells : undefined;
 }
 
 export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): vscode.NotebookCell | undefined {
@@ -157,6 +177,46 @@ export function register(context: vscode.ExtensionContext) {
         )
     );
 
+	context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addTagsToSelectedCells', async () => {
+	    const activeCells = getActiveCells();
+	    if (!activeCells) {
+	        return;
+	    }
+	    const disposables: vscode.Disposable[] = [];
+	    try {
+	        const knownTags = activeCells.map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+	        const knownTagsLowerCased = new Set(knownTags.map(tag => tag.toLowerCase()));
+	        const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+	        const quickPick = vscode.window.createQuickPick();
+	        disposables.push(quickPick);
+	        quickPick.placeholder = 'Type to select or create a cell tag';
+	        quickPick.items = knownTagQuickPickItems;
+	        quickPick.show();
+	        quickPick.onDidChangeValue(e => {
+	            e = e.trim().toLowerCase();
+	            if (!e || knownTagsLowerCased.has(e)) {
+	                return;
+	            }
+	            quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+	        }, undefined, disposables);
+	        const tag = await new Promise<string>(resolve => {
+	            quickPick.onDidHide(() => resolve(''), undefined, disposables);
+	            quickPick.onDidAccept(() => {
+	                if (quickPick.selectedItems.length) {
+	                    resolve(quickPick.selectedItems[0].label);
+	                    quickPick.hide();
+	                }
+	            }, undefined, disposables);
+	        });
+	        if (tag) {
+	            await addTagsToMultipleCells(activeCells, [tag]);
+	        }
+	    } finally {
+	        disposables.forEach(d => d.dispose());
+	    }
+	}));
+	
+	
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'jupyter-cell-tags.paramaterize',

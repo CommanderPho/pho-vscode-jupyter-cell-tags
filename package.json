@@ -21,6 +21,8 @@
 	],
 	"activationEvents": [
 		"onNotebook:jupyter-notebook",
+		"onNotebookEditor:editor.selection",
+		"onNotebookEditor:editor.onDidChangeActiveNotebookEditor",
 		"onCommand:jupyter-cell-tags.removeTag",
 		"onCommand:jupyter-cell-tags.addTag",
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
@@ -42,8 +44,15 @@
 			{
 				"command": "jupyter-cell-tags.addTag",
 				"title": "Add Cell Tag",
-				"icon": "$(add)"
+				"icon": "$(add)",
+				"when": "jupyter-cell-tags.singleCellSelected"
 			},
+			{
+				"command": "jupyter-cell-tags.addTagsToSelectedCells",
+				"title": "🏷️➕🗂️ Add Tags to Selected Cells",
+				"icon": "$(add)",
+				"when": "jupyter-cell-tags.multipleCellsSelected"
+			},			
 			{
 				"command": "jupyter-cell-tags.editTagsInJSON",
 				"title": "Edit Cell Tags (JSON)",
@@ -58,7 +67,13 @@
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
+					"when": "jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags@1"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "jupytercelltags@2"
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
@@ -116,6 +131,9 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
+	"enabledApiProposals": [
+		"notebookCellExecutionState"
+	],	
 	"devDependencies": {
 		"@types/vscode": "^1.72.0",
 		"@types/glob": "^7.1.3",
