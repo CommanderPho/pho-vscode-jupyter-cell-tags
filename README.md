@@ -25,11 +25,45 @@ contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additio
 
 ## Trademarks
 
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
+This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft
+trademarks or logos is subject to and must follow
 [Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
 Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
 Any use of third-party trademarks or logos are subject to those third-party's policies.
+
+
+
+
+## Required Includes:
+
+# launch.json:
+```json
+...
+{
+    "name": "Run Extension",
+    "type": "extensionHost",
+    "request": "launch",
+    "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "--enable-proposed-api",
+        "phohale.jupyter"
+    ],
+    "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+    ],
+    "preLaunchTask": "${defaultBuildTask}",
+},
+...
+```
+
+## Program Arguments: ` --enable-proposed-api phohale.jupyter`
+```
+ --enable-proposed-api phohale.jupyter
+```
+
+For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\VSCode\Code.exe --max-old-space-size=8192 --enable-proposed-api phohale.jupyter`
+
+
 
 
 --enable-proposed-api notebookCellExecutionState 
