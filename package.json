@@ -131,9 +131,6 @@
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
 	},
-	"enabledApiProposals": [
-		"notebookCellExecutionState"
-	],
 	"devDependencies": {
 		"@types/vscode": "^1.72.0",
 		"@types/glob": "^7.1.3",
