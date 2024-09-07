@@ -52,7 +52,7 @@
 				"title": "Add Tags to Selected Cells",
 				"icon": "$(add)",
 				"when": "jupyter-cell-tags.multipleCellsSelected"
-			},			
+			},
 			{
 				"command": "jupyter-cell-tags.editTagsInJSON",
 				"title": "Edit Cell Tags (JSON)",
@@ -133,7 +133,7 @@
 	},
 	"enabledApiProposals": [
 		"notebookCellExecutionState"
-	],	
+	],
 	"devDependencies": {
 		"@types/vscode": "^1.72.0",
 		"@types/glob": "^7.1.3",
