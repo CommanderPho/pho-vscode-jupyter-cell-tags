@@ -40,12 +40,14 @@
 			{
 				"command": "jupyter-cell-tags.addTag",
 				"title": "🏷️➕ Add Tag to Cell",
-				"when": "jupyter-cell-tags.singleCellSelected"
+				"when": "jupyter-cell-tags.singleCellSelected",
+				"icon": "$(add)"
 			},
 			{
 				"command": "jupyter-cell-tags.addTagsToSelectedCells",
 				"title": "🏷️➕🗂️ Add Tags to Selected Cells",
-				"when": "jupyter-cell-tags.multipleCellsSelected"
+				"when": "jupyter-cell-tags.multipleCellsSelected",
+				"icon": "$(add)"
 			},
 			{
 				"command": "jupyter-cell-tags.editTagsInJSON",
@@ -67,15 +69,15 @@
 				{
 					"command": "jupyter-cell-tags.addTagsToSelectedCells",
 					"when": "jupyter-cell-tags.multipleCellsSelected",
-					"group": "jupytercelltags@2"
+					"group": "jupytercelltags@1"
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
-					"group": "jupytercelltags@3"
+					"group": "jupytercelltags@2"
 				},
 				{
 					"command": "jupyter-cell-tags.paramaterize",
-					"group": "jupytercelltags@4"
+					"group": "jupytercelltags@3"
 				}
 			],
 			"notebook/cell/context": [
@@ -90,22 +92,15 @@
 					"group": "navigation"
 				}
 			],
-			"notebook/cell/execute": [
-				{
-					"command": "jupyter-cell-tags.addTagsToSelectedCells",
-					"when": "jupyter-cell-tags.multipleCellsSelected",
-					"group": "3_other"
-				},
-				{
-					"command": "jupyter-cell-tags.addTag",
-					"when": "jupyter-cell-tags.singleCellSelected",
-					"group": "3_other"
-				}
-			],
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
 				},
 				{
