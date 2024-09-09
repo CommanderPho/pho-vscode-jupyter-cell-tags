@@ -13,7 +13,6 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
-	// Initialize the status bar
 	updateContext();
 }
 
