@@ -11,17 +11,17 @@
 			"presentation": {
 				"reveal": "never"
 			},
-			"group": "build",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
 			"label": "npm: watch",
 			"detail": "webpack --mode none --watch"
 		},
 		{
 			"type": "npm",
 			"script": "install",
-			"group": {
-				"kind": "build",
-				"isDefault": true
-			},
+			"group": "build",
 			"problemMatcher": [],
 			"label": "npm: install",
 			"detail": "install dependencies from package"
