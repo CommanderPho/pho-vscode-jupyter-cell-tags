@@ -4,12 +4,14 @@
 import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags';
 import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
+import { register as registerAllNotebookTagsView } from './allNotebookTagsTreeDataProvider';
 import { countSelectedCells } from './helper';
 
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
 	registerCellTagsView(context);
+    registerAllNotebookTagsView(context);
 
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
