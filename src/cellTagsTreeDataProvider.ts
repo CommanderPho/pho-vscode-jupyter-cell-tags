@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { getCellTags } from './helper';
+import { getCellTags, countSelectedCells } from './helper';
 
 export class TagTreeDataProvider implements vscode.TreeDataProvider<string> {
 	private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -63,17 +63,47 @@ export class TagTreeDataProvider implements vscode.TreeDataProvider<string> {
 			return;
 		}
 
-		const activeCell = editor.notebook.cellAt(editor.selections[0].start);
-		if (!activeCell) {
-			this._tags = [];
-			this._onDidChangeTreeData.fire();
-			return;
-		}
+        const selections: readonly vscode.NotebookRange[] = editor.selections;
+        const selectedRangesCount = selections.length;
+        const total_num_selected_cells = countSelectedCells(selections);
 
-		// get tags
-		const tags = getCellTags(activeCell);
-		this._tags = tags;
-		this._onDidChangeTreeData.fire();
+        // Multiple selected cells:
+        if (total_num_selected_cells > 1) {
+            this._tags = []; // clear tags to reflect only current selection
+            for (let i = 0; i < editor.selections.length; i++) {
+                const selection = editor.selections[i];
+                for (let j = selection.start; j < selection.end; j++) {
+                    const cell = editor.notebook.cellAt(j);
+                    if (!cell) {
+                        continue;
+                    }
+                    const tags = getCellTags(cell);
+                    this._tags = Array.from(new Set([...this._tags, ...tags]));
+                }
+            }
+            this._onDidChangeTreeData.fire();
+            return;
+        }
+        else if (total_num_selected_cells === 1) {
+            // Single active cell:
+            const activeCell = editor.notebook.cellAt(editor.selections[0].start);
+            if (!activeCell) {
+                this._tags = [];
+                this._onDidChangeTreeData.fire();
+                return;
+            }
+
+            // get tags
+            const tags = getCellTags(activeCell);
+            this._tags = tags;
+            this._onDidChangeTreeData.fire();
+        }
+        else {
+            this._tags = [];
+            this._onDidChangeTreeData.fire();
+            return;
+        }
+
 	}
 
 	getTreeItem(element: string): vscode.TreeItem | Thenable<vscode.TreeItem> {
