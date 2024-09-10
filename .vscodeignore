@@ -1,0 +1,6 @@
+.vscode
+node_modules
+# out/
+tsconfig.json
+webpack.config.js
+esbuild.js
