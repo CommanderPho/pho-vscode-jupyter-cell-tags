@@ -2,31 +2,20 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-
-// const myOutputChannel = vscode.window.createOutputChannel("Pho Hale Extension - Jupyter Cell Tags");
-// myOutputChannel.appendLine("This is a log message from my extension");
-// myOutputChannel.show(true);
-
 import { register as registerCellTags } from './cellTags';
 import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
-
-// let debugSelectedCellsStatusBarItem: vscode.StatusBarItem;
+import { countSelectedCells } from './helper';
 
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
 	registerCellTagsView(context);
 
-    // // Create a new status bar item
-    // debugSelectedCellsStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
-    // context.subscriptions.push(debugSelectedCellsStatusBarItem);
+	// Update context when the active editor or selection changes
+	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
+	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
-    // Update context when the active editor or selection changes
-    vscode.window.onDidChangeActiveNotebookEditor(updateContext);
-    vscode.window.onDidChangeNotebookEditorSelection(updateContext);
-
-    // Initialize the status bar
-    updateContext();
+	updateContext();
 }
 
 function updateContext() {
@@ -34,27 +23,30 @@ function updateContext() {
     if (!editor) {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
-        console.log('No active notebook editor');
-        // debugSelectedCellsStatusBarItem.hide();
         return;
     }
 
-    const selectionCount = editor.selections.length;
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', selectionCount === 1);
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', selectionCount > 1);
-
-    console.log(`Selection count: ${selectionCount}`);
-    console.log(`Single cell selected: ${selectionCount === 1}`);
-    console.log(`Multiple cells selected: ${selectionCount > 1}`);
-
-    // debugSelectedCellsStatusBarItem.text = `$(notebook) ${selectionCount} Cell(s) Selected`;
-    // debugSelectedCellsStatusBarItem.show();
+    const selections: readonly vscode.NotebookRange[] = editor.selections; // NotebookRange[]
+    const selectedRangesCount = selections.length;
+    var total_num_selected_cells = 0;
+    selections.forEach(selection => {
+        const range = selection as vscode.NotebookRange;
+        if (!range.isEmpty) {
+            const num_selected_cells = range.end - range.start
+            total_num_selected_cells += num_selected_cells;
+        }
+    });
+    // TODO 2024-09-05 17:47: - [ ] Got num selected cells nearly working, it will always be correct to tell if 1 vs. many cells.
+    // Noticed error below, there were only 3 cells in the notebook but it returned 4 cells. I think the last index should be excluded but then it would give zero for single cell selections?
+    // Selection num ranges count: 1
+    // 	Selected cells: Start(0), End(4)
+    // Selection count: 4
+    const selections: readonly vscode.NotebookRange[] = editor.selections;
+    const selectedRangesCount = selections.length;
+    const total_num_selected_cells = countSelectedCells(selections);
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
 }
 
 
-
-export function deactivate() {
-    // if (debugSelectedCellsStatusBarItem) {
-    //     debugSelectedCellsStatusBarItem.dispose();
-    // }
-}
+export function deactivate() {}
