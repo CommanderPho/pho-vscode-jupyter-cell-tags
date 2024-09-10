@@ -4,6 +4,8 @@
 import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags';
 import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
+import { countSelectedCells } from './helper';
+
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
@@ -39,9 +41,11 @@ function updateContext() {
     // Selection num ranges count: 1
     // 	Selected cells: Start(0), End(4)
     // Selection count: 4
-    const selectionCount = total_num_selected_cells;
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', selectionCount === 1);
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', selectionCount > 1);
+    const selections: readonly vscode.NotebookRange[] = editor.selections;
+    const selectedRangesCount = selections.length;
+    const total_num_selected_cells = countSelectedCells(selections);
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
 }
 
 
