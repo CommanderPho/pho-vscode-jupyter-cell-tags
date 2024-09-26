@@ -26,7 +26,9 @@
 		"onCommand:jupyter-cell-tags.removeTag",
 		"onCommand:jupyter-cell-tags.addTag",
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
-		"onCommand:jupyter-cell-tags.paramaterize"
+		"onCommand:jupyter-cell-tags.paramaterize",
+        "onCommand:extension.showAllNotebookTags",
+        "onView:all-notebook-tags-view"
 	],
 	"repository": {
 		"type": "git",
@@ -61,7 +63,12 @@
 			{
 				"command": "jupyter-cell-tags.paramaterize",
 				"title": "Mark Cell as Parameters"
-			}
+			},
+            {
+                "command": "jupyter-cell-tags.showAllNotebookTags",
+                "title": "Show All Notebook Tags",
+                "category": "Jupyter"
+            }
 		],
 		"menus": {
 			"notebook/cell/title": [
@@ -99,7 +106,12 @@
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
 				},
 				{
@@ -126,7 +138,18 @@
 					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
 					"visibility": "collapsed"
 				}
-			]
+			],
+            "explorer": [
+                {
+                "id": "all-notebook-tags-view",
+                "name": "All Notebook Tags",
+                "contextualTitle": "Notebook Tags",
+                "type": "tree",
+                "icon": "$(tag)",
+                "when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+                "visibility": "collapsed"
+                }
+            ]
 		},
 		"viewsWelcome": [
 			{
