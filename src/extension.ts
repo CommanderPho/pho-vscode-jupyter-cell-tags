@@ -6,7 +6,7 @@ import { register as registerCellTags } from './cellTags';
 import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
 import { register as registerAllNotebookTagsView } from './allNotebookTagsTreeDataProvider';
 import { countSelectedCells } from './helper';
-
+import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
@@ -18,6 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
 	updateContext();
+    activateNotebookRunGroups(context);
 }
 
 function updateContext() {

@@ -2,7 +2,7 @@
 	"name": "vscode-jupyter-cell-tags",
 	"displayName": "Jupyter Cell Tags",
 	"description": "Jupyter Cell Tags support for VS Code",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"publisher": "ms-toolsai",
 	"preview": true,
 	"icon": "icon.png",
@@ -27,6 +27,7 @@
 		"onCommand:jupyter-cell-tags.addTag",
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
 		"onCommand:jupyter-cell-tags.paramaterize",
+        "onCommand:jupyter-cell-tags.executeRunGroup",
         "onCommand:extension.showAllNotebookTags",
         "onView:all-notebook-tags-view"
 	],
@@ -68,9 +69,26 @@
                 "command": "jupyter-cell-tags.showAllNotebookTags",
                 "title": "Show All Notebook Tags",
                 "category": "Jupyter"
+            },
+            {
+                "command": "jupyter-cell-tags.executeRunGroup",
+                "title": "🏷️▶️ Execute Tag Run Group",
+                "category": "Jupyter"
             }
 		],
 		"menus": {
+            "commandPalette": [
+                {
+                    "command": "jupyter-cell-tags.executeRunGroup",
+                    "group": "Notebook Run Groups"
+                }
+            ],
+            "notebook/toolbar": [
+                {
+                    "command": "jupyter-cell-tags.executeRunGroup",
+                    "group": "navigation/execute@6"
+                }
+            ],
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
@@ -89,6 +107,10 @@
 				{
 					"command": "jupyter-cell-tags.paramaterize",
 					"group": "jupytercelltags@2"
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "jupytercelltags@3"
 				}
 			],
 			"notebook/cell/context": [
@@ -116,6 +138,11 @@
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
+					"when": "view == cell-tag",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
 					"when": "view == cell-tag",
 					"group": "navigation"
 				}
@@ -162,6 +189,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "webpack --mode none",
 		"watch": "webpack --mode none --watch",
+        "package": "vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
