@@ -74,6 +74,14 @@
                 "command": "jupyter-cell-tags.executeRunGroup",
                 "title": "🏷️▶️ Execute Tag Run Group",
                 "category": "Jupyter"
+            },
+            {
+                "command": "jupyter-cell-tags.refreshEntry",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
             }
 		],
 		"menus": {
@@ -143,9 +151,14 @@
 				},
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
 					"group": "navigation"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.refreshEntry",
+                    "when": "view == all-notebook-tags-view",
+                    "group": "navigation"
+                }
 			],
 			"view/item/context": [
 				{

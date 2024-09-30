@@ -78,8 +78,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         } else {
             // Cell reference node
             const cellItem = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
+            // set the default command to jump to that cell index
             cellItem.command = {
-                command: 'extension.openNotebookCell',
+                command: 'jupyter-cell-tags.openNotebookCell',
                 title: 'Open Cell',
                 arguments: [element.index]  // Pass the cell index to the command
             };
@@ -103,6 +104,15 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         this._editorDisposables.forEach(d => d.dispose());
         this._disposables.forEach(d => d.dispose());
     }
+
+
+    /* ================================================================================================================== */
+    /* User Actions                                                                                                       */
+    /* ================================================================================================================== */
+    refresh(): void {
+        this._onDidChangeTreeData.fire();
+    }
+
 }
 
 
@@ -111,7 +121,7 @@ export function register(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
 
     // Register a command to open and highlight a cell
-    context.subscriptions.push(vscode.commands.registerCommand('extension.openNotebookCell', (cellIndex: number) => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
         if (editor) {
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
@@ -119,4 +129,10 @@ export function register(context: vscode.ExtensionContext) {
             editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
         }
     }));
+
+    vscode.commands.registerCommand('jupyter-cell-tags.refreshEntry', () =>
+        /// jupyter-cell-tags
+        treeDataProvider.refresh()
+    );
+
 }
