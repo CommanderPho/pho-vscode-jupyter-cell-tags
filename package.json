@@ -29,7 +29,10 @@
 		"onCommand:jupyter-cell-tags.paramaterize",
         "onCommand:jupyter-cell-tags.executeRunGroup",
         "onCommand:extension.showAllNotebookTags",
-        "onView:all-notebook-tags-view"
+        "onView:all-notebook-tags-view",
+        "onCommand:jupyter-cell-tags.openNotebookCell",
+        "onCommand:jupyter-cell-tags.refreshEntry",
+        "onCommand:jupyter-cell-tags.runTag"
 	],
 	"repository": {
 		"type": "git",
@@ -82,6 +85,11 @@
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
                 }
+            },
+            {
+                "command": "jupyter-cell-tags.runTag",
+                "title": "Run Tag",
+                "icon": "$(run-all)"
             }
 		],
 		"menus": {
@@ -156,16 +164,26 @@
 				},
                 {
                     "command": "jupyter-cell-tags.refreshEntry",
-                    "when": "view == all-notebook-tags-view",
-                    "group": "navigation"
+                    "when": "view == cell-tag || view == all-notebook-tags-view",
+                    "group": "inline"
                 }
 			],
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
 					"group": "inline"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.runTag",
+                    "when": "view == all-notebook-tags-view || viewItem == tagItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "jupyter-cell-tags.refreshEntry",
+                    "when": "view == all-notebook-tags-view",
+                    "group": "navigation"
+                }
 			]
 		},
 		"views": {
