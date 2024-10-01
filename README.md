@@ -64,3 +64,6 @@ Any use of third-party trademarks or logos are subject to those third-party's po
 For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\VSCode\Code.exe --max-old-space-size=8192 --enable-proposed-api phohale.jupyter`
 
 
+
+
+--enable-proposed-api notebookCellExecutionState 

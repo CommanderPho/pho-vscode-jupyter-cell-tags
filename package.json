@@ -2,7 +2,7 @@
 	"name": "vscode-jupyter-cell-tags",
 	"displayName": "Jupyter Cell Tags",
 	"description": "Jupyter Cell Tags support for VS Code",
-	"version": "0.3.1",
+	"version": "0.3.2",
 	"publisher": "ms-toolsai",
 	"preview": true,
 	"icon": "icon.png",
@@ -26,7 +26,13 @@
 		"onCommand:jupyter-cell-tags.removeTag",
 		"onCommand:jupyter-cell-tags.addTag",
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
-		"onCommand:jupyter-cell-tags.paramaterize"
+		"onCommand:jupyter-cell-tags.paramaterize",
+        "onCommand:jupyter-cell-tags.executeRunGroup",
+        "onCommand:extension.showAllNotebookTags",
+        "onView:all-notebook-tags-view",
+        "onCommand:jupyter-cell-tags.openNotebookCell",
+        "onCommand:jupyter-cell-tags.refreshEntry",
+        "onCommand:jupyter-cell-tags.runTag"
 	],
 	"repository": {
 		"type": "git",
@@ -61,9 +67,44 @@
 			{
 				"command": "jupyter-cell-tags.paramaterize",
 				"title": "Mark Cell as Parameters"
-			}
+			},
+            {
+                "command": "jupyter-cell-tags.showAllNotebookTags",
+                "title": "Show All Notebook Tags",
+                "category": "Jupyter"
+            },
+            {
+                "command": "jupyter-cell-tags.executeRunGroup",
+                "title": "🏷️▶️ Execute Tag Run Group",
+                "category": "Jupyter"
+            },
+            {
+                "command": "jupyter-cell-tags.refreshEntry",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "jupyter-cell-tags.runTag",
+                "title": "Run Tag",
+                "icon": "$(run-all)"
+            }
 		],
 		"menus": {
+            "commandPalette": [
+                {
+                    "command": "jupyter-cell-tags.executeRunGroup",
+                    "group": "Notebook Run Groups"
+                }
+            ],
+            "notebook/toolbar": [
+                {
+                    "command": "jupyter-cell-tags.executeRunGroup",
+                    "group": "navigation/execute@6"
+                }
+            ],
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
@@ -82,6 +123,10 @@
 				{
 					"command": "jupyter-cell-tags.paramaterize",
 					"group": "jupytercelltags@2"
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "jupytercelltags@3"
 				}
 			],
 			"notebook/cell/context": [
@@ -99,21 +144,46 @@
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
 					"when": "view == cell-tag",
 					"group": "navigation"
-				}
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+                {
+                    "command": "jupyter-cell-tags.refreshEntry",
+                    "when": "view == cell-tag || view == all-notebook-tags-view",
+                    "group": "inline"
+                }
 			],
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
-					"when": "view == cell-tag",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
 					"group": "inline"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.runTag",
+                    "when": "view == all-notebook-tags-view || viewItem == tagItem",
+                    "group": "inline"
+                },
+                {
+                    "command": "jupyter-cell-tags.refreshEntry",
+                    "when": "view == all-notebook-tags-view",
+                    "group": "navigation"
+                }
 			]
 		},
 		"views": {
@@ -126,7 +196,18 @@
 					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
 					"visibility": "collapsed"
 				}
-			]
+			],
+            "explorer": [
+                {
+                "id": "all-notebook-tags-view",
+                "name": "All Notebook Tags",
+                "contextualTitle": "Notebook Tags",
+                "type": "tree",
+                "icon": "$(tag)",
+                "when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+                "visibility": "collapsed"
+                }
+            ]
 		},
 		"viewsWelcome": [
 			{
@@ -139,6 +220,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "webpack --mode none",
 		"watch": "webpack --mode none --watch",
+        "package": "vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
