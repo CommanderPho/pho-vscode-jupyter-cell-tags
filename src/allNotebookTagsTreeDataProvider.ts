@@ -88,6 +88,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
                 arguments: [element.index]  // Pass the cell index to the command
             };
             cellItem.tooltip = `Jump to cell ${element.index + 1}`;
+            cellItem.contextValue = 'cellItem'; // Optional: If you want to target cell items specifically
             return cellItem;
         }
     }
