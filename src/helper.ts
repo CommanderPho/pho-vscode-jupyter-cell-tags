@@ -110,3 +110,91 @@ export function countSelectedCells(selections: readonly vscode.NotebookRange[]):
     });
     return total_num_selected_cells;
 }
+
+
+// Add functions refactored from `cellTags.ts`
+export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
+    const oldTags = getCellTags(cell);
+    const newTags: string[] = [];
+    for (const tag of tags) {
+        if (!oldTags.includes(tag)) {
+            newTags.push(tag);
+        }
+    }
+    if (newTags.length) {
+        oldTags.push(...newTags);
+    }
+
+    await updateCellTags(cell, oldTags);
+}
+
+export async function addTagsToMultipleCells(cells: vscode.NotebookCell[], tags: string[]) {
+    for (const cell of cells) {
+        await addCellTag(cell, tags);
+    }
+}
+
+/* ================================================================================================================== */
+/* Get/"Revive"? cells                                                                                                */
+/* ================================================================================================================== */
+export function getActiveCell() {
+    // find active cell
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor) {
+        return;
+    }
+
+    if (editor.selections[0].start >= editor.notebook.cellCount) {
+        return;
+    }
+
+    return editor.notebook.cellAt(editor.selections[0].start);
+}
+
+
+export function getActiveCells(): vscode.NotebookCell[] | undefined {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor) {
+        return;
+    }
+
+    let cells: vscode.NotebookCell[] = [];
+    for (const selection of editor.selections) {
+        cells = cells.concat(editor.notebook.getCells(selection));
+    }
+    return cells.length > 0 ? cells : undefined;
+}
+
+
+export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): vscode.NotebookCell | undefined {
+    if (!args) {
+        return getActiveCell();
+    }
+
+    if (args && 'index' in args && 'kind' in args && 'notebook' in args && 'document' in args) {
+        return args as vscode.NotebookCell;
+    }
+
+    if (args && 'scheme' in args && 'path' in args) {
+        const cellUri = vscode.Uri.from(args);
+        const cellUriStr = cellUri.toString();
+        let activeCell: vscode.NotebookCell | undefined = undefined;
+
+        for (const document of vscode.workspace.notebookDocuments) {
+            for (const cell of document.getCells()) {
+                if (cell.document.uri.toString() === cellUriStr) {
+                    activeCell = cell;
+                    break;
+                }
+            }
+
+            if (activeCell) {
+                break;
+            }
+        }
+
+        return activeCell;
+    }
+
+    return undefined;
+}

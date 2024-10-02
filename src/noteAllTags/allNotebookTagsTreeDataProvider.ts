@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
-import { getCellTags } from './helper';  // Assuming this function fetches the tags for a cell
-import { executeGroup, argNotebookCell } from './notebookRunGroups/util/cellActionHelpers';
+import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
+import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
 
 
 interface CellReference {

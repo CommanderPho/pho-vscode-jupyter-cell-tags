@@ -66,4 +66,13 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 
 
 
---enable-proposed-api notebookCellExecutionState 
+--enable-proposed-api notebookCellExecutionState
+
+
+
+# 2024-10-01 Incoming Functionality
+
+# - [ ] Add a specific tag to the currently selected notebook cells
+# - [ ] Easily toggle/untoggle the inclusion of a tag on a given cell
+# - [ ] Enable special responses to tags, such as implementing `skip-execution` as it's used in the JupyterLab web UI.
+

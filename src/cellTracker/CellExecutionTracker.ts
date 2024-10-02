@@ -2,10 +2,16 @@
 
 import * as vscode from 'vscode';
 
+// interface TrackedCells {
+//     lastFailedCell: vscode.NotebookCell | null;
+//     lastSuccessfulCell: vscode.NotebookCell | null;
+// }
+
 interface TrackedCells {
-    lastFailedCell: vscode.NotebookCell | null;
-    lastSuccessfulCell: vscode.NotebookCell | null;
+    failedCells: vscode.NotebookCell[];
+    successfulCells: vscode.NotebookCell[];
 }
+
 
 export class CellExecutionTracker {
     private trackedCellsMap: Map<vscode.NotebookDocument, TrackedCells> = new Map();
@@ -17,6 +23,7 @@ export class CellExecutionTracker {
 
     public initialize() {
         // Load state
+        // const savedState = this.context.globalState.get<Map<string, TrackedCells>>('trackedCells', new Map());
         const savedState = this.context.globalState.get<Map<string, TrackedCells>>('trackedCells', new Map());
         this.trackedCellsMap = new Map(savedState);
 
