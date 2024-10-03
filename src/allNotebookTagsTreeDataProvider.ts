@@ -63,7 +63,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
                 if (!this._tags.has(tag)) {
                     this._tags.set(tag, []);
                 }
-                const cellRef: CellReference = { index: i, label: `Cell ${i + 1}` };
+                const cellRef: CellReference = { index: i, label: `Cell ${i + 1}` }; // this is where the label that appears in the tree view is set and could be customized
                 this._tags.get(tag)?.push(cellRef);
             });
         }

@@ -1,47 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
-// import { getCellRunGroupMetadata, updateCellRunGroupMetadata } from './util/cellMetadataHelpers';
-// import { updateContextKeys } from './contextKeys';
-// import { RunGroup } from './enums';
 import { log } from './util/logging';
 import { executeGroup, argNotebookCell } from './util/cellActionHelpers';
 
 // Register our commands for run groups
 export function registerCommands(context: vscode.ExtensionContext) {
     // // Register add commands
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.addGroup1', (args) => {
-    //         addToGroup(RunGroup.one, argNotebookCell(args));
-    //     })
-    // );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.addGroup2', (args) => {
-    //         addToGroup(RunGroup.two, argNotebookCell(args));
-    //     })
-    // );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.addGroup3', (args) => {
-    //         addToGroup(RunGroup.three, argNotebookCell(args));
-    //     })
-    // );
 
-    // // Register remove commands
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.removeGroup1', (args) => {
-    //         removeFromGroup(RunGroup.one, argNotebookCell(args));
-    //     })
-    // );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.removeGroup2', (args) => {
-    //         removeFromGroup(RunGroup.two, argNotebookCell(args));
-    //     })
-    // );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.removeGroup3', (args) => {
-    //         removeFromGroup(RunGroup.three, argNotebookCell(args));
-    //     })
-    // );
 
     // Register execute commands
     context.subscriptions.push(
@@ -73,16 +39,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             }
         })
     );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.executeGroup2', (args) => {
-    //         executeGroup(RunGroup.two, argNotebookCell(args));
-    //     })
-    // );
-    // context.subscriptions.push(
-    //     vscode.commands.registerCommand('vscode-notebook-groups.executeGroup3', (args) => {
-    //         executeGroup(RunGroup.three, argNotebookCell(args));
-    //     })
-    // );
+
 }
 
 
