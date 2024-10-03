@@ -90,6 +90,14 @@
                 "command": "jupyter-cell-tags.runTag",
                 "title": "Run Tag",
                 "icon": "$(run-all)"
+            },
+            {
+                "command": "jupyter-cell-tags.deleteCellsUnderHeading",
+                "title": "Delete Cells Under Heading"
+            },
+            {
+                "command": "jupyter-cell-tags.selectCellsUnderHeading",
+                "title": "Select Cells Under Heading"
             }
 		],
 		"menus": {
