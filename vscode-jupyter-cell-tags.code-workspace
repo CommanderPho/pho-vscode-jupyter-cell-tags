@@ -10,5 +10,43 @@
 			"path": "C:/Users/pho/repos/VSCode Extensions/vscode-jupyter-powertoys"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"actionButtons": {
+			"commands": [
+				{
+					"name": "Back",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateBack"
+				},
+				{
+					"name": "Forward",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateForward"
+				},
+				{
+					"name": "Toggle Cell Output Scrolling",
+					"color": "orange",
+					"useVsCodeApi": true,
+					"command": "notebook.cell.toggleOutputScrolling"
+				},
+				{
+					"name": "Restart Python Language Server",
+					"color": "#00FF00",
+					"useVsCodeApi": true,
+					"command": "python.analysis.restartLanguageServer"
+				},
+				{
+					"name": "VSCode Dev Consoler",
+					"color": "#99CCFF",
+					"useVsCodeApi": true,
+					"command": "workbench.action.toggleDevTools"
+				},
+				],
+				"defaultColor": "grey",
+				"reloadButton": "↻",
+				"loadNpmCommands": true
+			},
+		}
 }
