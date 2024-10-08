@@ -44,6 +44,83 @@ function getAllCellsFromActiveNotebook() {
     }
 }
 
+
+export function getAllTagsFromActiveNotebook() {
+    // Get the active notebook editor
+    const activeNotebookEditor = vscode.window.activeNotebookEditor;
+    // _tags: Array<string> = new Array();
+    const all_tags: string[] = new Array();
+    // Check if there is an active notebook editor
+    if (activeNotebookEditor) {
+        // Get the notebook document from the editor
+        const notebookDocument = activeNotebookEditor.notebook;
+        if (notebookDocument) {
+            for (let i = 0; i < activeNotebookEditor.notebook.cellCount; i++) {
+                const cell = activeNotebookEditor.notebook.cellAt(i);
+                if (!cell) {
+                    continue;
+                }
+                const tags = getCellTags(cell);
+                tags.forEach(tag => {
+                    // all_tags.includes(tag) ? null : all_tags.push(tag);
+                    if (!all_tags.includes(tag)) {
+                        all_tags.push(tag);
+                    }
+                });
+            }
+            console.log('All tags:', all_tags);
+            return all_tags;  // This will return an array of NotebookCell objects
+        }
+        else {
+            console.log('No active notebook editor document found');
+            return null;
+        }
+    } else {
+        console.log('No active notebook editor found');
+        return null;
+    }
+}
+
+export async function quickPickAllTags() {
+    const disposables: vscode.Disposable[] = [];
+    try {
+        // const knownTags = cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+        const knownTags = (getAllTagsFromActiveNotebook() ?? []).flat().sort();
+        const knownTagsLowerCased =  new Set(knownTags.map(tag => tag.toLowerCase()));
+        const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+        const quickPick = vscode.window.createQuickPick();
+        disposables.push(quickPick);
+        quickPick.placeholder = 'Type to select or create a cell tag';
+        quickPick.items = knownTagQuickPickItems;
+        quickPick.show();
+        quickPick.onDidChangeValue(e => {
+            e = e.trim().toLowerCase();
+            if (!e || knownTagsLowerCased.has(e)) {
+                return;
+            }
+            quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+        }, undefined, disposables);
+        const tag = await new Promise<string>(resolve => {
+            quickPick.onDidHide(() => resolve(''), undefined, disposables);
+            quickPick.onDidAccept(() => {
+                if (quickPick.selectedItems.length) {
+                    resolve(quickPick.selectedItems[0].label);
+                    quickPick.hide();
+                }
+            }, undefined, disposables);
+        });
+        return tag;
+        // if (tag) {
+        //     await addCellTag(cell, [tag]);
+        // }
+    }
+    finally{
+        disposables.forEach(d => d.dispose());
+    }
+    return null;
+}
+
+
 // Is the given argument a vscode NotebookCell?
 export function argNotebookCell(args: any): vscode.NotebookCell | undefined {
     // Check to see if we have a notebook cell for command context. Kinda ugly? Maybe a better way to do this.
