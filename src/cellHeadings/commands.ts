@@ -1,5 +1,20 @@
 import * as vscode from 'vscode';
 
+
+function isCellHeading(cell: vscode.NotebookCell): boolean {
+    if (cell.kind === vscode.NotebookCellKind.Markup) {
+        const match = cell.document.getText().match(/^(#+)\s+/);
+        if (match) {
+            const headingLevel = match[1].length;
+            // return headingLevel;
+            return (headingLevel > 0);
+        }
+    }
+    return false;
+    // return cell.kind === vscode.NotebookCellKind.Markup && cell.document.getText().startsWith('#');
+}
+
+
 function getCellsUnderHeading(notebook: vscode.NotebookDocument, startIndex: number, headingLevel: number): vscode.NotebookCell[] {
     const cells: vscode.NotebookCell[] = [];
     for (let i = startIndex + 1; i < notebook.cellCount; i++) {

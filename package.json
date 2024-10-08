@@ -97,7 +97,7 @@
             },
             {
                 "command": "jupyter-cell-tags.selectCellsUnderHeading",
-                "title": "Select Cells Under Heading"
+                "title": "📑🖍️👶 Select Cells Under Heading"
             }
 		],
 		"menus": {
@@ -135,6 +135,11 @@
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
 					"group": "jupytercelltags@3"
+				},
+				{
+					"command": "jupyter-cell-tags.selectCellsUnderHeading",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags@4"
 				}
 			],
 			"notebook/cell/context": [
