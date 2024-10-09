@@ -61,9 +61,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             const tags = getCellTags(cell);
             tags.forEach(tag => {
                 if (!this._tags.has(tag)) {
-                    this._tags.set(tag, []);
+                    this._tags.set(tag, []); // Initialize the list of cell references for the tag
                 }
-                const cellRef: CellReference = { index: i, label: `Cell ${i + 1}` };
+                const cellRef: CellReference = { index: i, label: `Cell ${i + 1}` }; // this is where the label that appears in the tree view is set and could be customized
                 this._tags.get(tag)?.push(cellRef);
             });
         }
@@ -114,6 +114,10 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     /* ================================================================================================================== */
     refresh(): void {
         this._onDidChangeTreeData.fire();
+    }
+
+    getAllTags(): string[] {
+        return Array.from(this._tags.keys());
     }
 
     /**

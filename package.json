@@ -2,7 +2,7 @@
 	"name": "vscode-jupyter-cell-tags",
 	"displayName": "Jupyter Cell Tags",
 	"description": "Jupyter Cell Tags support for VS Code",
-	"version": "0.3.2",
+	"version": "0.3.3",
 	"publisher": "ms-toolsai",
 	"preview": true,
 	"icon": "icon.png",
@@ -90,6 +90,22 @@
                 "command": "jupyter-cell-tags.runTag",
                 "title": "Run Tag",
                 "icon": "$(run-all)"
+            },
+            {
+                "command": "jupyter-cell-tags.deleteCellsUnderHeading",
+                "title": "Delete Cells Under Heading"
+            },
+            {
+                "command": "jupyter-cell-tags.selectCellsUnderHeading",
+                "title": "📑🗹🖍️👶🗷 Select Cells Under Heading"
+            },
+            {
+                "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                "title": "📑🗹🡾⤵ Increase Selected Cells Header Depth"
+            },
+            {
+                "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                "title": "📑🗹🡭⤴ Decrease Selected Cells Header Depth"
             }
 		],
 		"menus": {
@@ -97,6 +113,16 @@
                 {
                     "command": "jupyter-cell-tags.executeRunGroup",
                     "group": "Notebook Run Groups"
+                },
+                {
+                    "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "Notebook Header Selections"
+                },
+                {
+                    "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "Notebook Header Selections"
                 }
             ],
             "notebook/toolbar": [
@@ -127,7 +153,22 @@
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
 					"group": "jupytercelltags@3"
-				}
+				},
+				{
+					"command": "jupyter-cell-tags.selectCellsUnderHeading",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags_headings@1"
+				},
+                {
+                    "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "jupytercelltags_headings@2"
+                },
+                {
+                    "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "jupytercelltags_headings@3"
+                }
 			],
 			"notebook/cell/context": [
 				{
@@ -214,7 +255,19 @@
 				"view": "cell-tag",
 				"contents": "No tags found for the selected cell. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
 			}
-		]
+		],
+        "keybindings": [
+        {
+            "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+            "key": "ctrl+shift+]",
+            "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+        },
+        {
+            "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+            "key": "ctrl+shift+[",
+            "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+        }
+        ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
