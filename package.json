@@ -273,7 +273,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "webpack --mode none",
 		"watch": "webpack --mode none --watch",
-        "package": "vsce package --no-yarn",
+        "package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
 		"test": "node ./out/test/runTest.js"
