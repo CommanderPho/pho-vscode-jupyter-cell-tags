@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 
-
 function isCellHeading(cell: vscode.NotebookCell): boolean {
     if (cell.kind === vscode.NotebookCellKind.Markup) {
         const match = cell.document.getText().match(/^(#+)\s+/);
@@ -13,7 +12,6 @@ function isCellHeading(cell: vscode.NotebookCell): boolean {
     return false;
     // return cell.kind === vscode.NotebookCellKind.Markup && cell.document.getText().startsWith('#');
 }
-
 
 function getCellsUnderHeading(notebook: vscode.NotebookDocument, startIndex: number, headingLevel: number): vscode.NotebookCell[] {
     const cells: vscode.NotebookCell[] = [];
@@ -35,9 +33,6 @@ function getCellsUnderHeading(notebook: vscode.NotebookDocument, startIndex: num
     }
     return cells;
 }
-
-// const cellsUnderHeading = getCellsUnderHeading(notebook, selection.start, headingLevel);
-
 
 function selectCellsUnderHeading() {
     const notebookEditor = vscode.window.activeNotebookEditor;
@@ -80,6 +75,112 @@ function selectCellsUnderHeading() {
     notebookEditor.selection = new vscode.NotebookRange(start, end);
     vscode.window.showInformationMessage(`Selected ${cellsToSelect.length} cells under the heading "${headingText}".`);
 }
+
+
+function increaseSelectionDepth() {
+    const notebookEditor = vscode.window.activeNotebookEditor;
+    if (!notebookEditor) {
+        vscode.window.showErrorMessage('No active notebook editor found.');
+        return;
+    }
+
+    const notebook = notebookEditor.notebook;
+    const selection = notebookEditor.selection;
+    if (!selection) {
+        vscode.window.showErrorMessage('No cells are selected.');
+        return;
+    }
+
+    // Find the first markdown cell in the selection
+    for (let i = selection.start; i <= selection.end; i++) {
+        const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const lines = text.split('\n');
+            let modified = false;
+
+            const newLines = lines.map(line => {
+                // Check if the line is a heading
+                const match = line.match(/^(#+)\s+(.*)/);
+                if (match) {
+                    // Increase heading level by adding a '#'
+                    const hashes = match[1] + '#';
+                    const content = match[2];
+                    modified = true;
+                    return `${hashes} ${content}`;
+                } else {
+                    return line;
+                }
+            });
+
+            if (modified) {
+                const newText = newLines.join('\n');
+                const edit = new vscode.WorkspaceEdit();
+                const range = new vscode.Range(0, 0, cell.document.lineCount, 0);
+                edit.replace(cell.document.uri, range, newText);
+                vscode.workspace.applyEdit(edit);
+            }
+            break; // Only modify the first markdown cell
+        }
+    }
+}
+
+function decreaseSelectionDepth() {
+    const notebookEditor = vscode.window.activeNotebookEditor;
+    if (!notebookEditor) {
+        vscode.window.showErrorMessage('No active notebook editor found.');
+        return;
+    }
+
+    const notebook = notebookEditor.notebook;
+    const selection = notebookEditor.selection;
+    if (!selection) {
+        vscode.window.showErrorMessage('No cells are selected.');
+        return;
+    }
+
+    // Find the first markdown cell in the selection
+    for (let i = selection.start; i <= selection.end; i++) {
+        const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const lines = text.split('\n');
+            let modified = false;
+
+            const newLines = lines.map(line => {
+                // Check if the line is a heading
+                const match = line.match(/^(#+)\s+(.*)/);
+                if (match) {
+                    const headingLevel = match[1].length;
+                    if (headingLevel > 1) {
+                        // Decrease heading level by removing one '#'
+                        const hashes = match[1].substring(1);
+                        const content = match[2];
+                        modified = true;
+                        return `${hashes} ${content}`;
+                    } else {
+                        // Heading level is 1, remove '#' to make it normal text
+                        const content = match[2];
+                        modified = true;
+                        return content;
+                    }
+                } else {
+                    return line;
+                }
+            });
+
+            if (modified) {
+                const newText = newLines.join('\n');
+                const edit = new vscode.WorkspaceEdit();
+                const range = new vscode.Range(0, 0, cell.document.lineCount, 0);
+                edit.replace(cell.document.uri, range, newText);
+                vscode.workspace.applyEdit(edit);
+            }
+            break; // Only modify the first markdown cell
+        }
+    }
+}
+
 
 async function deleteCellsUnderHeading() {
     const notebookEditor = vscode.window.activeNotebookEditor;
@@ -136,8 +237,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
     const deleteCommand = vscode.commands.registerCommand('jupyter-cell-tags.deleteCellsUnderHeading', deleteCellsUnderHeading);
     const selectCommand = vscode.commands.registerCommand('jupyter-cell-tags.selectCellsUnderHeading', selectCellsUnderHeading);
+    const increaseSelectionHeadingDepthCommand = vscode.commands.registerCommand('jupyter-cell-tags.increaseSelectionHeadingDepth', increaseSelectionDepth);
+    const decreaseSelectionHeadingDepthCommand = vscode.commands.registerCommand('jupyter-cell-tags.decreaseSelectionHeadingDepth', decreaseSelectionDepth);
 
-    context.subscriptions.push(deleteCommand, selectCommand);
+    context.subscriptions.push(deleteCommand, selectCommand, increaseSelectionHeadingDepthCommand, decreaseSelectionHeadingDepthCommand);
 
     // context.subscriptions.push(
     //     vscode.commands.registerCommand('jupyter-cell-tags.selectCellsUnderHeading', (args) => {

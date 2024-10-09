@@ -98,6 +98,14 @@
             {
                 "command": "jupyter-cell-tags.selectCellsUnderHeading",
                 "title": "📑🖍️👶 Select Cells Under Heading"
+            },
+            {
+                "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                "title": "📑🖍️👶 Increase Selected Cells Header Depth"
+            },
+            {
+                "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                "title": "📑🖍️👶 Decrease Selected Cells Header Depth"
             }
 		],
 		"menus": {
