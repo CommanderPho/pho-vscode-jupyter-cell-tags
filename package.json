@@ -97,15 +97,15 @@
             },
             {
                 "command": "jupyter-cell-tags.selectCellsUnderHeading",
-                "title": "📑🖍️👶 Select Cells Under Heading"
+                "title": "📑🗹🖍️👶🗷 Select Cells Under Heading"
             },
             {
                 "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
-                "title": "📑🖍️👶 Increase Selected Cells Header Depth"
+                "title": "📑🗹🡾⤵ Increase Selected Cells Header Depth"
             },
             {
                 "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
-                "title": "📑🖍️👶 Decrease Selected Cells Header Depth"
+                "title": "📑🗹🡭⤴ Decrease Selected Cells Header Depth"
             }
 		],
 		"menus": {
@@ -113,6 +113,16 @@
                 {
                     "command": "jupyter-cell-tags.executeRunGroup",
                     "group": "Notebook Run Groups"
+                },
+                {
+                    "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "Notebook Header Selections"
+                },
+                {
+                    "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "Notebook Header Selections"
                 }
             ],
             "notebook/toolbar": [
@@ -147,8 +157,18 @@
 				{
 					"command": "jupyter-cell-tags.selectCellsUnderHeading",
 					"when": "jupyter-cell-tags.singleCellSelected",
-					"group": "jupytercelltags@4"
-				}
+					"group": "jupytercelltags_headings@1"
+				},
+                {
+                    "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "jupytercelltags_headings@2"
+                },
+                {
+                    "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+                    "group": "jupytercelltags_headings@3"
+                }
 			],
 			"notebook/cell/context": [
 				{
@@ -235,7 +255,19 @@
 				"view": "cell-tag",
 				"contents": "No tags found for the selected cell. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
 			}
-		]
+		],
+        "keybindings": [
+        {
+            "command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+            "key": "ctrl+shift+]",
+            "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+        },
+        {
+            "command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+            "key": "ctrl+shift+[",
+            "when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+        }
+        ]
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
