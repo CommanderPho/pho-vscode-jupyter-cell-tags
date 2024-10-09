@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import * as json from './json';
-import { getCellTags, updateCellTags } from './helper';
+import * as json from '../json';
+import { getCellTags, updateCellTags } from '../helper';
 // import { getAllTagsFromActiveNotebook } from './allNotebookTagsTreeDataProvider';
-import { quickPickAllTags, getAllTagsFromActiveNotebook } from './notebookRunGroups/util/cellActionHelpers';
+import { quickPickAllTags, getAllTagsFromActiveNotebook } from '../notebookRunGroups/util/cellActionHelpers';
 
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
