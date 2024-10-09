@@ -77,7 +77,7 @@ function selectCellsUnderHeading() {
 }
 
 
-function increaseSelectionDepth() {
+async function increaseSelectionDepth() {
     const notebookEditor = vscode.window.activeNotebookEditor;
     if (!notebookEditor) {
         vscode.window.showErrorMessage('No active notebook editor found.');
@@ -91,16 +91,64 @@ function increaseSelectionDepth() {
         return;
     }
 
-    // Find the first markdown cell in the selection
-    for (let i = selection.start; i <= selection.end; i++) {
+    let startIndex = selection.start;
+    let endIndex = selection.end;
+
+    // Find the first markdown heading cell in the selection
+    let foundFirstHeadingCell = false;
+    let initialHeadingLevel = 0;
+
+    for (let i = startIndex; i <= endIndex; i++) {
         const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const match = text.match(/^(#+)\s+(.*)/);
+            if (match) {
+                initialHeadingLevel = match[1].length;
+                foundFirstHeadingCell = true;
+                startIndex = i; // Update start index to this cell
+                break;
+            }
+        }
+    }
+
+    if (!foundFirstHeadingCell) {
+        vscode.window.showErrorMessage('No markdown heading cell found in the selection.');
+        return;
+    }
+
+    // Collect all nested markdown heading cells under the first heading
+    const cellsToModify: vscode.NotebookCell[] = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+        const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const match = text.match(/^(#+)\s+(.*)/);
+            if (match) {
+                const currentHeadingLevel = match[1].length;
+                if (i !== startIndex && currentHeadingLevel <= initialHeadingLevel) {
+                    // Reached a heading of the same or higher level
+                    break;
+                }
+                cellsToModify.push(cell);
+            } else {
+                // Non-heading markdown cell
+                cellsToModify.push(cell);
+            }
+        } else {
+            // Code cell
+            cellsToModify.push(cell);
+        }
+    }
+
+    // Increase heading levels in the collected markdown cells
+    for (const cell of cellsToModify) {
         if (cell.kind === vscode.NotebookCellKind.Markup) {
             const text = cell.document.getText();
             const lines = text.split('\n');
             let modified = false;
 
             const newLines = lines.map(line => {
-                // Check if the line is a heading
                 const match = line.match(/^(#+)\s+(.*)/);
                 if (match) {
                     // Increase heading level by adding a '#'
@@ -118,14 +166,13 @@ function increaseSelectionDepth() {
                 const edit = new vscode.WorkspaceEdit();
                 const range = new vscode.Range(0, 0, cell.document.lineCount, 0);
                 edit.replace(cell.document.uri, range, newText);
-                vscode.workspace.applyEdit(edit);
+                await vscode.workspace.applyEdit(edit);
             }
-            break; // Only modify the first markdown cell
         }
     }
 }
 
-function decreaseSelectionDepth() {
+async function decreaseSelectionDepth() {
     const notebookEditor = vscode.window.activeNotebookEditor;
     if (!notebookEditor) {
         vscode.window.showErrorMessage('No active notebook editor found.');
@@ -139,16 +186,64 @@ function decreaseSelectionDepth() {
         return;
     }
 
-    // Find the first markdown cell in the selection
-    for (let i = selection.start; i <= selection.end; i++) {
+    let startIndex = selection.start;
+    let endIndex = selection.end;
+
+    // Find the first markdown heading cell in the selection
+    let foundFirstHeadingCell = false;
+    let initialHeadingLevel = 0;
+
+    for (let i = startIndex; i <= endIndex; i++) {
         const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const match = text.match(/^(#+)\s+(.*)/);
+            if (match) {
+                initialHeadingLevel = match[1].length;
+                foundFirstHeadingCell = true;
+                startIndex = i; // Update start index to this cell
+                break;
+            }
+        }
+    }
+
+    if (!foundFirstHeadingCell) {
+        vscode.window.showErrorMessage('No markdown heading cell found in the selection.');
+        return;
+    }
+
+    // Collect all nested markdown heading cells under the first heading
+    const cellsToModify: vscode.NotebookCell[] = [];
+    for (let i = startIndex; i <= endIndex; i++) {
+        const cell = notebook.cellAt(i);
+        if (cell.kind === vscode.NotebookCellKind.Markup) {
+            const text = cell.document.getText();
+            const match = text.match(/^(#+)\s+(.*)/);
+            if (match) {
+                const currentHeadingLevel = match[1].length;
+                if (i !== startIndex && currentHeadingLevel <= initialHeadingLevel) {
+                    // Reached a heading of the same or higher level
+                    break;
+                }
+                cellsToModify.push(cell);
+            } else {
+                // Non-heading markdown cell
+                cellsToModify.push(cell);
+            }
+        } else {
+            // Code cell
+            cellsToModify.push(cell);
+        }
+    }
+
+    // Decrease heading levels in the collected markdown cells
+    for (const cell of cellsToModify) {
         if (cell.kind === vscode.NotebookCellKind.Markup) {
             const text = cell.document.getText();
             const lines = text.split('\n');
             let modified = false;
 
             const newLines = lines.map(line => {
-                // Check if the line is a heading
                 const match = line.match(/^(#+)\s+(.*)/);
                 if (match) {
                     const headingLevel = match[1].length;
@@ -174,9 +269,8 @@ function decreaseSelectionDepth() {
                 const edit = new vscode.WorkspaceEdit();
                 const range = new vscode.Range(0, 0, cell.document.lineCount, 0);
                 edit.replace(cell.document.uri, range, newText);
-                vscode.workspace.applyEdit(edit);
+                await vscode.workspace.applyEdit(edit);
             }
-            break; // Only modify the first markdown cell
         }
     }
 }
