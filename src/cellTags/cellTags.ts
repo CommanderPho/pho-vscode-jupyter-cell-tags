@@ -48,19 +48,19 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
             });
         });
 
-        if (items.length) {
-            // add insert tag status bar item
-            items.push({
-                text: '$(plus) Tag',
-                tooltip: 'Add Tag',
-                command: {
-                    title: 'Add Tag',
-                    command: 'jupyter-cell-tags.addTag',
-                    arguments: [cell]
-                },
-                alignment: vscode.NotebookCellStatusBarAlignment.Left
-            });
-        }
+        // if (items.length) { // require at least one item for the + tag button to show up
+        // add insert tag status bar item
+        items.push({
+            text: '$(plus) Tag',
+            tooltip: 'Add Tag',
+            command: {
+                title: 'Add Tag',
+                command: 'jupyter-cell-tags.addTag',
+                arguments: [cell]
+            },
+            alignment: vscode.NotebookCellStatusBarAlignment.Left
+        });
+        // }
 
         return items;
     }
