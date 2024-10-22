@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
-
+import { log, showTimedInformationMessage } from '../notebookRunGroups/util/logging';
 
 interface CellReference {
     index: number;
@@ -168,7 +168,8 @@ export function register(context: vscode.ExtensionContext) {
 
     // Register the new "Run Tag" command
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runTag', async (tag: string) => {
-        vscode.window.showInformationMessage(`Running all cells with tag: ${tag}`);
+        // vscode.window.showInformationMessage(`Running all cells with tag: ${tag}`);
+        showTimedInformationMessage(`Running all cells with tag: ${tag}`, 1000);
 
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
@@ -178,7 +179,8 @@ export function register(context: vscode.ExtensionContext) {
 
         const cellRefs = treeDataProvider.getCellReferencesForTag(tag);
         if (!cellRefs || cellRefs.length === 0) {
-            vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            // vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
             return;
         }
 
@@ -195,7 +197,8 @@ export function register(context: vscode.ExtensionContext) {
         }
 
         // vscode.window.showInformationMessage(`Executed ${cellRefs.length} cells with tag: ${tag}`);
-        vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
+        // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
+        showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
     }));
 
