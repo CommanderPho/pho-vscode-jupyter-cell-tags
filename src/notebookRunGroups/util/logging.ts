@@ -10,7 +10,7 @@ export function log(message: string) {
     console.log(message);
 }
 
-export function showTimedInformationMessage(message: string, timeout: number) {
+export async function showTimedInformationMessage(message: string, timeout: number) {
     // Create the information message
     const messagePromise = vscode.window.showInformationMessage(message);
     // Create a timeout promise that resolves after a certain delay
@@ -21,9 +21,7 @@ export function showTimedInformationMessage(message: string, timeout: number) {
     });
 
     // Use Promise.race to resolve whichever promise comes first (message dismissal or timeout)
-    return Promise.race([messagePromise, timeoutPromise]).then(() => {
-        // The message will disappear after the timeout
-    });
+    await Promise.race([messagePromise, timeoutPromise]);
 }
 
 // export function showTimedErrorMessage(message: string, timeout: number) {
