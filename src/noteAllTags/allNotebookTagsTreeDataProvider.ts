@@ -169,7 +169,7 @@ export function register(context: vscode.ExtensionContext) {
     // Register the new "Run Tag" command
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runTag', async (tag: string) => {
         // vscode.window.showInformationMessage(`Running all cells with tag: ${tag}`);
-        showTimedInformationMessage(`Running all cells with tag: ${tag}`, 1000);
+        // showTimedInformationMessage(`Running all cells with tag: ${tag}`, 1000);
 
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
