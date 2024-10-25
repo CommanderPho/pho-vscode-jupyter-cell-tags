@@ -81,7 +81,49 @@ export function getAllTagsFromActiveNotebook() {
     }
 }
 
+
+// export async function quickPickSpecificTags(knownTagQuickPickItems?: { label: string }[], quickPickMessage?: string) {
+//     const disposables: vscode.Disposable[] = [];
+//     try {
+//         const knownTags = (getAllTagsFromActiveNotebook() ?? []).flat().sort();
+//         const knownTagsLowerCased = new Set(knownTags.map(tag => tag.toLowerCase()).filter(tag => tag.includes("run-")));
+//         knownTagQuickPickItems = knownTagQuickPickItems ?? Array.from(knownTagsLowerCased).map(tag => ({ label: tag }));
+//         const quickPick = vscode.window.createQuickPick();
+//         disposables.push(quickPick);
+//         quickPick.placeholder = quickPickMessage ?? 'Type to select or create a cell tag with "run-" prefix';
+//         quickPick.items = knownTagQuickPickItems;
+//         quickPick.show();
+
+//         quickPick.onDidChangeValue(e => {
+//             e = "run-" + e.trim().toLowerCase();
+//             if (!e || knownTagsLowerCased.has(e)) {
+//                 return;
+//             }
+//             quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+//         }, undefined, disposables);
+
+//         const tag = await new Promise<string>(resolve => {
+//             quickPick.onDidHide(() => resolve(''), undefined, disposables);
+//             quickPick.onDidAccept(() => {
+//                 if (quickPick.selectedItems.length) {
+//                     resolve(quickPick.selectedItems[0].label);
+//                     quickPick.hide();
+//                 }
+//             }, undefined, disposables);
+//         });
+//         return tag;
+//     }
+//     finally {
+//         disposables.forEach(d => d.dispose());
+//     }
+//     return null;
+// }
+
+
+
 export async function quickPickAllTags() {
+	// const tag = await quickPickSpecificTags(undefined, "Type to select or create a cell tag with 'run-' prefix");
+
     const disposables: vscode.Disposable[] = [];
     try {
         // const knownTags = cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
