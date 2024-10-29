@@ -1,9 +1,9 @@
 {
-	"name": "vscode-jupyter-cell-tags",
-	"displayName": "Jupyter Cell Tags",
-	"description": "Jupyter Cell Tags support for VS Code",
+	"name": "pho-vscode-jupyter-cell-tags",
+	"displayName": "Pho Jupyter Cell Tags",
+	"description": "Extended Jupyter Cell Tags support for VS Code",
 	"version": "0.3.6",
-	"publisher": "ms-toolsai",
+	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
 	"galleryBanner": {
