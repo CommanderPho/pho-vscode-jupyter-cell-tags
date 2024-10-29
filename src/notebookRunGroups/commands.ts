@@ -15,9 +15,13 @@ export async function quickPickAllRunGroupTags() {
     const disposables: vscode.Disposable[] = [];
     try {
         // const knownTags = cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
-        const knownTags = (getAllTagsFromActiveNotebook() ?? []).flat().sort().filter(tag => tag.includes("run-"));
-        const knownTagsLowerCased =  new Set(knownTags.map(tag => tag.toLowerCase()));
-        const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+        const knownTags = (getAllTagsFromActiveNotebook() ?? []).flat().sort()
+        const filteredKnownTags = knownTags.filter(tag => tag.toLowerCase().includes("run"));
+        //  || tag.includes("Run")) && !tag.includes("run-")
+        const filteredOtherTags = knownTags.filter(tag => !tag.toLowerCase().includes("run"));
+        const activeKnownTags = filteredKnownTags.concat(filteredOtherTags);
+        const knownTagsLowerCased =  new Set(activeKnownTags.map(tag => tag.toLowerCase()));
+        const knownTagQuickPickItems = Array.from(new Set(activeKnownTags)).map(tag => ({ label: tag }));
         const quickPick = vscode.window.createQuickPick();
         disposables.push(quickPick);
         quickPick.placeholder = 'Type to select a cell run tag';
