@@ -239,7 +239,12 @@
 					"command": "jupyter-cell-tags.refreshEntry",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.selectAllChildCells",
+                    "when": "viewItem == all-notebook-tags-view",
+                    "group": "inline"
+                }
 			]
 		},
 		"views": {
