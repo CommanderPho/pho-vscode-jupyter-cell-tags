@@ -111,7 +111,12 @@
 				"command": "jupyter-cell-tags.listKernels",
 				"title": "Execute code against a Python Kernel",
 				"category": "Jupyter Kernel API"
-			}
+			},
+            {
+                "command": "jupyter-cell-tags.selectAllChildCells",
+                "title": "Select All Child Cells",
+                "category": "Jupyter Cell Tags"
+            }
 		],
 		"menus": {
 			"commandPalette": [

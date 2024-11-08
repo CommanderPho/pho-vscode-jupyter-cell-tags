@@ -79,7 +79,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element);
             return tagItem;
         } else {
-            // Cell reference node
+            // Cell reference node -- the leaf nodes that say "Cell 65" or similar
             const cellItem = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
             // set the default command to jump to that cell index
             cellItem.command = {
@@ -200,6 +200,28 @@ export function register(context: vscode.ExtensionContext) {
         // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
         showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
+    }));
+
+
+    // Register the new "Select All Cells" command
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllChildCells', async (tag: string) => {
+        const editor = vscode.window.activeNotebookEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
+        showTimedInformationMessage(`selectAllChildCells`, 3000);
+
+        // const cellRefs = treeDataProvider.getCellReferencesForTag(tag);
+        // if (!cellRefs || cellRefs.length === 0) {
+        //     showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
+        //     return;
+        // }
+
+        // const ranges = cellRefs.map(cellRef => new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+        // editor.selections = ranges;
+
+        // showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
     }));
 
 
