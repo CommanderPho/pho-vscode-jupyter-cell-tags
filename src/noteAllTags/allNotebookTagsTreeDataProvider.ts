@@ -219,18 +219,27 @@ export function register(context: vscode.ExtensionContext) {
             return;
         }
 
-        // build up the new selections:
+        const existingSelections = new Set(editor.selections.map(sel => sel.start)); // Track existing start indices
         const cellRanges: vscode.NotebookRange[] = [];
+
+        console.log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
         for (const cellRef of cellRefs) {
-            const cell = editor.notebook.cellAt(cellRef.index);
-            if (cell) {
-                // Create a NotebookRange for this cell and add it to the cellRanges array
-                cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+            if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+                const cell = editor.notebook.cellAt(cellRef.index);
+                if (cell && !existingSelections.has(cellRef.index)) {
+
+                    console.log(`Adding cell at index ${cellRef.index} to selection`);
+                    // cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index));
+                    cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+                }
             }
         }
 
-        // Append the new selections to the existing selections
-        editor.selections = [...editor.selections, ...cellRanges];
+        // Append new selections to the existing ones
+        // editor.selections = [...editor.selections, ...cellRanges];
+        // editor.selections = [...existingSelections, ...cellRanges];
+        // // Reset selections to avoid unexpected behavior
+        editor.selections = [...cellRanges];
 
         showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
     }));
