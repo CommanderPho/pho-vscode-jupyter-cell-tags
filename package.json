@@ -32,7 +32,8 @@
 		"onView:all-notebook-tags-view",
 		"onCommand:jupyter-cell-tags.openNotebookCell",
 		"onCommand:jupyter-cell-tags.refreshEntry",
-		"onCommand:jupyter-cell-tags.runTag"
+		"onCommand:jupyter-cell-tags.runTag",
+        "onCommand:jupyter-cell-tags.selectAllChildCells"
 	],
 	"repository": {
 		"type": "git",
@@ -222,7 +223,12 @@
 					"command": "jupyter-cell-tags.refreshEntry",
 					"when": "view == cell-tag || view == all-notebook-tags-view",
 					"group": "inline"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.selectAllChildCells",
+                    "when": "view == cell-tag || view == all-notebook-tags-view",
+                    "group": "inline"
+                }
 			],
 			"view/item/context": [
 				{
@@ -242,8 +248,8 @@
 				},
                 {
                     "command": "jupyter-cell-tags.selectAllChildCells",
-                    "when": "viewItem == all-notebook-tags-view",
-                    "group": "inline"
+                    "when": "view == all-notebook-tags-view",
+                    "group": "navigation"
                 }
 			]
 		},
