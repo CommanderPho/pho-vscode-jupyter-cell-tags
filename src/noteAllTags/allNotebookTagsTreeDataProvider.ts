@@ -212,16 +212,27 @@ export function register(context: vscode.ExtensionContext) {
         }
         showTimedInformationMessage(`selectAllChildCells`, 3000);
 
-        // const cellRefs = treeDataProvider.getCellReferencesForTag(tag);
-        // if (!cellRefs || cellRefs.length === 0) {
-        //     showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
-        //     return;
-        // }
+        const cellRefs = treeDataProvider.getCellReferencesForTag(tag);
+        if (!cellRefs || cellRefs.length === 0) {
+            // vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
+            return;
+        }
 
-        // const ranges = cellRefs.map(cellRef => new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
-        // editor.selections = ranges;
+        // build up the new selections:
+        const cellRanges: vscode.NotebookRange[] = [];
+        for (const cellRef of cellRefs) {
+            const cell = editor.notebook.cellAt(cellRef.index);
+            if (cell) {
+                // Create a NotebookRange for this cell and add it to the cellRanges array
+                cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+            }
+        }
 
-        // showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
+        // Append the new selections to the existing selections
+        editor.selections = [...editor.selections, ...cellRanges];
+
+        showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
     }));
 
 
