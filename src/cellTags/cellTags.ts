@@ -2,8 +2,11 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import * as json from './json';
-import { getCellTags, updateCellTags } from './helper';
+import * as json from '../json';
+import { getCellTags, updateCellTags } from '../helper';
+// import { getAllTagsFromActiveNotebook } from './allNotebookTagsTreeDataProvider';
+import { quickPickAllTags, getAllTagsFromActiveNotebook } from '../notebookRunGroups/util/cellActionHelpers';
+
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
     const oldTags = getCellTags(cell);
@@ -45,19 +48,19 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
             });
         });
 
-        if (items.length) {
-            // add insert tag status bar item
-            items.push({
-                text: '$(plus) Tag',
-                tooltip: 'Add Tag',
-                command: {
-                    title: 'Add Tag',
-                    command: 'jupyter-cell-tags.addTag',
-                    arguments: [cell]
-                },
-                alignment: vscode.NotebookCellStatusBarAlignment.Left
-            });
-        }
+        // if (items.length) { // require at least one item for the + tag button to show up
+        // add insert tag status bar item
+        items.push({
+            text: '$(plus) Tag',
+            tooltip: 'Add Tag',
+            command: {
+                title: 'Add Tag',
+                command: 'jupyter-cell-tags.addTag',
+                arguments: [cell]
+            },
+            alignment: vscode.NotebookCellStatusBarAlignment.Left
+        });
+        // }
 
         return items;
     }
@@ -156,23 +159,59 @@ export function register(context: vscode.ExtensionContext) {
         )
     );
 
+    // Test getAllTagsFromActiveNotebook function
+    const tags = getAllTagsFromActiveNotebook();
+    console.log('Retrieved tags:', tags);
+
     context.subscriptions.push(
         vscode.commands.registerCommand(
             'jupyter-cell-tags.addTag',
             async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
                 cell = reviveCell(cell);
-
                 if (!cell) {
                     return;
                 }
-
-                const tag = await vscode.window.showInputBox({
-                    placeHolder: 'Type to create a cell tag'
-                });
-
+                const tag = await quickPickAllTags();
                 if (tag) {
                     await addCellTag(cell, [tag]);
                 }
+
+
+                // const disposables: vscode.Disposable[] = [];
+                // try {
+                //     // const knownTags = cell.notebook.getCells().map(cell => cell.metadata.custom?.metadata?.tags ?? []).flat().sort();
+                //     // const knownTagsLowerCased =  new Set(knownTags.map(tag => tag.toLowerCase()));
+                //     // const knownTagQuickPickItems = Array.from(new Set(knownTags)).map(tag => ({ label: tag }));
+                //     // const quickPick = vscode.window.createQuickPick();
+                //     // disposables.push(quickPick);
+                //     // quickPick.placeholder = 'Type to select or create a cell tag';
+                //     // quickPick.items = knownTagQuickPickItems;
+                //     // quickPick.show();
+                //     // quickPick.onDidChangeValue(e => {
+                //     //     e = e.trim().toLowerCase();
+                //     //     if (!e || knownTagsLowerCased.has(e)) {
+                //     //         return;
+                //     //     }
+                //     //     quickPick.items = knownTagQuickPickItems.concat({ label: e }).sort();
+                //     // }, undefined, disposables);
+                //     // const tag = await new Promise<string>(resolve => {
+                //     //     quickPick.onDidHide(() => resolve(''), undefined, disposables);
+                //     //     quickPick.onDidAccept(() => {
+                //     //         if (quickPick.selectedItems.length) {
+                //     //             resolve(quickPick.selectedItems[0].label);
+                //     //             quickPick.hide();
+                //     //         }
+                //     //     }, undefined, disposables);
+                //     // });
+                //     const tag = await quickPickAllTags();
+                //     if (tag) {
+                //         await addCellTag(cell, [tag]);
+                //     }
+                // }
+                // finally{
+                //     disposables.forEach(d => d.dispose());
+                // }
+
             }
         )
     );
@@ -182,18 +221,22 @@ export function register(context: vscode.ExtensionContext) {
 	    if (!activeCells) {
 	        return;
 	    }
-	    const disposables: vscode.Disposable[] = [];
-	    try {
-			const tag = await vscode.window.showInputBox({
-				placeHolder: 'Type to create a cell tag'
-			});
+        const tag = await quickPickAllTags();
+        if (tag) {
+            await addTagsToMultipleCells(activeCells, [tag]);
+        }
+	    // const disposables: vscode.Disposable[] = [];
+	    // try {
+		// 	const tag = await vscode.window.showInputBox({
+		// 		placeHolder: 'Type to create a cell tag'
+		// 	});
 
-	        if (tag) {
-	            await addTagsToMultipleCells(activeCells, [tag]);
-	        }
-	    } finally {
-	        disposables.forEach(d => d.dispose());
-	    }
+	    //     if (tag) {
+	    //         await addTagsToMultipleCells(activeCells, [tag]);
+	    //     }
+	    // } finally {
+	    //     disposables.forEach(d => d.dispose());
+	    // }
 	}));
 
 

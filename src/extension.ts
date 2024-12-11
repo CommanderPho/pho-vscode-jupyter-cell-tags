@@ -2,11 +2,12 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { register as registerCellTags } from './cellTags';
-import { register as registerCellTagsView } from './cellTagsTreeDataProvider';
-import { register as registerAllNotebookTagsView } from './allNotebookTagsTreeDataProvider';
+import { register as registerCellTags } from './cellTags/cellTags';
+import { register as registerCellTagsView } from './cellTags/cellTagsTreeDataProvider';
+import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebookTagsTreeDataProvider';
 import { countSelectedCells } from './helper';
-
+import { activateNotebookRunGroups } from './notebookRunGroups/startup';
+import { activateCellHeadings } from './cellHeadings/startup';
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
@@ -18,6 +19,8 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
 	updateContext();
+    activateNotebookRunGroups(context);
+    activateCellHeadings(context);
 }
 
 function updateContext() {
