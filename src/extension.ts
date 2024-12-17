@@ -21,6 +21,32 @@ export function activate(context: vscode.ExtensionContext) {
 	updateContext();
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
+
+    const hideHiddenCellsCommand = vscode.commands.registerCommand('jupyter-cell-tags.hideHiddenCells', async () => {
+        const editor = vscode.window.activeNotebookEditor;
+
+        if (!editor) {
+            vscode.window.showInformationMessage('No active notebook editor found.');
+            return;
+        }
+
+        const notebook = editor.notebook;
+        const cells = notebook.getCells();
+
+        for (const cell of cells) {
+            // Access cell metadata
+            const metadata = cell.metadata as { tags?: string[] } | undefined;
+
+            if (metadata?.tags?.includes('hidden')) {
+                await vscode.commands.executeCommand('notebook.cell.collapseCellOutput', cell.index);
+            }
+        }
+
+        vscode.window.showInformationMessage('Cells with "hidden" tag are now collapsed.');
+    });
+    context.subscriptions.push(hideHiddenCellsCommand);
+
+
 }
 
 function updateContext() {
