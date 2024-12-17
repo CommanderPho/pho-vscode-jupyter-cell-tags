@@ -2,8 +2,8 @@
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
 import { log } from './util/logging';
-import { executeGroup, argNotebookCell, quickPickAllTags, getAllTagsFromActiveNotebook } from './util/cellActionHelpers';
-
+import { executeGroup, argNotebookCell, quickPickAllTags, getAllTagsFromActiveNotebook, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
+import { Jupyter, Kernel } from '@vscode/jupyter-extension';
 
 export async function quickPickAllRunGroupTags() {
 	// const knownTags = (getAllTagsFromActiveNotebook() ?? []).flat().sort();
@@ -69,33 +69,32 @@ export function registerCommands(context: vscode.ExtensionContext) {
             else {
                 log('no tag');
             }
-            // const disposables: vscode.Disposable[] = [];
-            // try {
-            //     const tag = await vscode.window.showInputBox({
-            //         placeHolder: 'Type existing cell tag group to be executed'
-            //     });
-
-            //     if (tag) {
-            //         executeGroup(tag, argNotebookCell(args));
-            //         // const cells = getAllCellsFromActiveNotebook();
-            //         // if (cells) {
-            //         //     cells.forEach(cell => {
-            //         //         console.log(`Cell at index ${cell.index}:`);
-            //         //         console.log(`Cell kind: ${cell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
-            //         //         console.log(`Cell content: ${cell.document.getText()}`);
-            //         //     });
-            //         //     // executeGroup(tag, argNotebookCell(args));
-            //         //     executeGroup(tag, cells);
-            //         // }
-            //     }
-            //     else {
-            //         log('no tag');
-            //     }
-            // } finally {
-            //     disposables.forEach(d => d.dispose());
-            // }
         })
     );
+
+    const jupyterExt = vscode.extensions.getExtension<Jupyter>('ms-toolsai.jupyter');
+	if (!jupyterExt) {
+		throw new Error('Jupyter Extension not installed');
+	}
+	if (!jupyterExt.isActive) {
+		jupyterExt.activate();
+	}
+	const output = vscode.window.createOutputChannel('Jupyter Kernel Execution');
+	context.subscriptions.push(output);
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jupyterKernelExecution.listKernels', async () => {
+			const kernel = await selectKernel();
+			if (!kernel) {
+				return;
+			}
+			const code = await selectCodeToRunAgainstKernel();
+			if (!code) {
+				return;
+			}
+			await executeCode(kernel, code, output);
+		})
+	);
+
 
 }
 

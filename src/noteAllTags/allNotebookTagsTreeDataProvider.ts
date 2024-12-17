@@ -79,7 +79,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element);
             return tagItem;
         } else {
-            // Cell reference node
+            // Cell reference node -- the leaf nodes that say "Cell 65" or similar
             const cellItem = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
             // set the default command to jump to that cell index
             cellItem.command = {
@@ -200,6 +200,48 @@ export function register(context: vscode.ExtensionContext) {
         // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
         showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
+    }));
+
+
+    // Register the new "Select All Cells" command
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllChildCells', async (tag: string) => {
+        const editor = vscode.window.activeNotebookEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
+        showTimedInformationMessage(`selectAllChildCells`, 3000);
+
+        const cellRefs = treeDataProvider.getCellReferencesForTag(tag);
+        if (!cellRefs || cellRefs.length === 0) {
+            // vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
+            return;
+        }
+
+        const existingSelections = new Set(editor.selections.map(sel => sel.start)); // Track existing start indices
+        const cellRanges: vscode.NotebookRange[] = [];
+
+        console.log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
+        for (const cellRef of cellRefs) {
+            if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+                const cell = editor.notebook.cellAt(cellRef.index);
+                if (cell && !existingSelections.has(cellRef.index)) {
+
+                    console.log(`Adding cell at index ${cellRef.index} to selection`);
+                    // cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index));
+                    cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+                }
+            }
+        }
+
+        // Append new selections to the existing ones
+        // editor.selections = [...editor.selections, ...cellRanges];
+        // editor.selections = [...existingSelections, ...cellRanges];
+        // // Reset selections to avoid unexpected behavior
+        editor.selections = [...cellRanges];
+
+        showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
     }));
 
 
