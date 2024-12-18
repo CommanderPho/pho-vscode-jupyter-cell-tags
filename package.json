@@ -33,7 +33,7 @@
 		"onCommand:jupyter-cell-tags.openNotebookCell",
 		"onCommand:jupyter-cell-tags.refreshEntry",
 		"onCommand:jupyter-cell-tags.runTag",
-        "onCommand:jupyter-cell-tags.selectAllChildCells"
+		"onCommand:jupyter-cell-tags.selectAllChildCells"
 	],
 	"repository": {
 		"type": "git",
@@ -113,11 +113,11 @@
 				"title": "Execute code against a Python Kernel",
 				"category": "Jupyter Kernel API"
 			},
-            {
-                "command": "jupyter-cell-tags.selectAllChildCells",
-                "title": "Select All Child Cells",
-                "category": "Jupyter Cell Tags"
-            }
+			{
+				"command": "jupyter-cell-tags.selectAllChildCells",
+				"title": "Select All Child Cells",
+				"category": "Jupyter Cell Tags"
+			}
 		],
 		"menus": {
 			"commandPalette": [
@@ -138,7 +138,7 @@
 				{
 					"command": "jupyter-cell-tags.listKernels",
 					"title": "Execute code against a Python Kernel",
-                    "group": "Jupyter Kernel API"
+					"group": "Jupyter Kernel API"
 				}
 			],
 			"notebook/toolbar": [
@@ -224,11 +224,11 @@
 					"when": "view == cell-tag || view == all-notebook-tags-view",
 					"group": "inline"
 				},
-                {
-                    "command": "jupyter-cell-tags.selectAllChildCells",
-                    "when": "view == cell-tag || view == all-notebook-tags-view",
-                    "group": "inline"
-                }
+				{
+					"command": "jupyter-cell-tags.selectAllChildCells",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "inline"
+				}
 			],
 			"view/item/context": [
 				{
@@ -246,11 +246,11 @@
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
-                {
-                    "command": "jupyter-cell-tags.selectAllChildCells",
-                    "when": "view == all-notebook-tags-view",
-                    "group": "navigation"
-                }
+				{
+					"command": "jupyter-cell-tags.selectAllChildCells",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				}
 			]
 		},
 		"views": {
