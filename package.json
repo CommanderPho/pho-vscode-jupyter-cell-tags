@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.3.7",
+	"version": "0.3.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -325,5 +325,8 @@
 		"@vscode/jupyter-extension": "^1.1.1",
 		"path": "^0.12.7",
 		"path-browserify": "^1.0.1"
-	}
+	},
+	"extensionDependencies": [
+		"ms-toolsai.jupyter"
+	]
 }
