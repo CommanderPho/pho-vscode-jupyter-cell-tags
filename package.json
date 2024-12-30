@@ -117,6 +117,11 @@
 				"command": "jupyter-cell-tags.selectAllChildCells",
 				"title": "Select All Child Cells",
 				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.listExecutedNotebookCells",
+				"title": "Show the previously executed notebook cells in the current jupyter notebook",
+				"category": "Jupyter Cell Tags"
 			}
 		],
 		"menus": {
@@ -139,6 +144,11 @@
 					"command": "jupyter-cell-tags.listKernels",
 					"title": "Execute code against a Python Kernel",
 					"group": "Jupyter Kernel API"
+				},
+				{
+					"command": "jupyter-cell-tags.listExecutedNotebookCells",
+					"title": "Show the previously executed notebook cells in the current jupyter notebook",
+					"group": "Jupyter Cell Tags"
 				}
 			],
 			"notebook/toolbar": [

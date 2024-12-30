@@ -8,6 +8,9 @@ import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebo
 import { countSelectedCells } from './helper';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
+import { registerCommands } from './cellExecution/cellExecutionTracking';
+
+// listExecutedNotebookCells
 
 export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
