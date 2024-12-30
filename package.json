@@ -307,8 +307,8 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "webpack --mode none",
-		"watch": "webpack --mode none --watch",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
