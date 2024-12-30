@@ -9,10 +9,13 @@ import { countSelectedCells } from './helper';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
 import { registerCommands } from './cellExecution/cellExecutionTracking';
+import { activateCustomLogging, log } from './util/logging';
 
 // listExecutedNotebookCells
 
 export function activate(context: vscode.ExtensionContext) {
+    // Activate and Register Commands
+    activateCustomLogging(context);
 	registerCellTags(context);
 	registerCellTagsView(context);
     registerAllNotebookTagsView(context);
@@ -24,6 +27,7 @@ export function activate(context: vscode.ExtensionContext) {
 	updateContext();
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
+    log('Extension activated.');
 }
 
 function updateContext() {

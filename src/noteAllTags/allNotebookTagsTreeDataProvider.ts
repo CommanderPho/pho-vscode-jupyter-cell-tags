@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
-import { log, showTimedInformationMessage } from '../notebookRunGroups/util/logging';
+import { log, showTimedInformationMessage } from '../util/logging';
 
 interface CellReference {
     index: number;
@@ -203,7 +203,7 @@ export function register(context: vscode.ExtensionContext) {
     }));
 
 
-    // Register the new "Select All Cells" command
+    // Register the new "Select All Child Cells" command
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllChildCells', async (tag: string) => {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
@@ -222,15 +222,20 @@ export function register(context: vscode.ExtensionContext) {
         const existingSelections = new Set(editor.selections.map(sel => sel.start)); // Track existing start indices
         const cellRanges: vscode.NotebookRange[] = [];
 
-        console.log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
+        log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
+        showTimedInformationMessage(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`, 3000);
+
         for (const cellRef of cellRefs) {
-            if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+            if ((cellRef.index >= 0) && (cellRef.index < editor.notebook.cellCount)) {
                 const cell = editor.notebook.cellAt(cellRef.index);
                 if (cell && !existingSelections.has(cellRef.index)) {
 
-                    console.log(`Adding cell at index ${cellRef.index} to selection`);
+                    // log(`Adding cell at index ${cellRef.index} to selection`);
+                    // showTimedInformationMessage(`Adding cell at index ${cellRef.index} to selection`, 1000);
+
                     // cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index));
-                    cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+                    cellRanges.push(new vscode.NotebookRange(cellRef.index, (cellRef.index + 1)));
+                    // cellRanges.push(new vscode.NotebookRange(cellRef.index, (cellRef.index + 1)));
                 }
             }
         }
@@ -245,7 +250,29 @@ export function register(context: vscode.ExtensionContext) {
     }));
 
 
+    // Register the new "Select All Cells Under Tag" command:
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllCellsUnderTag', async (tag: string) => {
+        const editor = vscode.window.activeNotebookEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
 
+        // Fetch cells with the given tag
+        const cells = editor.notebook.getCells().filter(cell => {
+            const tags = cell.metadata?.tags || [];
+            return tags.includes(tag);
+        });
+
+        if (cells.length === 0) {
+            vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            return;
+        }
+
+        // Select all cells under the tag
+        editor.selections = cells.map(cell => new vscode.NotebookRange(cell.index, cell.index + 1));
+        vscode.window.showInformationMessage(`Selected ${cells.length} cells under tag: ${tag}`);
+    }));
 
 
 }

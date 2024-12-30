@@ -33,7 +33,9 @@
 		"onCommand:jupyter-cell-tags.openNotebookCell",
 		"onCommand:jupyter-cell-tags.refreshEntry",
 		"onCommand:jupyter-cell-tags.runTag",
-		"onCommand:jupyter-cell-tags.selectAllChildCells"
+		"onCommand:jupyter-cell-tags.selectAllChildCells",
+        "onCommand:jupyter-cell-tags.listExecutedNotebookCells",
+        "onCommand:jupyter-cell-tags.selectAllCellsUnderTag"
 	],
 	"repository": {
 		"type": "git",
@@ -122,7 +124,13 @@
 				"command": "jupyter-cell-tags.listExecutedNotebookCells",
 				"title": "Show the previously executed notebook cells in the current jupyter notebook",
 				"category": "Jupyter Cell Tags"
-			}
+			},
+            {
+                "command": "jupyter-cell-tags.selectAllCellsUnderTag",
+                "title": "Select All Cells Under Tag",
+                "category": "Jupyter Cell Tags"
+            }
+
 		],
 		"menus": {
 			"commandPalette": [
@@ -260,7 +268,12 @@
 					"command": "jupyter-cell-tags.selectAllChildCells",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.selectAllCellsUnderTag",
+                    "when": "view == all-notebook-tags-view || viewItem == tagItem",
+                    "group": "inline"
+                }
 			]
 		},
 		"views": {

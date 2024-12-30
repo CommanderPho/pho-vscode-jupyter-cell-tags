@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 // import { getCellRunGroupMetadata, updateCellRunGroupMetadata } from './util/cellMetadataHelpers';
 // import { updateContextKeys } from './contextKeys';
 // import { RunGroup } from './enums';
-import { log } from './logging';
+import { log } from '../../util/logging';
 import { getCellTags } from '../../helper';
 // import path = require('path');
 const path = require('path');
@@ -33,15 +33,15 @@ function getAllCellsFromActiveNotebook() {
             // Retrieve all cells from the notebook document
             const cells = notebookDocument.getCells();
             // Optionally, you can log or return the cells
-            console.log('All cells:', cells);
+            log('All cells:', cells);
             return cells;  // This will return an array of NotebookCell objects
         }
         else {
-            console.log('No active notebook editor document found');
+            log('No active notebook editor document found');
             return null;
         }
     } else {
-        console.log('No active notebook editor found');
+        log('No active notebook editor found');
         return null;
     }
 }
@@ -70,15 +70,15 @@ export function getAllTagsFromActiveNotebook() {
                     }
                 });
             }
-            console.log('All tags:', all_tags);
+            log('All tags:', all_tags);
             return all_tags;  // This will return an array of NotebookCell objects
         }
         else {
-            console.log('No active notebook editor document found');
+            log('No active notebook editor document found');
             return null;
         }
     } else {
-        console.log('No active notebook editor found');
+        log('No active notebook editor found');
         return null;
     }
 }
@@ -190,9 +190,9 @@ export function executeGroup(targetRunTag: string, notebookCell?: vscode.Noteboo
         ?.getCells()
         .filter((notebookCell) => cellInGroup(notebookCell, targetRunTag))
         .map((cell) => {
-            console.log(`Cell at index ${cell.index}:`);
-            console.log(`Cell kind: ${cell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
-            console.log(`Cell content: ${cell.document.getText()}`);
+            log(`Cell at index ${cell.index}:`);
+            log(`Cell kind: ${cell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
+            log(`Cell content: ${cell.document.getText()}`);
             return { start: cell.index, end: cell.index + 1 };
         });
 
