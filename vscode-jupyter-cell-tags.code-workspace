@@ -5,5 +5,18 @@
 		}
 	],
 	"settings": {
+        "workbench.colorCustomizations": {
+            "editor.lineHighlightBackground": "#102dcf2d",
+            "editor.lineHighlightBorder": "#9fbfd11f",
+            "activityBar.background": "#232a4b",
+            "titleBar.activeBackground": "#000872",
+            "titleBar.activeForeground": "#ffffff",
+            "titleBar.inactiveBackground": "#5372c78e",
+            "statusBar.background": "#0011ff67",
+            // "statusBar.border": "#000000",
+            // "statusBar.foreground": "#ffffff",
+            "notebook.outputContainerBackgroundColor": "#a5c2aa50",
+            "notebook.outputContainerBorderColor": "#10ff10"
+        },
 	}
 }
