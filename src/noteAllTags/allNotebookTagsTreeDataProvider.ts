@@ -9,6 +9,11 @@ interface CellReference {
     label: string;
 }
 
+export enum TagSortOrder {
+    Alphabetical,
+    CreationDate,
+    ModificationDate
+}
 
 export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string | CellReference> {
     private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -17,6 +22,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _tags: Map<string, CellReference[]> = new Map();  // Map from tag -> list of cell references
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
+    private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
 
     constructor() {
         this._tags = new Map();
@@ -28,6 +34,16 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (vscode.window.activeNotebookEditor) {
             this.registerEditorListeners(vscode.window.activeNotebookEditor);
         }
+
+        // Add configuration change listener
+        this._disposables.push(
+            vscode.workspace.onDidChangeConfiguration(e => {
+                if (e.affectsConfiguration('jupyter-cell-tags.tagSortOrder')) {
+                    this._sortOrder = vscode.workspace.getConfiguration('jupyter-cell-tags').get('tagSortOrder') as TagSortOrder;
+                    this._onDidChangeTreeData.fire();
+                }
+            })
+        );
     }
 
     private async registerEditorListeners(editor: vscode.NotebookEditor | undefined) {
@@ -43,6 +59,24 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             this.updateTags(editor);
         }));
         this.updateTags(editor);
+    }
+
+    public changeSortOrder() {
+        const options = [
+            { label: 'Alphabetical', value: TagSortOrder.Alphabetical },
+            { label: 'Creation Date', value: TagSortOrder.CreationDate },
+            { label: 'Modification Date', value: TagSortOrder.ModificationDate }
+        ];
+
+        vscode.window.showQuickPick(options, {
+            placeHolder: 'Select tag sort order'
+        }).then(selection => {
+            if (selection) {
+                this._sortOrder = selection.value;
+                vscode.workspace.getConfiguration('jupyter-cell-tags').update('tagSortOrder', selection.value, true);
+                this._onDidChangeTreeData.fire();
+            }
+        });
     }
 
     private async updateTags(editor: vscode.NotebookEditor | undefined) {
@@ -93,10 +127,12 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     }
 
     // Get children for both tags and cells
-    getChildren(element?: string | undefined): vscode.ProviderResult<(string | CellReference)[]> {
+    public getChildren(element?: string | undefined): vscode.ProviderResult<(string | CellReference)[]> {
         if (!element) {
             // Return all tags
-            return Array.from(this._tags.keys());
+            const sortedTags = sortTags(this._tags, this._sortOrder);
+            return Array.from(sortedTags.keys());
+            // return Array.from(this._tags.keys());
         } else {
             // Return the list of cells for a given tag
             return this._tags.get(element) || [];
@@ -273,6 +309,13 @@ export function register(context: vscode.ExtensionContext) {
         editor.selections = cells.map(cell => new vscode.NotebookRange(cell.index, cell.index + 1));
         vscode.window.showInformationMessage(`Selected ${cells.length} cells under tag: ${tag}`);
     }));
+
+    const allTagsProvider = new AllTagsTreeDataProvider();
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.changeSortOrder', () => {
+            allTagsProvider.changeSortOrder();
+        })
+    );
 
 
 }
