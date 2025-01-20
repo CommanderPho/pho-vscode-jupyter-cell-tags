@@ -3,17 +3,14 @@ import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
 import { log, showTimedInformationMessage } from '../util/logging';
+import { TagSortOrder, sortTags } from './tagSorting';
 
-interface CellReference {
+
+export interface CellReference {
     index: number;
     label: string;
 }
 
-export enum TagSortOrder {
-    Alphabetical,
-    CreationDate,
-    ModificationDate
-}
 
 export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string | CellReference> {
     private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -310,10 +307,10 @@ export function register(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(`Selected ${cells.length} cells under tag: ${tag}`);
     }));
 
-    const allTagsProvider = new AllTagsTreeDataProvider();
+
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.changeSortOrder', () => {
-            allTagsProvider.changeSortOrder();
+            treeDataProvider.changeSortOrder();
         })
     );
 
