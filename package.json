@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.3.8",
+	"version": "0.3.9",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -366,11 +366,11 @@
 		"webpack-cli": "^4.6.0"
 	},
 	"dependencies": {
-		"@vscode/jupyter-extension": "^1.1.1",
+		"@vscode/jupyter-extension": "git+https://github.com/CommanderPho/vscode-jupyter.git#feature/rename-to-phohale-dev-id",
 		"path": "^0.12.7",
 		"path-browserify": "^1.0.1"
 	},
 	"extensionDependencies": [
-		"ms-toolsai.jupyter"
+        "phohale.jupyter"
 	]
 }
