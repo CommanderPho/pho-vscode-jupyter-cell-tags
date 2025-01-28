@@ -389,6 +389,6 @@
 		"path-browserify": "^1.0.1"
 	},
 	"extensionDependencies": [
-        "phohale.jupyter"
+        "ms-toolsai.jupyter"
 	]
 }
