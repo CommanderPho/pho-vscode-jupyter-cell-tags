@@ -146,157 +146,175 @@
                 "title": "Change Tag Sort Order",
                 "icon": "$(sort-precedence)",
                 "category": "Jupyter Cell Tags"
-            }
-				],
-				"menus": {
-					"commandPalette": [
-						{
-							"command": "jupyter-cell-tags.executeRunGroup",
-							"group": "Notebook Run Groups"
-						},
-						{
-							"command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
-							"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
-							"group": "Notebook Header Selections"
-						},
-						{
-							"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
-							"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
-							"group": "Notebook Header Selections"
-						},
-						{
-							"command": "jupyter-cell-tags.listKernels",
-							"title": "Execute code against a Python Kernel",
-							"group": "Jupyter Kernel API"
-						},
-						{
-							"command": "jupyter-cell-tags.listExecutedNotebookCells",
-							"title": "Show the previously executed notebook cells in the current jupyter notebook",
-							"group": "Jupyter Cell Tags"
-						}
-					],
-					"notebook/toolbar": [
-						{
-							"command": "jupyter-cell-tags.executeRunGroup",
-							"group": "navigation/execute@6"
-						}
-					],
-					"notebook/cell/title": [
-						{
-							"command": "jupyter-cell-tags.addTag",
-							"when": "jupyter-cell-tags.singleCellSelected",
-							"group": "jupytercelltags@1"
-						},
-						{
-							"command": "jupyter-cell-tags.addTagsToSelectedCells",
-							"when": "jupyter-cell-tags.multipleCellsSelected",
-							"group": "jupytercelltags@1"
-						},
-						{
-							"command": "jupyter-cell-tags.editTagsInJSON",
-							"group": "jupytercelltags@2"
-						},
-						{
-							"command": "jupyter-cell-tags.paramaterize",
-							"group": "jupytercelltags@2"
-						},
-						{
-							"command": "jupyter-cell-tags.executeRunGroup",
-							"group": "jupytercelltags@3"
-						},
-						{
-							"command": "jupyter-cell-tags.selectCellsUnderHeading",
-							"when": "jupyter-cell-tags.singleCellSelected",
-							"group": "jupytercelltags_headings@1"
-						},
-						{
-							"command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
-							"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
-							"group": "jupytercelltags_headings@2"
-						},
-						{
-							"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
-							"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
-							"group": "jupytercelltags_headings@3"
-						}
-					],
-					"notebook/cell/context": [
-						{
-							"command": "jupyter-cell-tags.addTagsToSelectedCells",
-							"when": "jupyter-cell-tags.multipleCellsSelected",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.addTag",
-							"when": "jupyter-cell-tags.singleCellSelected",
-							"group": "navigation"
-						}
-					],
-					"view/title": [
-						{
-							"command": "jupyter-cell-tags.addTag",
-							"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.addTagsToSelectedCells",
-							"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.editTagsInJSON",
-							"when": "view == cell-tag",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.executeRunGroup",
-							"when": "view == cell-tag || view == all-notebook-tags-view",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.refreshEntry",
-							"when": "view == cell-tag || view == all-notebook-tags-view",
-							"group": "inline"
-						},
-						{
-							"command": "jupyter-cell-tags.selectAllChildCells",
-							"when": "view == cell-tag || view == all-notebook-tags-view",
-							"group": "inline"
-						},
-						{
-							"command": "jupyter-cell-tags.changeSortOrder",
-							"when": "view == all-notebook-tags-view",
-							"group": "navigation"
-						}
-					],
-					"view/item/context": [
-						{
-							"command": "jupyter-cell-tags.removeTag",
-							"when": "view == cell-tag || view == all-notebook-tags-view",
-							"group": "inline"
-						},
-						{
-							"command": "jupyter-cell-tags.runTag",
-							"when": "view == all-notebook-tags-view || viewItem == tagItem",
-							"group": "inline"
-						},
-						{
-							"command": "jupyter-cell-tags.refreshEntry",
-							"when": "view == all-notebook-tags-view",
-							"group": "navigation"
-						},
-						{
-							"command": "jupyter-cell-tags.selectAllChildCells",
-							"when": "view == all-notebook-tags-view",
-							"group": "navigation"
-						},
-																		{
-																						"command": "jupyter-cell-tags.selectAllCellsUnderTag",
-																						"when": "view == all-notebook-tags-view || viewItem == tagItem",
-																						"group": "inline"
-																		}
-					]
+            },
+			{
+				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
+				"title": "⬆️ Navigate Up to Previous Error Cell",
+				"icon": "$(arrow-up)"
+			},
+			{
+				"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
+				"title": "⬇️ Navigate Down to Next Error Cell",
+				"icon": "$(arrow-down)"
+			}
+		],
+		"menus": {
+			"commandPalette": [
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "Notebook Run Groups"
 				},
+				{
+					"command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+					"group": "Notebook Header Selections"
+				},
+				{
+					"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+					"group": "Notebook Header Selections"
+				},
+				{
+					"command": "jupyter-cell-tags.listKernels",
+					"title": "Execute code against a Python Kernel",
+					"group": "Jupyter Kernel API"
+				},
+				{
+					"command": "jupyter-cell-tags.listExecutedNotebookCells",
+					"title": "Show the previously executed notebook cells in the current jupyter notebook",
+					"group": "Jupyter Cell Tags"
+				}
+			],
+			"notebook/toolbar": [
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "navigation/execute@6"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
+					"group": "navigation/execute@7"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
+					"group": "navigation/execute@8"
+				}
+			],
+			"notebook/cell/title": [
+				{
+					"command": "jupyter-cell-tags.addTag",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags@1"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "jupytercelltags@1"
+				},
+				{
+					"command": "jupyter-cell-tags.editTagsInJSON",
+					"group": "jupytercelltags@2"
+				},
+				{
+					"command": "jupyter-cell-tags.paramaterize",
+					"group": "jupytercelltags@2"
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "jupytercelltags@3"
+				},
+				{
+					"command": "jupyter-cell-tags.selectCellsUnderHeading",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags_headings@1"
+				},
+				{
+					"command": "jupyter-cell-tags.increaseSelectionHeadingDepth",
+					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags_headings@2"
+				},
+				{
+					"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
+					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags_headings@3"
+				}
+			],
+			"notebook/cell/context": [
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "jupyter-cell-tags.multipleCellsSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTag",
+					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				}
+			],
+			"view/title": [
+				{
+					"command": "jupyter-cell-tags.addTag",
+					"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addTagsToSelectedCells",
+					"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.editTagsInJSON",
+					"when": "view == cell-tag",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.refreshEntry",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "inline"
+				},
+				{
+					"command": "jupyter-cell-tags.selectAllChildCells",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "inline"
+				},
+				{
+					"command": "jupyter-cell-tags.changeSortOrder",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				}
+			],
+			"view/item/context": [
+				{
+					"command": "jupyter-cell-tags.removeTag",
+					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"group": "inline"
+				},
+				{
+					"command": "jupyter-cell-tags.runTag",
+					"when": "view == all-notebook-tags-view || viewItem == tagItem",
+					"group": "inline"
+				},
+				{
+					"command": "jupyter-cell-tags.refreshEntry",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.selectAllChildCells",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.selectAllCellsUnderTag",
+					"when": "view == all-notebook-tags-view || viewItem == tagItem",
+					"group": "inline"
+				}
+			]
+		},
 		"views": {
 			"jupyter-variables": [
 				{
