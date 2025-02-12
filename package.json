@@ -35,7 +35,11 @@
 		"onCommand:jupyter-cell-tags.runTag",
 		"onCommand:jupyter-cell-tags.selectAllChildCells",
         "onCommand:jupyter-cell-tags.listExecutedNotebookCells",
-        "onCommand:jupyter-cell-tags.selectAllCellsUnderTag"
+        "onCommand:jupyter-cell-tags.selectAllCellsUnderTag",
+        "onView:jumpbacks",
+		"onCommand:jupyter-cell-tags.addJumpback",
+		"onCommand:jupyter-cell-tags.removeJumpback",
+        "onCommand:jupyter-cell-tags.showAllNotebookJumpbacks"
 	],
 	"repository": {
 		"type": "git",
@@ -165,7 +169,12 @@
             {
                 "command": "jupyter-cell-tags.removeJumpback",
                 "title": "🐛🔖➖ $(bookmark) Remove Jumpback"
-            }
+            },
+			{
+				"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
+				"title": "Show All Notebook Jumpbacks",
+				"category": "Jupyter"
+			}
 		],
 		"menus": {
 			"commandPalette": [
@@ -368,9 +377,12 @@
 					"visibility": "collapsed"
 				},
                 {
-                "id": "jumpbacks",
-                "name": "Jumpbacks",
-                "contextualTitle": "Notebook Jumpbacks"
+                    "id": "jumpbacks",
+                    "name": "Jumpbacks",
+                    "contextualTitle": "Notebook Jumpbacks",
+                    "type": "tree",
+                    "icon": "$(bookmark)",
+                    "when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen"
                 }
 			]
 		},

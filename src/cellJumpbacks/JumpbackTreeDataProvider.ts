@@ -73,6 +73,16 @@ export function register(context: vscode.ExtensionContext) {
     // Initial update.
     updateJumpbackView();
 
+    // #TODO 2025-02-12 02:38: - [ ]     // Register a command to jump to and highlight the jumpback's cell
+    // context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
+    //     const editor = vscode.window.activeNotebookEditor;
+    //     if (editor) {
+    //         const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+    //         editor.revealRange(range, vscode.NotebookEditorRevealType.Default);
+    //         editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
+    //     }
+    // }));
+
 }
 
 
