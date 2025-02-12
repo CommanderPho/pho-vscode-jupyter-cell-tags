@@ -156,7 +156,16 @@
 				"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
 				"title": "⬇️ Navigate Down to Next Error Cell",
 				"icon": "$(arrow-down)"
-			}
+			},
+			{
+				"command": "jupyter-cell-tags.addJumpback",
+				"title": "🐛🔖➕ Add Jumpback",
+                "icon": "$(bookmark)"
+			},
+            {
+                "command": "jupyter-cell-tags.removeJumpback",
+                "title": "🐛🔖➖ $(bookmark) Remove Jumpback"
+            }
 		],
 		"menus": {
 			"commandPalette": [
@@ -236,6 +245,11 @@
 					"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
 					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags_headings@3"
+				},
+				{
+					"command": "jupyter-cell-tags.addJumpback",
+					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
+					"group": "jupytercelltags_jumpbacks@1"
 				}
 			],
 			"notebook/cell/context": [
@@ -247,6 +261,11 @@
 				{
 					"command": "jupyter-cell-tags.addTag",
 					"when": "jupyter-cell-tags.singleCellSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.addJumpback",
+					"when": "jupyter-cell-tags.singleCellSelected || jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
 				}
 			],
@@ -313,6 +332,18 @@
 					"when": "view == all-notebook-tags-view || viewItem == tagItem",
 					"group": "inline"
 				}
+			],
+			"notebook/cellGutter": [
+				{
+					"command": "jupyter-cell-tags.addJumpback",
+					"when": "notebookEditorFocused || view == cell-tag || view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+                {
+                    "command": "jupyter-cell-tags.removeJumpback",
+                    "when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
+                    "group": "navigation"
+                }
 			]
 		},
 		"views": {
@@ -335,7 +366,12 @@
 					"icon": "$(tag)",
 					"when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
 					"visibility": "collapsed"
-				}
+				},
+                {
+                "id": "jumpbacks",
+                "name": "Jumpbacks",
+                "contextualTitle": "Notebook Jumpbacks"
+                }
 			]
 		},
 		"viewsWelcome": [

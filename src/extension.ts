@@ -10,6 +10,9 @@ import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
 import { registerCommands } from './cellExecution/cellExecutionTracking';
 import { activateCustomLogging, log } from './util/logging';
+import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
+// import { JumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
+import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 
 // listExecutedNotebookCells
 
@@ -19,6 +22,9 @@ export function activate(context: vscode.ExtensionContext) {
 	registerCellTags(context);
 	registerCellTagsView(context);
     registerAllNotebookTagsView(context);
+    registerJumpbackCommand(context);
+    registerRemoveJumpbackCommand(context);
+    registerJumpbackTreeDataProvider(context);
 
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
@@ -30,11 +36,13 @@ export function activate(context: vscode.ExtensionContext) {
     log('Extension activated.');
 }
 
+
 function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
     if (!editor) {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
+        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false);
         return;
     }
     // TODO 2024-09-05 17:47: - [ ] Got num selected cells nearly working, it will always be correct to tell if 1 vs. many cells.
@@ -47,6 +55,7 @@ function updateContext() {
     const total_num_selected_cells = countSelectedCells(selections);
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false); // todo - IMPLEMENT THIS LOGIC
 }
 
 
