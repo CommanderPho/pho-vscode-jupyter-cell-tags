@@ -56,7 +56,17 @@
 					"enum": ["alphabetical", "creation-date", "modification-date"],
 					"default": "alphabetical",
 					"description": "Sort order for tags in the All Notebook Tags view"
-				}
+				},
+				"jupyter-cell-tags.enableErrorNavigation": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable/disable the Previous/Next Error Cell navigation commands"
+				},
+                "jupyter-cell-tags.enableJumpbacks": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Enable/disable the Jumpback functionality including commands and views"
+                }
 			}
 		},
 		"commands": [
@@ -154,26 +164,31 @@
 			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
 				"title": "⬆️❌ Navigate Up to Previous Error Cell",
-				"icon": "$(arrow-up)"
+				"icon": "$(arrow-up)",
+				"when": "config.jupyter-cell-tags.enableErrorNavigation"
 			},
 			{
 				"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
 				"title": "⬇️❌ Navigate Down to Next Error Cell",
-				"icon": "$(arrow-down)"
+				"icon": "$(arrow-down)",
+				"when": "config.jupyter-cell-tags.enableErrorNavigation"
 			},
 			{
 				"command": "jupyter-cell-tags.addJumpback",
 				"title": "🔖↩️➕ Add Jumpback",
-                "icon": "$(bookmark)"
+                "icon": "$(bookmark)",
+                "when": "config.jupyter-cell-tags.enableJumpbacks"
 			},
             {
                 "command": "jupyter-cell-tags.removeJumpback",
-                "title": "🔖↩️➖ $(bookmark) Remove Jumpback"
+                "title": "🔖↩️➖ $(bookmark) Remove Jumpback",
+                "when": "config.jupyter-cell-tags.enableJumpbacks"
             },
 			{
 				"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
 				"title": "🎛️Show All Notebook Jumpbacks",
-				"category": "Jupyter"
+				"category": "Jupyter",
+                "when": "config.jupyter-cell-tags.enableJumpbacks"
 			}
 		],
 		"menus": {
@@ -390,7 +405,7 @@
                     "contextualTitle": "Notebook Jumpbacks",
                     "type": "tree",
                     "icon": "$(bookmark)",
-                    "when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen"
+                    "when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen && config.jupyter-cell-tags.enableJumpbacks"
                 }
 			]
 		},
