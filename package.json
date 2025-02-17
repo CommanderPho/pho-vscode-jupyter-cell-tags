@@ -34,12 +34,12 @@
 		"onCommand:jupyter-cell-tags.refreshEntry",
 		"onCommand:jupyter-cell-tags.runTag",
 		"onCommand:jupyter-cell-tags.selectAllChildCells",
-        "onCommand:jupyter-cell-tags.listExecutedNotebookCells",
-        "onCommand:jupyter-cell-tags.selectAllCellsUnderTag",
-        "onView:jumpbacks",
+		"onCommand:jupyter-cell-tags.listExecutedNotebookCells",
+		"onCommand:jupyter-cell-tags.selectAllCellsUnderTag",
+		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
 		"onCommand:jupyter-cell-tags.removeJumpback",
-        "onCommand:jupyter-cell-tags.showAllNotebookJumpbacks"
+		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks"
 	],
 	"repository": {
 		"type": "git",
@@ -53,7 +53,11 @@
 			"properties": {
 				"jupyter-cell-tags.tagSortOrder": {
 					"type": "string",
-					"enum": ["alphabetical", "creation-date", "modification-date"],
+					"enum": [
+						"alphabetical",
+						"creation-date",
+						"modification-date"
+					],
 					"default": "alphabetical",
 					"description": "Sort order for tags in the All Notebook Tags view"
 				},
@@ -62,11 +66,11 @@
 					"default": true,
 					"description": "Enable/disable the Previous/Next Error Cell navigation commands"
 				},
-                "jupyter-cell-tags.enableJumpbacks": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Enable/disable the Jumpback functionality including commands and views"
-                }
+				"jupyter-cell-tags.enableJumpbacks": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable/disable the Jumpback functionality including commands and views"
+				}
 			}
 		},
 		"commands": [
@@ -150,17 +154,17 @@
 				"title": "Show the previously executed notebook cells in the current jupyter notebook",
 				"category": "Jupyter Cell Tags"
 			},
-            {
-                "command": "jupyter-cell-tags.selectAllCellsUnderTag",
-                "title": "Select All Cells Under Tag",
-                "category": "Jupyter Cell Tags"
-            },
-            {
-                "command": "jupyter-cell-tags.changeSortOrder",
-                "title": "Change Tag Sort Order",
-                "icon": "$(sort-precedence)",
-                "category": "Jupyter Cell Tags"
-            },
+			{
+				"command": "jupyter-cell-tags.selectAllCellsUnderTag",
+				"title": "Select All Cells Under Tag",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.changeSortOrder",
+				"title": "Change Tag Sort Order",
+				"icon": "$(sort-precedence)",
+				"category": "Jupyter Cell Tags"
+			},
 			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
 				"title": "⬆️❌ Navigate Up to Previous Error Cell",
@@ -176,19 +180,19 @@
 			{
 				"command": "jupyter-cell-tags.addJumpback",
 				"title": "🔖↩️➕ Add Jumpback",
-                "icon": "$(bookmark)",
-                "when": "config.jupyter-cell-tags.enableJumpbacks"
+				"icon": "$(bookmark)",
+				"when": "config.jupyter-cell-tags.enableJumpbacks"
 			},
-            {
-                "command": "jupyter-cell-tags.removeJumpback",
-                "title": "🔖↩️➖ $(bookmark) Remove Jumpback",
-                "when": "config.jupyter-cell-tags.enableJumpbacks"
-            },
+			{
+				"command": "jupyter-cell-tags.removeJumpback",
+				"title": "🔖↩️➖ $(bookmark) Remove Jumpback",
+				"when": "config.jupyter-cell-tags.enableJumpbacks"
+			},
 			{
 				"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
 				"title": "🎛️Show All Notebook Jumpbacks",
 				"category": "Jupyter",
-                "when": "config.jupyter-cell-tags.enableJumpbacks"
+				"when": "config.jupyter-cell-tags.enableJumpbacks"
 			}
 		],
 		"menus": {
@@ -219,14 +223,14 @@
 				}
 			],
 			"notebook/toolbar": [
-                {
-                    "command": "jupyter-cell-tags.showAllNotebookTags",
-                    "category": "navigation/execute@5"
-                },
-                {
-                    "command": "jupyter-cell-tags.showAllNotebookJumpbacks",
-                    "category": "navigation/execute@5"
-                },
+				{
+					"command": "jupyter-cell-tags.showAllNotebookTags",
+					"category": "navigation/execute@5"
+				},
+				{
+					"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
+					"category": "navigation/execute@5"
+				},
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
 					"group": "navigation/execute@6"
@@ -371,11 +375,11 @@
 					"when": "notebookEditorFocused || view == cell-tag || view == all-notebook-tags-view",
 					"group": "navigation"
 				},
-                {
-                    "command": "jupyter-cell-tags.removeJumpback",
-                    "when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
-                    "group": "navigation"
-                }
+				{
+					"command": "jupyter-cell-tags.removeJumpback",
+					"when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
+					"group": "navigation"
+				}
 			]
 		},
 		"views": {
@@ -399,14 +403,14 @@
 					"when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
 					"visibility": "collapsed"
 				},
-                {
-                    "id": "jumpbacks",
-                    "name": "Jumpbacks",
-                    "contextualTitle": "Notebook Jumpbacks",
-                    "type": "tree",
-                    "icon": "$(bookmark)",
-                    "when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen && config.jupyter-cell-tags.enableJumpbacks"
-                }
+				{
+					"id": "jumpbacks",
+					"name": "Jumpbacks",
+					"contextualTitle": "Notebook Jumpbacks",
+					"type": "tree",
+					"icon": "$(bookmark)",
+					"when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen && config.jupyter-cell-tags.enableJumpbacks"
+				}
 			]
 		},
 		"viewsWelcome": [
@@ -438,8 +442,8 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
@@ -463,11 +467,11 @@
 		"webpack-cli": "^4.6.0"
 	},
 	"dependencies": {
-		"@vscode/jupyter-extension": "git+https://github.com/CommanderPho/vscode-jupyter.git#feature/rename-to-phohale-dev-id",
+		"@vscode/jupyter-extension": "^1.1.1",
 		"path": "^0.12.7",
 		"path-browserify": "^1.0.1"
 	},
 	"extensionDependencies": [
-        "ms-toolsai.jupyter"
+		"ms-toolsai.jupyter"
 	]
 }
