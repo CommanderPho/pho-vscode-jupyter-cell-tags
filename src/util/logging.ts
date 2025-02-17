@@ -2,12 +2,16 @@
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
 // import { log, showTimedInformationMessage } from '../notebookRunGroups/util/logging';
+// const myChannel = vscode.window.createOutputChannel('MyLogger');
 
+// let myChannel: vscode.OutputChannel;
 
 // Function for logging
-export function log(message: string) {
+export function log(...args: any[]) {
     // Might eventually go to output channel, but this is fine as a placeholder
-    console.log(message);
+    console.log(...args);
+    // myChannel.appendLine(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '));
+    // showTimedInformationMessage(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '), 1000);
 }
 
 export async function showTimedInformationMessage(message: string, timeout: number) {
@@ -44,3 +48,11 @@ export async function showTimedInformationMessage(message: string, timeout: numb
 // // Usage example: Show the message for 3 seconds (3000 ms)
 // showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
+export function activateCustomLogging(context: vscode.ExtensionContext) {
+    // must be called first before any logging
+    // myChannel = vscode.window.createOutputChannel('PhoLogger');
+    // myChannel.appendLine('Extension activated.');
+    // myChannel.show(true);
+    log('Extension activated.');
+
+}

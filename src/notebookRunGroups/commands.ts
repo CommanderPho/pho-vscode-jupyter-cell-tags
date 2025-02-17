@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
-import { log } from './util/logging';
+import { log } from '../util/logging';
 import { executeGroup, argNotebookCell, quickPickAllTags, getAllTagsFromActiveNotebook, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
 import { Jupyter, Kernel } from '@vscode/jupyter-extension';
 

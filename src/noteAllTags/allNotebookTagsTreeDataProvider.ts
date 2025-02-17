@@ -2,9 +2,11 @@ import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
-import { log, showTimedInformationMessage } from '../notebookRunGroups/util/logging';
+import { log, showTimedInformationMessage } from '../util/logging';
+import { TagSortOrder, sortTags } from './tagSorting';
 
-interface CellReference {
+
+export interface CellReference {
     index: number;
     label: string;
 }
@@ -17,6 +19,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _tags: Map<string, CellReference[]> = new Map();  // Map from tag -> list of cell references
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
+    private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
 
     constructor() {
         this._tags = new Map();
@@ -28,6 +31,16 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (vscode.window.activeNotebookEditor) {
             this.registerEditorListeners(vscode.window.activeNotebookEditor);
         }
+
+        // Add configuration change listener
+        this._disposables.push(
+            vscode.workspace.onDidChangeConfiguration(e => {
+                if (e.affectsConfiguration('jupyter-cell-tags.tagSortOrder')) {
+                    this._sortOrder = vscode.workspace.getConfiguration('jupyter-cell-tags').get('tagSortOrder') as TagSortOrder;
+                    this._onDidChangeTreeData.fire();
+                }
+            })
+        );
     }
 
     private async registerEditorListeners(editor: vscode.NotebookEditor | undefined) {
@@ -43,6 +56,24 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             this.updateTags(editor);
         }));
         this.updateTags(editor);
+    }
+
+    public changeSortOrder() {
+        const options = [
+            { label: 'Alphabetical', value: TagSortOrder.Alphabetical },
+            { label: 'Creation Date', value: TagSortOrder.CreationDate },
+            { label: 'Modification Date', value: TagSortOrder.ModificationDate }
+        ];
+
+        vscode.window.showQuickPick(options, {
+            placeHolder: 'Select tag sort order'
+        }).then(selection => {
+            if (selection) {
+                this._sortOrder = selection.value;
+                vscode.workspace.getConfiguration('jupyter-cell-tags').update('tagSortOrder', selection.value, true);
+                this._onDidChangeTreeData.fire();
+            }
+        });
     }
 
     private async updateTags(editor: vscode.NotebookEditor | undefined) {
@@ -93,10 +124,12 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     }
 
     // Get children for both tags and cells
-    getChildren(element?: string | undefined): vscode.ProviderResult<(string | CellReference)[]> {
+    public getChildren(element?: string | undefined): vscode.ProviderResult<(string | CellReference)[]> {
         if (!element) {
             // Return all tags
-            return Array.from(this._tags.keys());
+            const sortedTags = sortTags(this._tags, this._sortOrder);
+            return Array.from(sortedTags.keys());
+            // return Array.from(this._tags.keys());
         } else {
             // Return the list of cells for a given tag
             return this._tags.get(element) || [];
@@ -203,7 +236,7 @@ export function register(context: vscode.ExtensionContext) {
     }));
 
 
-    // Register the new "Select All Cells" command
+    // Register the new "Select All Child Cells" command
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllChildCells', async (tag: string) => {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
@@ -222,15 +255,20 @@ export function register(context: vscode.ExtensionContext) {
         const existingSelections = new Set(editor.selections.map(sel => sel.start)); // Track existing start indices
         const cellRanges: vscode.NotebookRange[] = [];
 
-        console.log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
+        log(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`);
+        showTimedInformationMessage(`existingSelections: ${existingSelections} containing ${existingSelections.entries.length} cells`, 3000);
+
         for (const cellRef of cellRefs) {
-            if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+            if ((cellRef.index >= 0) && (cellRef.index < editor.notebook.cellCount)) {
                 const cell = editor.notebook.cellAt(cellRef.index);
                 if (cell && !existingSelections.has(cellRef.index)) {
 
-                    console.log(`Adding cell at index ${cellRef.index} to selection`);
+                    // log(`Adding cell at index ${cellRef.index} to selection`);
+                    // showTimedInformationMessage(`Adding cell at index ${cellRef.index} to selection`, 1000);
+
                     // cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index));
-                    cellRanges.push(new vscode.NotebookRange(cellRef.index, cellRef.index + 1));
+                    cellRanges.push(new vscode.NotebookRange(cellRef.index, (cellRef.index + 1)));
+                    // cellRanges.push(new vscode.NotebookRange(cellRef.index, (cellRef.index + 1)));
                 }
             }
         }
@@ -245,7 +283,36 @@ export function register(context: vscode.ExtensionContext) {
     }));
 
 
+    // Register the new "Select All Cells Under Tag" command:
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.selectAllCellsUnderTag', async (tag: string) => {
+        const editor = vscode.window.activeNotebookEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
 
+        // Fetch cells with the given tag
+        const cells = editor.notebook.getCells().filter(cell => {
+            const tags = cell.metadata?.tags || [];
+            return tags.includes(tag);
+        });
+
+        if (cells.length === 0) {
+            vscode.window.showInformationMessage(`No cells found with tag: ${tag}`);
+            return;
+        }
+
+        // Select all cells under the tag
+        editor.selections = cells.map(cell => new vscode.NotebookRange(cell.index, cell.index + 1));
+        vscode.window.showInformationMessage(`Selected ${cells.length} cells under tag: ${tag}`);
+    }));
+
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.changeSortOrder', () => {
+            treeDataProvider.changeSortOrder();
+        })
+    );
 
 
 }
