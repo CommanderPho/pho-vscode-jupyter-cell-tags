@@ -6,7 +6,24 @@
 		{
 			"type": "npm",
 			"script": "watch",
-			"problemMatcher": ["$tsc-watch"],
+			"problemMatcher": [
+				"$tsc-watch",
+				{
+					"pattern": [
+						{
+							"regexp": "webpack .*? compiled successfully",
+							"file": 1,
+							"location": 2,
+							"message": 3
+						}
+					],
+					"background": {
+						"activeOnStart": true,
+						"beginsPattern": "webpack .*? compiled",
+						"endsPattern": "webpack .*? compiled successfully"
+					}
+				}
+			],
 			"isBackground": true,
 			"presentation": {
 				"reveal": "never"
@@ -14,9 +31,7 @@
 			"group": {
 				"kind": "build",
 				"isDefault": true
-			},
-			"label": "npm: watch",
-			"detail": "webpack --mode none --watch"
+			}
 		},
 		{
 			"type": "npm",

@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.3.7",
+	"version": "0.3.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -90,8 +90,15 @@
 			{
 				"command": "jupyter-cell-tags.runTag",
 				"title": "Run Tag",
-				"icon": "$(run-all)"
+				"icon": "$(run-all)",
+                "category": "Jupyter"
 			},
+            {
+                "command": "jupyter-cell-tags.runCell",
+                "title": "Run Cell",
+                "icon": "$(play)",
+                "category": "Jupyter"
+            },
 			{
 				"command": "jupyter-cell-tags.deleteCellsUnderHeading",
 				"title": "Delete Cells Under Heading"
@@ -250,7 +257,14 @@
 					"command": "jupyter-cell-tags.selectAllChildCells",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
-				}
+				},
+                {
+                    "command": "jupyter-cell-tags.runCell",
+                    "title": "Run Cell",
+                    "icon": "$(play)",
+                    "when": "view == all-notebook-tags-view && viewItem == cellItem",
+                    "group": "inline"
+                }
 			]
 		},
 		"views": {
