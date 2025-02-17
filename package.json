@@ -386,7 +386,7 @@
 					"command": "jupyter-cell-tags.removeJumpback",
 					"when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
 					"group": "navigation"
-				}
+				},
                 {
                     "command": "jupyter-cell-tags.runCell",
                     "title": "Run Cell",
