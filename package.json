@@ -246,7 +246,8 @@
 				},
 				{
 					"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
-					"category": "navigation/execute@5"
+					"category": "navigation/execute@5",
+					"when": "config.jupyter-cell-tags.enableJumpbacks"
 				},
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
@@ -254,11 +255,13 @@
 				},
 				{
 					"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
-					"group": "navigation/execute@7"
+					"group": "navigation/execute@7",
+					"when": "config.jupyter-cell-tags.enableErrorNavigation"
 				},
 				{
 					"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
-					"group": "navigation/execute@8"
+					"group": "navigation/execute@8",
+					"when": "config.jupyter-cell-tags.enableErrorNavigation"
 				}
 			],
 			"notebook/cell/title": [
