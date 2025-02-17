@@ -4,9 +4,9 @@ This extension provides extended support for notebook cell tags and cell run gro
 
 I needed more functionality and was tired of fussing with the Jupter/VSCode/Powertoys version hell, so I forked the repo implemented it myself. My pull request on the official repo is here: https://github.com/microsoft/vscode-jupyter-cell-tags/pull/40, but there seems to be no progress on merging it.
 
-After this, I added custom run groups to work around https://github.com/microsoft/vscode-jupyter-powertoys/issues/90 and believe I improved the expierence (at least for myself) over the Jupyter Powertoys version, as it allows an arbitrary number of run groups with custom names. 
+After this, I added custom run groups to work around https://github.com/microsoft/vscode-jupyter-powertoys/issues/90 and believe I improved the expierence (at least for myself) over the Jupyter Powertoys version, as it allows an arbitrary number of run groups with custom names.
 
-This fork is available on marketplace here: 
+This fork is available on marketplace here:
 ```
 Name: Pho Jupyter Cell Tags
 Id: phohale.pho-vscode-jupyter-cell-tags
@@ -27,8 +27,8 @@ or via github https://github.com/CommanderPho/vscode-jupyter-cell-tags here
     ![Image](https://github.com/user-attachments/assets/12ed2764-768a-4cce-b4d4-0e49a4b560b3)
 - More undocumented commands available in the menus, documentation coming soon.
 
- 
-This extension replaces the forked extension that comes with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=phohale.jupyter). You must first uninstall the official Microsoft version before installing this one. 
+
+This extension replaces the forked extension that comes with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=phohale.jupyter). You must first uninstall the official Microsoft version before installing this one.
 
 
 
@@ -89,4 +89,17 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 
 
 
---enable-proposed-api notebookCellExecutionState 
+--enable-proposed-api notebookCellExecutionState
+
+
+## Potential Emoji:
+
+🎛️🎚️📃🗞️🧾🖼️🎐
+🔦🔗⚓
+🧰
+↪️↩️↩️
+⤵️⤴️🔙
+❇️
+🦘🥏🎯
+🐛🔖➖➕
+Error: 🐛‼️ ❌

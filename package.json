@@ -88,7 +88,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.showAllNotebookTags",
-				"title": "Show All Notebook Tags",
+				"title": "🎛️Show All Notebook Tags View",
 				"category": "Jupyter"
 			},
 			{
@@ -153,26 +153,26 @@
             },
 			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
-				"title": "⬆️ Navigate Up to Previous Error Cell",
+				"title": "⬆️❌ Navigate Up to Previous Error Cell",
 				"icon": "$(arrow-up)"
 			},
 			{
 				"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
-				"title": "⬇️ Navigate Down to Next Error Cell",
+				"title": "⬇️❌ Navigate Down to Next Error Cell",
 				"icon": "$(arrow-down)"
 			},
 			{
 				"command": "jupyter-cell-tags.addJumpback",
-				"title": "🐛🔖➕ Add Jumpback",
+				"title": "🔖↩️➕ Add Jumpback",
                 "icon": "$(bookmark)"
 			},
             {
                 "command": "jupyter-cell-tags.removeJumpback",
-                "title": "🐛🔖➖ $(bookmark) Remove Jumpback"
+                "title": "🔖↩️➖ $(bookmark) Remove Jumpback"
             },
 			{
 				"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
-				"title": "Show All Notebook Jumpbacks",
+				"title": "🎛️Show All Notebook Jumpbacks",
 				"category": "Jupyter"
 			}
 		],
@@ -204,6 +204,14 @@
 				}
 			],
 			"notebook/toolbar": [
+                {
+                    "command": "jupyter-cell-tags.showAllNotebookTags",
+                    "category": "navigation/execute@5"
+                },
+                {
+                    "command": "jupyter-cell-tags.showAllNotebookJumpbacks",
+                    "category": "navigation/execute@5"
+                },
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
 					"group": "navigation/execute@6"
