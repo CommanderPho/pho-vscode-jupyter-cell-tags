@@ -34,7 +34,7 @@
 		"onCommand:jupyter-cell-tags.refreshEntry",
 		"onCommand:jupyter-cell-tags.runTag",
 		"onCommand:jupyter-cell-tags.selectAllChildCells",
-		"onCommand:jupyter-cell-tags.listExecutedNotebookCells",
+        "onCommand:jupyter-cell-tags.listExecutedNotebookCells",
 		"onCommand:jupyter-cell-tags.selectAllCellsUnderTag",
 		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
@@ -110,6 +110,12 @@
 				"title": "🏷️▶️ Execute Tag Run Group",
 				"category": "Jupyter"
 			},
+            {
+                "command": "jupyter-cell-tags.runCell",
+                "title": "▶️Run Cell",
+                "icon": "$(play)",
+                "category": "Jupyter"
+            },
 			{
 				"command": "jupyter-cell-tags.refreshEntry",
 				"title": "Refresh",
@@ -129,7 +135,7 @@
                 "title": "Run Cell",
                 "icon": "$(play)",
                 "category": "Jupyter"
-            },
+			},
 			{
 				"command": "jupyter-cell-tags.deleteCellsUnderHeading",
 				"title": "Delete Cells Under Heading"
@@ -161,17 +167,17 @@
 				"title": "Show the previously executed notebook cells in the current jupyter notebook",
 				"category": "Jupyter Cell Tags"
 			},
-			{
-				"command": "jupyter-cell-tags.selectAllCellsUnderTag",
-				"title": "Select All Cells Under Tag",
-				"category": "Jupyter Cell Tags"
-			},
-			{
-				"command": "jupyter-cell-tags.changeSortOrder",
-				"title": "Change Tag Sort Order",
-				"icon": "$(sort-precedence)",
-				"category": "Jupyter Cell Tags"
-			},
+            {
+                "command": "jupyter-cell-tags.selectAllCellsUnderTag",
+                "title": "Select All Cells Under Tag",
+                "category": "Jupyter Cell Tags"
+            },
+            {
+                "command": "jupyter-cell-tags.changeSortOrder",
+                "title": "Change Tag Sort Order",
+                "icon": "$(sort-precedence)",
+                "category": "Jupyter Cell Tags"
+            },
 			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
 				"title": "⬆️❌ Navigate Up to Previous Error Cell",
@@ -237,7 +243,7 @@
                     "command": "jupyter-cell-tags.showAllNotebookTags",
                     "title": "🎛️Show All Notebook Tags View",
                     "category": "Jupyter Cell Tags"
-                }
+				}
 			],
 			"notebook/toolbar": [
 				{
@@ -373,6 +379,11 @@
 					"when": "view == all-notebook-tags-view || viewItem == tagItem",
 					"group": "inline"
 				},
+                {
+                    "command": "jupyter-cell-tags.runCell",
+                    "when": "view == all-notebook-tags-view && viewItem == cellItem || viewItem == tagItem",
+                    "group": "inline"
+                },
 				{
 					"command": "jupyter-cell-tags.refreshEntry",
 					"when": "view == all-notebook-tags-view",
@@ -469,8 +480,8 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
@@ -499,6 +510,6 @@
 		"path-browserify": "^1.0.1"
 	},
 	"extensionDependencies": [
-		"ms-toolsai.jupyter"
+        "ms-toolsai.jupyter"
 	]
 }
