@@ -413,6 +413,14 @@
 			{
 				"view": "cell-tag",
 				"contents": "No tags found for the selected cell. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
+			},
+			{
+				"view": "all-notebook-tags-view",
+				"contents": "No tags found for the active notebook. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
+			},
+			{
+				"view": "jumpbacks",
+				"contents": "No Jumpbacks found."
 			}
 		],
 		"keybindings": [
