@@ -168,6 +168,17 @@ export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
 
+    // register the command to show the view
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.showAllNotebookTags', () => {
+            // Show the view in the explorer
+            vscode.commands.executeCommand('workbench.view.explorer');
+            // Focus/reveal the all-notebook-tags-view
+            vscode.commands.executeCommand('all-notebook-tags-view.focus');
+        })
+    );
+
+
     // Register a command to open and highlight a cell
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
@@ -177,6 +188,10 @@ export function register(context: vscode.ExtensionContext) {
             editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
         }
     }));
+
+
+
+
 
     // vscode.commands.registerCommand('jupyter-cell-tags.refreshEntry', () =>
     //     /// jupyter-cell-tags

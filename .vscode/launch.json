@@ -12,8 +12,8 @@
 			"request": "launch",
 			"args": [
 				"--extensionDevelopmentPath=${workspaceFolder}",
-                // "--enable-proposed-api",
-                // "phohale.jupyter"
+                "--enable-proposed-api",
+                "phohale.jupyter"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"

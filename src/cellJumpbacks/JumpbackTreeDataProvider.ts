@@ -73,6 +73,15 @@ export function register(context: vscode.ExtensionContext) {
     // Initial update.
     updateJumpbackView();
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.showAllNotebookJumpbacks', () => {
+            // Show the view in the explorer
+            vscode.commands.executeCommand('workbench.view.explorer');
+            // Focus/reveal the all-notebook-tags-view
+            vscode.commands.executeCommand('jumpbacks.focus');
+        })
+    );
+
     // #TODO 2025-02-12 02:38: - [ ]     // Register a command to jump to and highlight the jumpback's cell
     // context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
     //     const editor = vscode.window.activeNotebookEditor;

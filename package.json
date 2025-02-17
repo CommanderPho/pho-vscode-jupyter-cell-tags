@@ -63,12 +63,12 @@
 				},
 				"jupyter-cell-tags.enableErrorNavigation": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enable/disable the Previous/Next Error Cell navigation commands"
 				},
 				"jupyter-cell-tags.enableJumpbacks": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "Enable/disable the Jumpback functionality including commands and views"
 				}
 			}
@@ -197,7 +197,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
-				"title": "🎛️Show All Notebook Jumpbacks",
+				"title": "🎛️Show All Notebook Jumpbacks View",
 				"category": "Jupyter",
 				"when": "config.jupyter-cell-tags.enableJumpbacks"
 			}
@@ -227,7 +227,17 @@
 					"command": "jupyter-cell-tags.listExecutedNotebookCells",
 					"title": "Show the previously executed notebook cells in the current jupyter notebook",
 					"group": "Jupyter Cell Tags"
-				}
+				},
+				{
+					"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
+                    "title": "🎛️Show All Notebook Jumpbacks View",
+					"group": "Jupyter Cell Tags"
+				},
+                {
+                    "command": "jupyter-cell-tags.showAllNotebookTags",
+                    "title": "🎛️Show All Notebook Tags View",
+                    "category": "Jupyter Cell Tags"
+                }
 			],
 			"notebook/toolbar": [
 				{
