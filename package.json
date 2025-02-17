@@ -376,12 +376,12 @@
 				},
 				{
 					"command": "jupyter-cell-tags.runTag",
-					"when": "view == all-notebook-tags-view || viewItem == tagItem",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "inline"
 				},
                 {
                     "command": "jupyter-cell-tags.runCell",
-                    "when": "view == all-notebook-tags-view && viewItem == cellItem || viewItem == tagItem",
+                    "when": "view == all-notebook-tags-view",
                     "group": "inline"
                 },
 				{
@@ -391,12 +391,12 @@
 				},
 				{
 					"command": "jupyter-cell-tags.selectAllChildCells",
-					"when": "view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.selectAllCellsUnderTag",
-					"when": "view == all-notebook-tags-view || viewItem == tagItem",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "inline"
 				}
 			],
