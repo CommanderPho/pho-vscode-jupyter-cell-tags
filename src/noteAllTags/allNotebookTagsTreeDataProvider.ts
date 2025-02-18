@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
-import { executeGroup, argNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
+import { executeGroup, argNotebookCell, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
 import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
 
@@ -212,6 +212,51 @@ export function register(context: vscode.ExtensionContext) {
     //     // You might need to expose a method in AllTagsTreeDataProvider to get cell references for a tag
     //     // For simplicity, this example assumes access to _tags (not recommended for production)
     // }));
+
+
+    // Error running command jupyter-cell-tags.runCell: command 'jupyter-cell-tags.runCell' not found. This is likely caused by the extension that contributes jupyter-cell-tags.runCell.
+
+
+    // Register the new "Run Cell" command
+    // cellItem.command = {
+    //     command: 'jupyter-cell-tags.openNotebookCell',
+    //     title: 'Open Cell',
+    //     arguments: [element.index]  // Pass the cell index to the command
+    // };
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runCell', async (cellIndex: number) => {
+        const editor = vscode.window.activeNotebookEditor;
+        if (!editor) {
+            vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
+
+        const cell = editor.notebook.cellAt(cellIndex);
+        if (!cell) {
+            vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
+            return;
+        }
+
+        // Reveal and highlight the cell.
+        const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+        editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+        editor.selections = [range];
+
+        try {
+            // Execute the single cell.
+            // Depending on your VS Code API version, one of the following methods should work:
+            // await editor.notebook.executeCell(cell.index);
+            // or
+            // await editor.executeCell(cell.index);
+            // Here we assume executeCell is available on notebook.
+            // await editor.notebook.executeCell(cell.index);
+            executeNotebookCell(cell)
+            // await editor.executeCell(cell.index);
+
+            showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+        } catch (err) {
+            vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
+        }
+    }));
 
 
     // Register the new "Run Tag" command
