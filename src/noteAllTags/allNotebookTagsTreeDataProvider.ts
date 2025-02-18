@@ -184,7 +184,7 @@ export function register(context: vscode.ExtensionContext) {
         const editor = vscode.window.activeNotebookEditor;
         if (editor) {
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
-            editor.revealRange(range, vscode.NotebookEditorRevealType.Default);
+            editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
             editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
         }
     }));
