@@ -176,6 +176,35 @@ export function argNotebookCell(args: any): vscode.NotebookCell | undefined {
     return undefined;
 }
 
+
+export function executeNotebookCell(notebookCell: vscode.NotebookCell) {
+    if (!notebookCell) {
+        log('executeCell called without a valid cell');
+        return;
+    }
+
+    // Reveal the document if needed
+    const notebook = notebookCell.notebook || vscode.window.activeNotebookEditor?.notebook;
+    if (!notebook) {
+        log('executeCell could not locate the notebook document');
+        return;
+    }
+
+    const cellRange = { start: notebookCell.index, end: notebookCell.index + 1 };
+
+    // Optionally log some details of the cell.
+    log(`Executing cell at index ${notebookCell.index}`);
+    log(`Cell kind: ${notebookCell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
+    log(`Cell content: ${notebookCell.document.getText()}`);
+
+    // Execute the single cell.
+    vscode.commands.executeCommand('notebook.cell.execute', { ranges: [cellRange] });
+    log('Done executing cell');
+}
+
+
+
+
 // Execute the given target run group. If a cell is specified use that document, if not find the active doc
 export function executeGroup(targetRunTag: string, notebookCell?: vscode.NotebookCell) {
     let doc = notebookCell?.notebook; // get the document from the context cell
