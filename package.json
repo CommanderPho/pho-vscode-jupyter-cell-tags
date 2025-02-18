@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.3.9",
+	"version": "0.4.0",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -28,6 +28,7 @@
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
 		"onCommand:jupyter-cell-tags.paramaterize",
 		"onCommand:jupyter-cell-tags.executeRunGroup",
+		"onCommand:jupyter-cell-tags.executeRunCell",
 		"onCommand:extension.showAllNotebookTags",
 		"onView:all-notebook-tags-view",
 		"onCommand:jupyter-cell-tags.openNotebookCell",
@@ -111,8 +112,8 @@
 				"category": "Jupyter"
 			},
             {
-                "command": "jupyter-cell-tags.runCell",
-                "title": "▶️Run Cell",
+                "command": "jupyter-cell-tags.executeRunCell",
+                "title": "▶️ Run Cell",
                 "icon": "$(play)",
                 "category": "Jupyter"
             },
@@ -374,8 +375,8 @@
 					"group": "inline"
 				},
                 {
-                    "command": "jupyter-cell-tags.runCell",
-                    "when": "view == all-notebook-tags-view",
+                    "command": "jupyter-cell-tags.executeRunCell",
+                    "when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
                     "group": "inline"
                 },
 				{
@@ -406,10 +407,10 @@
 					"group": "navigation"
 				},
                 {
-                    "command": "jupyter-cell-tags.runCell",
+                    "command": "jupyter-cell-tags.executeRunCell",
                     "title": "Run Cell",
                     "icon": "$(play)",
-                    "when": "view == all-notebook-tags-view && viewItem == cellItem",
+                    "when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
                     "group": "inline"
                 }
 			]

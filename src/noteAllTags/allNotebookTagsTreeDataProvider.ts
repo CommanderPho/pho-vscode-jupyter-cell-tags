@@ -107,7 +107,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (typeof element === 'string') {
             // Tag node
             // Tag node
-            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element);
+            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element); // .contextValue = 'tagItem'
             return tagItem;
         } else {
             // Cell reference node -- the leaf nodes that say "Cell 65" or similar
@@ -119,6 +119,11 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
                 arguments: [element.index]  // Pass the cell index to the command
             };
             cellItem.tooltip = `Jump to cell ${element.index + 1}`;
+            // Define multiple buttons by setting contextValue
+            cellItem.contextValue = 'jupyterCellItem';
+            // Add icon buttons
+            cellItem.iconPath = new vscode.ThemeIcon('notebook');
+
             return cellItem;
         }
     }
@@ -223,40 +228,76 @@ export function register(context: vscode.ExtensionContext) {
     //     title: 'Open Cell',
     //     arguments: [element.index]  // Pass the cell index to the command
     // };
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runCell', async (cellIndex: number) => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', () => {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
             vscode.window.showErrorMessage('No active notebook editor found.');
             return;
         }
+        vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
+        // const cell = editor.notebook.cellAt(cellIndex);
+        // if (!cell) {
+        //     vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
+        //     return;
+        // }
 
-        const cell = editor.notebook.cellAt(cellIndex);
-        if (!cell) {
-            vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
-            return;
-        }
+        // // Reveal and highlight the cell.
+        // const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+        // editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+        // editor.selections = [range];
 
-        // Reveal and highlight the cell.
-        const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
-        editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
-        editor.selections = [range];
+        // try {
+        //     // Execute the single cell.
+        //     // Depending on your VS Code API version, one of the following methods should work:
+        //     // await editor.notebook.executeCell(cell.index);
+        //     // or
+        //     // await editor.executeCell(cell.index);
+        //     // Here we assume executeCell is available on notebook.
+        //     // await editor.notebook.executeCell(cell.index);
+        //     executeNotebookCell(cell)
+        //     // await editor.executeCell(cell.index);
 
-        try {
-            // Execute the single cell.
-            // Depending on your VS Code API version, one of the following methods should work:
-            // await editor.notebook.executeCell(cell.index);
-            // or
-            // await editor.executeCell(cell.index);
-            // Here we assume executeCell is available on notebook.
-            // await editor.notebook.executeCell(cell.index);
-            executeNotebookCell(cell)
-            // await editor.executeCell(cell.index);
-
-            showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
-        } catch (err) {
-            vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
-        }
+        //     showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+        // } catch (err) {
+        //     vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
+        // }
     }));
+
+
+    // context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runCell', async (cellIndex: number) => {
+    //     const editor = vscode.window.activeNotebookEditor;
+    //     if (!editor) {
+    //         vscode.window.showErrorMessage('No active notebook editor found.');
+    //         return;
+    //     }
+
+    //     const cell = editor.notebook.cellAt(cellIndex);
+    //     if (!cell) {
+    //         vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
+    //         return;
+    //     }
+
+    //     // Reveal and highlight the cell.
+    //     const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+    //     editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+    //     editor.selections = [range];
+
+    //     try {
+    //         // Execute the single cell.
+    //         // Depending on your VS Code API version, one of the following methods should work:
+    //         // await editor.notebook.executeCell(cell.index);
+    //         // or
+    //         // await editor.executeCell(cell.index);
+    //         // Here we assume executeCell is available on notebook.
+    //         // await editor.notebook.executeCell(cell.index);
+    //         executeNotebookCell(cell)
+    //         // await editor.executeCell(cell.index);
+
+    //         showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+    //     } catch (err) {
+    //         vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
+    //     }
+    // }));
 
 
     // Register the new "Run Tag" command
@@ -276,8 +317,6 @@ export function register(context: vscode.ExtensionContext) {
             showTimedInformationMessage(`No cells found with tag: ${tag}`, 3000);
             return;
         }
-
-
 
         for (const cellRef of cellRefs) {
             const cell = editor.notebook.cellAt(cellRef.index);
