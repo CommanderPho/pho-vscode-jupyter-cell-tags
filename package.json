@@ -130,12 +130,6 @@
 				"icon": "$(run-all)",
                 "category": "Jupyter"
 			},
-            {
-                "command": "jupyter-cell-tags.runCell",
-                "title": "Run Cell",
-                "icon": "$(play)",
-                "category": "Jupyter"
-			},
 			{
 				"command": "jupyter-cell-tags.deleteCellsUnderHeading",
 				"title": "Delete Cells Under Heading"
