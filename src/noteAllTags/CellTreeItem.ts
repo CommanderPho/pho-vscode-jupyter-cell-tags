@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
+import { CellReference } from './allNotebookTagsTreeDataProvider';
 
 export class CellTreeItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly tag: string
+        public readonly cellRef: CellReference
     ) {
         super(label, collapsibleState);
 
