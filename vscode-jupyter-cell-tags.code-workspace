@@ -18,5 +18,11 @@
             "notebook.outputContainerBackgroundColor": "#a5c2aa50",
             "notebook.outputContainerBorderColor": "#10ff10"
         },
+        "actionButtons": {
+            "commands": [],
+            "defaultColor": "white",
+            "reloadButton": "↻",
+            "loadNpmCommands": true
+        }
 	}
 }
