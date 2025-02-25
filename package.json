@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.4.3",
+	"version": "0.4.4",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -367,7 +367,7 @@
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
-					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
 					"group": "inline"
 				},
 				{
