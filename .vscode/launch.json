@@ -11,7 +11,9 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
+                // "--profile-temp",
 				"--extensionDevelopmentPath=${workspaceFolder}",
+                "--disable-extensions",
                 "--enable-proposed-api",
                 "phohale.jupyter"
 			],
@@ -25,8 +27,10 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
+                // "--profile-temp",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionDevelopmentKind=web"
+				"--extensionDevelopmentKind=web",
+                "--disable-extensions"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
@@ -38,8 +42,10 @@
 			"type": "extensionHost",
 			"request": "launch",
 			"args": [
+                // "--profile-temp",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index"
+				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
+                "--disable-extensions"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
