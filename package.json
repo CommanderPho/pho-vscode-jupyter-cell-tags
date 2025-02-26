@@ -202,6 +202,10 @@
 				"title": "🎛️Show All Notebook Jumpbacks View",
 				"category": "Jupyter",
 				"when": "config.jupyter-cell-tags.enableJumpbacks"
+			},
+			{
+				"command": "jupyter-cell-tags.exportTags",
+				"title": "Export tags for notebook.."
 			}
 		],
 		"menus": {
@@ -360,6 +364,12 @@
 				},
 				{
 					"command": "jupyter-cell-tags.changeSortOrder",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.exportTags",
+					"title": "Export tags for notebook..",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				}
