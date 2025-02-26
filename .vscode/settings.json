@@ -1,2 +1,16 @@
 {
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.classpath": true,
+        "**/.factorypath": true,
+        "**/.ipynb_checkpoints": true,
+        "**/.project": true,
+        "**/.settings": true,
+        "**/.spyproject": true,
+        "**/.virtual_documents": true,
+        "**/.vscode": false,
+        "**/*.asv": true,
+        "**/*desktop.ini": true,
+        "**/.idea": true,
+    }
 }

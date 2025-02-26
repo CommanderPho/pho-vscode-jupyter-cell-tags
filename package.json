@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.4.1",
+	"version": "0.4.7",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -20,6 +20,7 @@
 		"Notebooks"
 	],
 	"activationEvents": [
+		"onStartupFinished",
 		"onNotebook:jupyter-notebook",
 		"onNotebookEditor:editor.selection",
 		"onNotebookEditor:editor.onDidChangeActiveNotebookEditor",
@@ -35,7 +36,7 @@
 		"onCommand:jupyter-cell-tags.refreshEntry",
 		"onCommand:jupyter-cell-tags.runTag",
 		"onCommand:jupyter-cell-tags.selectAllChildCells",
-        "onCommand:jupyter-cell-tags.listExecutedNotebookCells",
+		"onCommand:jupyter-cell-tags.listExecutedNotebookCells",
 		"onCommand:jupyter-cell-tags.selectAllCellsUnderTag",
 		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
@@ -111,12 +112,12 @@
 				"title": "🏷️▶️ Execute Tag Run Group",
 				"category": "Jupyter"
 			},
-            {
-                "command": "jupyter-cell-tags.executeRunCell",
-                "title": "▶️ Run Cell",
-                "icon": "$(play)",
-                "category": "Jupyter"
-            },
+			{
+				"command": "jupyter-cell-tags.executeRunCell",
+				"title": "▶️ Run Cell",
+				"icon": "$(play)",
+				"category": "Jupyter"
+			},
 			{
 				"command": "jupyter-cell-tags.refreshEntry",
 				"title": "Refresh",
@@ -129,7 +130,7 @@
 				"command": "jupyter-cell-tags.runTag",
 				"title": "Run Tag",
 				"icon": "$(run-all)",
-                "category": "Jupyter"
+				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.deleteCellsUnderHeading",
@@ -162,17 +163,17 @@
 				"title": "Show the previously executed notebook cells in the current jupyter notebook",
 				"category": "Jupyter Cell Tags"
 			},
-            {
-                "command": "jupyter-cell-tags.selectAllCellsUnderTag",
-                "title": "Select All Cells Under Tag",
-                "category": "Jupyter Cell Tags"
-            },
-            {
-                "command": "jupyter-cell-tags.changeSortOrder",
-                "title": "Change Tag Sort Order",
-                "icon": "$(sort-precedence)",
-                "category": "Jupyter Cell Tags"
-            },
+			{
+				"command": "jupyter-cell-tags.selectAllCellsUnderTag",
+				"title": "Select All Cells Under Tag",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.changeSortOrder",
+				"title": "Change Tag Sort Order",
+				"icon": "$(sort-precedence)",
+				"category": "Jupyter Cell Tags"
+			},
 			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
 				"title": "⬆️❌ Navigate Up to Previous Error Cell",
@@ -231,13 +232,13 @@
 				},
 				{
 					"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
-                    "title": "🎛️Show All Notebook Jumpbacks View",
+					"title": "🎛️Show All Notebook Jumpbacks View",
 					"group": "Jupyter Cell Tags"
 				},
-                {
-                    "command": "jupyter-cell-tags.showAllNotebookTags",
-                    "title": "🎛️Show All Notebook Tags View",
-                    "category": "Jupyter Cell Tags"
+				{
+					"command": "jupyter-cell-tags.showAllNotebookTags",
+					"title": "🎛️Show All Notebook Tags View",
+					"category": "Jupyter Cell Tags"
 				}
 			],
 			"notebook/toolbar": [
@@ -366,7 +367,7 @@
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
-					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
 					"group": "inline"
 				},
 				{
@@ -374,11 +375,11 @@
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "inline"
 				},
-                {
-                    "command": "jupyter-cell-tags.executeRunCell",
-                    "when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
-                    "group": "inline"
-                },
+				{
+					"command": "jupyter-cell-tags.executeRunCell",
+					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
+					"group": "inline"
+				},
 				{
 					"command": "jupyter-cell-tags.refreshEntry",
 					"when": "view == all-notebook-tags-view",
@@ -406,13 +407,13 @@
 					"when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
 					"group": "navigation"
 				},
-                {
-                    "command": "jupyter-cell-tags.executeRunCell",
-                    "title": "Run Cell",
-                    "icon": "$(play)",
-                    "when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
-                    "group": "inline"
-                }
+				{
+					"command": "jupyter-cell-tags.executeRunCell",
+					"title": "Run Cell",
+					"icon": "$(play)",
+					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
+					"group": "inline"
+				}
 			]
 		},
 		"views": {
@@ -475,8 +476,8 @@
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
-        "compile": "tsc -p ./",
-        "watch": "tsc -watch -p ./",
+		"compile": "tsc -p ./",
+		"watch": "tsc -watch -p ./",
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile && npm run lint",
 		"lint": "eslint src --ext ts",
@@ -505,6 +506,6 @@
 		"path-browserify": "^1.0.1"
 	},
 	"extensionDependencies": [
-        "ms-toolsai.jupyter"
+		"ms-toolsai.jupyter"
 	]
 }

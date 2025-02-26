@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
+import { CellTreeItem } from './CellTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, argNotebookCell, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
 import { log, showTimedInformationMessage } from '../util/logging';
@@ -106,12 +107,12 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     getTreeItem(element: string | CellReference): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (typeof element === 'string') {
             // Tag node
-            // Tag node
             const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element); // .contextValue = 'tagItem'
             return tagItem;
         } else {
             // Cell reference node -- the leaf nodes that say "Cell 65" or similar
-            const cellItem = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
+            // const cellItem = new vscode.TreeItem(element.label, vscode.TreeItemCollapsibleState.None);
+            const cellItem = new CellTreeItem(element.label, vscode.TreeItemCollapsibleState.None, element);
             // set the default command to jump to that cell index
             cellItem.command = {
                 command: 'jupyter-cell-tags.openNotebookCell',
@@ -228,7 +229,7 @@ export function register(context: vscode.ExtensionContext) {
     //     title: 'Open Cell',
     //     arguments: [element.index]  // Pass the cell index to the command
     // };
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', () => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
             vscode.window.showErrorMessage('No active notebook editor found.');
@@ -263,6 +264,21 @@ export function register(context: vscode.ExtensionContext) {
         // }
     }));
 
+
+    // context.subscriptions.push(
+    //     vscode.commands.registerCommand('jupyter-cell-tags.executeRunGroup', async (args) => {
+    //         // const tag = await quickPickAllTags();
+    //         const tag = await quickPickAllRunGroupTags();
+    //         if (tag) {
+    //             executeGroup(tag, argNotebookCell(args));
+    //             // await addCellTag(cell, [tag]);
+    //             // log('executing tag', tag);
+    //         }
+    //         else {
+    //             log('no tag');
+    //         }
+    //     })
+    // );
 
     // context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.runCell', async (cellIndex: number) => {
     //     const editor = vscode.window.activeNotebookEditor;

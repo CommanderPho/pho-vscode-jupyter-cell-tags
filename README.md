@@ -103,3 +103,32 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 🦘🥏🎯
 🐛🔖➖➕
 Error: 🐛‼️ ❌
+
+
+## 2025-02-25 - on macOS, I had to remove `nodenv` from path (an alternative to `nvm` for managing node versions) and move `nvm` up onto path. Also ahve to run with `zsh` instead of `bash`.
+
+# 2025-02-26 - IMPORTANT - Finally got extension debugging working reliably
+
+https://vscode.dev/editor/profile/github/62d11f2ed58b3e59527093d8318c1847
+
+In `.vscode\launch.json`, I had to add a fixed extension debugging profile: `"--profile=PhoExtensionDev2025",`
+```json
+		{
+			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+                // "--profile-temp",
+				"--profile=PhoExtensionDev2025",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+                // "--disable-extensions",
+                "--enable-proposed-api",
+                "phohale.jupyter"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}",
+		},
+
+```

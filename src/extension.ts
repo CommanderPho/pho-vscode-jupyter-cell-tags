@@ -13,12 +13,17 @@ import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 // import { JumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
+import { VersionStatusBarItem } from './statusBar';
 
 // listExecutedNotebookCells
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
+
+    // Add this line with your other context subscriptions
+    context.subscriptions.push(new VersionStatusBarItem());
+
 	registerCellTags(context);
 	registerCellTagsView(context);
     registerAllNotebookTagsView(context);
