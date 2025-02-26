@@ -103,3 +103,7 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 🦘🥏🎯
 🐛🔖➖➕
 Error: 🐛‼️ ❌
+
+
+## 2025-02-25 - on macOS, I had to remove `nodenv` from path (an alternative to `nvm` for managing node versions) and move `nvm` up onto path. Also ahve to run with `zsh` instead of `bash`.
+
