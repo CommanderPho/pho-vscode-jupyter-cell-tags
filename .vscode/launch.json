@@ -12,8 +12,9 @@
 			"request": "launch",
 			"args": [
                 // "--profile-temp",
+				"--profile=PhoExtensionDev2025",
 				"--extensionDevelopmentPath=${workspaceFolder}",
-                "--disable-extensions",
+                // "--disable-extensions",
                 "--enable-proposed-api",
                 "phohale.jupyter"
 			],
@@ -28,9 +29,10 @@
 			"request": "launch",
 			"args": [
                 // "--profile-temp",
+				"--profile=PhoExtensionDev2025",
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionDevelopmentKind=web",
-                "--disable-extensions"
+                // "--disable-extensions"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
@@ -43,9 +45,10 @@
 			"request": "launch",
 			"args": [
                 // "--profile-temp",
+				"--profile=PhoExtensionDev2025",
 				"--extensionDevelopmentPath=${workspaceFolder}",
 				"--extensionTestsPath=${workspaceFolder}/out/test/suite/index",
-                "--disable-extensions"
+                // "--disable-extensions"
 			],
 			"outFiles": [
 				"${workspaceFolder}/out/test/**/*.js"
