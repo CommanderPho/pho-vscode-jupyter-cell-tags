@@ -14,7 +14,6 @@ import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJu
 // import { JumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { VersionStatusBarItem } from './statusBar';
-import { JupyterCellSelectionStatusBar } from './JupyterCellSelectionStatusBar';
 
 
 // listExecutedNotebookCells
@@ -23,11 +22,8 @@ export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
 
-    // Add this line with your other context subscriptions
-    context.subscriptions.push(new VersionStatusBarItem());
-
     // Instantiate and register the new status bar item.
-    const selectionStatusBar = new JupyterCellSelectionStatusBar();
+    const selectionStatusBar = new VersionStatusBarItem();
     context.subscriptions.push(selectionStatusBar);
 
 	registerCellTags(context);
