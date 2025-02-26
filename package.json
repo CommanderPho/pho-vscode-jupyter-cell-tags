@@ -206,7 +206,11 @@
 			{
 				"command": "jupyter-cell-tags.exportTags",
 				"title": "Export tags for notebook.."
-			}
+			},
+            {
+                "command": "jupyter-cell-tags.importTags",
+                "title": "Jupyter: Import Cell Tags from JSON"
+            }
 		],
 		"menus": {
 			"commandPalette": [

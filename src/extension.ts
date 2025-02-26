@@ -14,6 +14,7 @@ import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJu
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { VersionStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
+import { importTagsForNotebook } from './importTags/importTags';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -31,9 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
     registerJumpbackTreeDataProvider(context);
 
     context.subscriptions.push(
-        vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook)
+        vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),
+        vscode.commands.registerCommand('jupyter-cell-tags.importTags', importTagsForNotebook)
     );
-
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
