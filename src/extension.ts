@@ -11,12 +11,9 @@ import { activateCellHeadings } from './cellHeadings/startup';
 import { registerCommands } from './cellExecution/cellExecutionTracking';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
-// import { JumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { VersionStatusBarItem } from './statusBar';
-
-
-// listExecutedNotebookCells
+import { exportTagsForNotebook } from './exportTags/exportTags';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -33,6 +30,10 @@ export function activate(context: vscode.ExtensionContext) {
     registerRemoveJumpbackCommand(context);
     registerJumpbackTreeDataProvider(context);
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook)
+    );
+
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
@@ -42,7 +43,6 @@ export function activate(context: vscode.ExtensionContext) {
     activateCellHeadings(context);
     log('Extension activated.');
 }
-
 
 function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
