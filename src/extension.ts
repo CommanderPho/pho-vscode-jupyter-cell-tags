@@ -3,12 +3,12 @@
 
 import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags/cellTags';
-import { register as registerCellTagsView } from './cellTags/cellTagsTreeDataProvider';
+// import { register as registerCellTagsView } from './cellTags/cellTagsTreeDataProvider';
 import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebookTagsTreeDataProvider';
 import { countSelectedCells } from './helper';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
-import { registerCommands } from './cellExecution/cellExecutionTracking';
+// import { registerCommands } from './cellExecution/cellExecutionTracking';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
@@ -25,7 +25,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(selectionStatusBar);
 
 	registerCellTags(context);
-	registerCellTagsView(context);
+	// registerCellTagsView(context);
     registerAllNotebookTagsView(context);
     registerJumpbackCommand(context);
     registerRemoveJumpbackCommand(context);

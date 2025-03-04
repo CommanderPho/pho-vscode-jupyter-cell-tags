@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.4.7",
+	"version": "0.4.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -30,7 +30,7 @@
 		"onCommand:jupyter-cell-tags.paramaterize",
 		"onCommand:jupyter-cell-tags.executeRunGroup",
 		"onCommand:jupyter-cell-tags.executeRunCell",
-		"onCommand:extension.showAllNotebookTags",
+		"onCommand:jupyter-cell-tags.showAllNotebookTags",
 		"onView:all-notebook-tags-view",
 		"onCommand:jupyter-cell-tags.openNotebookCell",
 		"onCommand:jupyter-cell-tags.refreshEntry",
@@ -207,10 +207,10 @@
 				"command": "jupyter-cell-tags.exportTags",
 				"title": "Export tags for notebook.."
 			},
-            {
-                "command": "jupyter-cell-tags.importTags",
-                "title": "Jupyter: Import Cell Tags from JSON"
-            }
+			{
+				"command": "jupyter-cell-tags.importTags",
+				"title": "Jupyter: Import Cell Tags from JSON"
+			}
 		],
 		"menus": {
 			"commandPalette": [
@@ -338,32 +338,32 @@
 			"view/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
-					"when": "view == cell-tag && jupyter-cell-tags.singleCellSelected",
+					"when": "view == all-notebook-tags-view && jupyter-cell-tags.singleCellSelected",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.addTagsToSelectedCells",
-					"when": "view == cell-tag && jupyter-cell-tags.multipleCellsSelected",
+					"when": "view == all-notebook-tags-view && jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.editTagsInJSON",
-					"when": "view == cell-tag",
+					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
-					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.refreshEntry",
-					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view",
 					"group": "inline"
 				},
 				{
 					"command": "jupyter-cell-tags.selectAllChildCells",
-					"when": "view == cell-tag || view == all-notebook-tags-view",
+					"when": "view == all-notebook-tags-view",
 					"group": "inline"
 				},
 				{
@@ -413,7 +413,7 @@
 			"notebook/cellGutter": [
 				{
 					"command": "jupyter-cell-tags.addJumpback",
-					"when": "notebookEditorFocused || view == cell-tag || view == all-notebook-tags-view",
+					"when": "notebookEditorFocused || view == all-notebook-tags-view",
 					"group": "navigation"
 				},
 				{
@@ -431,16 +431,6 @@
 			]
 		},
 		"views": {
-			"jupyter-variables": [
-				{
-					"id": "cell-tag",
-					"name": "Cell Tags",
-					"type": "tree",
-					"icon": "$(tag)",
-					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
-					"visibility": "collapsed"
-				}
-			],
 			"explorer": [
 				{
 					"id": "all-notebook-tags-view",
@@ -448,7 +438,7 @@
 					"contextualTitle": "Notebook Tags",
 					"type": "tree",
 					"icon": "$(tag)",
-					"when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen",
 					"visibility": "collapsed"
 				},
 				{
@@ -462,10 +452,6 @@
 			]
 		},
 		"viewsWelcome": [
-			{
-				"view": "cell-tag",
-				"contents": "No tags found for the selected cell. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
-			},
 			{
 				"view": "all-notebook-tags-view",
 				"contents": "No tags found for the active notebook. Use the [Add Cell Tag](command:jupyter-cell-tags.addTag) command to add tags."
@@ -509,7 +495,7 @@
 		"glob": "^7.1.7",
 		"mocha": "^10.0.0",
 		"ts-loader": "^9.1.1",
-		"typescript": "^4.3.2",
+		"typescript": "^4.9.5",
 		"vscode-test": "^1.5.2",
 		"webpack": "^5.36.2",
 		"webpack-cli": "^4.6.0"
