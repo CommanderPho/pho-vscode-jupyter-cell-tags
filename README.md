@@ -105,6 +105,54 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 Error: 🐛‼️ ❌
 
 
+## Working on Lab
+
+# print:
+```bash
+code --version
+code --list-extensions --show-versions
+```
+
+```
+
+v2024.14.1
+ms-toolsai.jupyter, v2024.8.1
+
+Name: Pylance
+Id: ms-python.vscode-pylance
+Description: A performant, feature-rich language server for Python in VS Code
+Version: 2023.4.40
+Publisher: Microsoft
+
+code --version
+
+halechr@RDLU0039:~$ code --version
+1.91.1
+f1e16e1e6214d7c44d078b1f0607b2388f29d729
+x64
+
+halechr@RDLU0039:~$ code --list-extensions --show-versions
+apommel.matlab-interactive-terminal@0.4.0
+connor4312.css-theme-completions@0.0.5
+hipdotmedia.hipdot-vs-code-url-scheme-grabber@1.0.5
+jkearins.action-buttons-ext@0.1.1
+kawamataryo.copy-python-dotted-path@0.6.9
+mathworks.language-matlab@1.2.5
+ms-azuretools.vscode-docker@1.29.2
+ms-python.debugpy@2024.8.0
+ms-python.python@2024.12.3
+ms-python.vscode-pylance@2024.8.2
+ms-toolsai.jupyter@2024.6.0
+ms-toolsai.jupyter-keymap@1.1.2
+ms-toolsai.jupyter-renderers@1.0.19
+ms-toolsai.vscode-jupyter-cell-tags@0.1.9
+ms-toolsai.vscode-jupyter-slideshow@0.1.6
+ms-vscode-remote.remote-containers@0.380.0
+phohale.custom-text-transform@0.0.4
+phohale.pho-vscode-jupyter-cell-tags@0.3.6
+```
+
+
 ## 2025-02-25 - on macOS, I had to remove `nodenv` from path (an alternative to `nvm` for managing node versions) and move `nvm` up onto path. Also ahve to run with `zsh` instead of `bash`.
 
 # 2025-02-26 - IMPORTANT - Finally got extension debugging working reliably
