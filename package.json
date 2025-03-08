@@ -479,9 +479,6 @@
 		"compile": "tsc -p ./ && webpack --mode=development",
 		"watch": "tsc -watch -p ./",
 		"package": "npm run compile && vsce package --no-yarn",
-		"pretest": "npm run compile && npm run lint",
-		"lint": "eslint src --ext ts",
-		"test": "node ./out/test/runTest.js"
 	},
 	"enabledApiProposals": [],
 	"devDependencies": {
