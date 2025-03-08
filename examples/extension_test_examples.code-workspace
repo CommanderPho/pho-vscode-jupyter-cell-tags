@@ -29,6 +29,7 @@
             "defaultColor": "white",
             "reloadButton": "↻",
             "loadNpmCommands": true
-        }
+		},
+		"jupyter-cell-tags.enableJumpbacks": true
 	}
 }

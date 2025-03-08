@@ -1,12 +1,39 @@
 import * as vscode from 'vscode';
+import { getActiveCell, reviveCell } from '../util/notebookSelection';
+
 
 export function registerJumpbackCommand(context: vscode.ExtensionContext) {
-  context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addJumpback', async (cell: vscode.NotebookCell) => {
+  context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.addJumpback', async (cell: vscode.NotebookCell | vscode.Uri | undefined) => {
+
+
+    cell = reviveCell(cell);
+    if (!cell) {
+        return;
+    }
+
+
     const notebookEditor = vscode.window.activeNotebookEditor;
     if (!notebookEditor) {
       vscode.window.showErrorMessage("No active notebook editor found.");
       return;
     }
+
+
+    // let activeCell: vscode.NotebookCell | undefined;
+    // if (typeof cell === 'string') {
+    //     // find active cell
+    //     activeCell = getActiveCell();
+    // } else {
+    //     activeCell = cell;
+    // }
+
+    // if (!activeCell) {
+    //     return;
+    // }
+
+
+
+
     // Determine the cell index in the notebook
     const cellIndex = notebookEditor.notebook.getCells().indexOf(cell);
     if (cellIndex === -1) {

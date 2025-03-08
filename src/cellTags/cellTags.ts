@@ -6,7 +6,7 @@ import * as json from '../json';
 import { getCellTags, updateCellTags } from '../helper';
 // import { getAllTagsFromActiveNotebook } from './allNotebookTagsTreeDataProvider';
 import { quickPickAllTags } from '../notebookRunGroups/util/cellActionHelpers';
-import { getAllTagsFromActiveNotebook } from '../util/notebookSelection';
+import { getAllTagsFromActiveNotebook, reviveCell } from '../util/notebookSelection';
 import { getActiveCell, getActiveCells } from '../util/notebookSelection';
 
 
@@ -66,39 +66,6 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
 
         return items;
     }
-}
-
-export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): vscode.NotebookCell | undefined {
-    if (!args) {
-        return getActiveCell();
-    }
-
-    if (args && 'index' in args && 'kind' in args && 'notebook' in args && 'document' in args) {
-        return args as vscode.NotebookCell;
-    }
-
-    if (args && 'scheme' in args && 'path' in args) {
-        const cellUri = vscode.Uri.from(args);
-        const cellUriStr = cellUri.toString();
-        let activeCell: vscode.NotebookCell | undefined = undefined;
-
-        for (const document of vscode.workspace.notebookDocuments) {
-            for (const cell of document.getCells()) {
-                if (cell.document.uri.toString() === cellUriStr) {
-                    activeCell = cell;
-                    break;
-                }
-            }
-
-            if (activeCell) {
-                break;
-            }
-        }
-
-        return activeCell;
-    }
-
-    return undefined;
 }
 
 export function register(context: vscode.ExtensionContext) {
