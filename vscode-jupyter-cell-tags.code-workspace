@@ -24,5 +24,11 @@
             "reloadButton": "↻",
             "loadNpmCommands": true
         }
-	}
+    },
+    "extensions": {
+        "recommendations": [
+            "jkearins.action-buttons-ext",
+            "vscode-icons-team.vscode-icons"
+        ]
+    }
 }
