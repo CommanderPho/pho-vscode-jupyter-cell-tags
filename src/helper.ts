@@ -9,8 +9,7 @@ import * as vscode from 'vscode';
 
 
 export function getCellTags(cell: vscode.NotebookCell): string[] {
-    const currentTags =
-        (useCustomMetadata() ? cell.metadata.custom?.metadata?.tags : cell.metadata.metadata?.tags) ?? [];
+    const currentTags = (useCustomMetadata() ? cell.metadata.custom?.metadata?.tags : cell.metadata.metadata?.tags) ?? [];
     return [...currentTags];
 }
 
