@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
 import { log } from '../util/logging';
-import { executeGroup, argNotebookCell, quickPickAllTags, getAllTagsFromActiveNotebook, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
+import { executeGroup, quickPickAllTags, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
+import { argNotebookCell } from '../util/notebookSelection';
+import { getAllTagsFromActiveNotebook } from '../util/notebookSelection';
 import { Jupyter, Kernel } from '@vscode/jupyter-extension';
 
 export async function quickPickAllRunGroupTags() {

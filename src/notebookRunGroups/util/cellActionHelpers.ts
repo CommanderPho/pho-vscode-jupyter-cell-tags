@@ -7,82 +7,7 @@ import { getCellTags } from '../../helper';
 // import path = require('path');
 const path = require('path');
 import { Jupyter, Kernel } from '@vscode/jupyter-extension';
-
-// Find the current active notebook document and the current active cell in it
-function getCurrentActiveCell(): vscode.NotebookCell | undefined {
-    const activeNotebook = vscode.window.activeNotebookEditor;
-
-    if (activeNotebook) {
-        // || is ok here as 0 index is the same as the default value
-        const selectedCellIndex = activeNotebook?.selections[0]?.start || 0;
-
-        return activeNotebook.notebook.cellCount >= 1 ? activeNotebook.notebook.cellAt(selectedCellIndex) : undefined;
-    }
-}
-
-
-function getAllCellsFromActiveNotebook() {
-    // Get the active notebook editor
-    const activeNotebookEditor = vscode.window.activeNotebookEditor;
-
-    // Check if there is an active notebook editor
-    if (activeNotebookEditor) {
-        // Get the notebook document from the editor
-        const notebookDocument = activeNotebookEditor.notebook;
-        if (notebookDocument) {
-            // Retrieve all cells from the notebook document
-            const cells = notebookDocument.getCells();
-            // Optionally, you can log or return the cells
-            log('All cells:', cells);
-            return cells;  // This will return an array of NotebookCell objects
-        }
-        else {
-            log('No active notebook editor document found');
-            return null;
-        }
-    } else {
-        log('No active notebook editor found');
-        return null;
-    }
-}
-
-
-export function getAllTagsFromActiveNotebook() {
-    // Get the active notebook editor
-    const activeNotebookEditor = vscode.window.activeNotebookEditor;
-    // _tags: Array<string> = new Array();
-    const all_tags: string[] = new Array();
-    // Check if there is an active notebook editor
-    if (activeNotebookEditor) {
-        // Get the notebook document from the editor
-        const notebookDocument = activeNotebookEditor.notebook;
-        if (notebookDocument) {
-            for (let i = 0; i < activeNotebookEditor.notebook.cellCount; i++) {
-                const cell = activeNotebookEditor.notebook.cellAt(i);
-                if (!cell) {
-                    continue;
-                }
-                const tags = getCellTags(cell);
-                tags.forEach(tag => {
-                    // all_tags.includes(tag) ? null : all_tags.push(tag);
-                    if (!all_tags.includes(tag)) {
-                        all_tags.push(tag);
-                    }
-                });
-            }
-            log('All tags:', all_tags);
-            return all_tags;  // This will return an array of NotebookCell objects
-        }
-        else {
-            log('No active notebook editor document found');
-            return null;
-        }
-    } else {
-        log('No active notebook editor found');
-        return null;
-    }
-}
-
+import { getAllTagsFromActiveNotebook } from '../../util/notebookSelection';
 
 // export async function quickPickSpecificTags(knownTagQuickPickItems?: { label: string }[], quickPickMessage?: string) {
 //     const disposables: vscode.Disposable[] = [];
@@ -162,18 +87,6 @@ export async function quickPickAllTags() {
         disposables.forEach(d => d.dispose());
     }
     return null;
-}
-
-
-// Is the given argument a vscode NotebookCell?
-export function argNotebookCell(args: any): vscode.NotebookCell | undefined {
-    // Check to see if we have a notebook cell for command context. Kinda ugly? Maybe a better way to do this.
-    if (args && 'index' in args && 'kind' in args && 'notebook' in args && 'document' in args) {
-        return args as vscode.NotebookCell;
-    }
-
-    log('Non-NotebookCell passed to cell based notebook group function');
-    return undefined;
 }
 
 

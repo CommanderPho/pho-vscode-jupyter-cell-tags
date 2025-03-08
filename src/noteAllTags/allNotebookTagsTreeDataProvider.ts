@@ -2,7 +2,8 @@ import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { CellTreeItem } from './CellTreeItem'; // Import the custom TreeItem
 import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
-import { executeGroup, argNotebookCell, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
+import { executeGroup, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
+import { argNotebookCell } from '../util/notebookSelection';
 import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
 
