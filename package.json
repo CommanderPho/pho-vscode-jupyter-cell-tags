@@ -14,7 +14,7 @@
 		"name": "Pho Hale + Microsoft Corporation"
 	},
 	"engines": {
-		"vscode": "^1.88.0"
+		"vscode": "^1.98.0"
 	},
 	"categories": [
 		"Notebooks"
