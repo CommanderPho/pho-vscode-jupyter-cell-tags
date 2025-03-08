@@ -50,8 +50,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (!editor || editor.notebook.notebookType !== 'jupyter-notebook') {
             return;
         }
-
+        console.log('Setting jupyter:showAllTagsExplorer context');
         await vscode.commands.executeCommand('setContext', 'jupyter:showAllTagsExplorer', true);
+        console.log('Context set');
 
         this._editorDisposables.push(vscode.workspace.onDidChangeNotebookDocument(e => {
             this.updateTags(editor);
@@ -173,14 +174,20 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
+    console.log('View registration started for all-notebook-tags-view');
+    // Your view registration code
+    console.log('View registration completed');
 
     // register the command to show the view
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.showAllNotebookTags', () => {
+            console.log('showAllNotebookTags command triggered');
             // Show the view in the explorer
             vscode.commands.executeCommand('workbench.view.explorer');
+            console.log('Explorer view opened');
             // Focus/reveal the all-notebook-tags-view
             vscode.commands.executeCommand('all-notebook-tags-view.focus');
+            console.log('Tried to focus all-notebook-tags-view');
         })
     );
 

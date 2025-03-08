@@ -4,5 +4,31 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+        "actionButtons": {
+            "commands": [
+				{
+					"name": "Back",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateBack"
+				},
+				{
+					"name": "Forward",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateForward"
+				},
+				{
+					"name": "VSCode Dev Consoler",
+					"color": "#99CCFF",
+					"useVsCodeApi": true,
+					"command": "workbench.action.toggleDevTools"
+				},
+			],
+            "defaultColor": "white",
+            "reloadButton": "↻",
+            "loadNpmCommands": true
+        }
+	}
 }
