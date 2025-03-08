@@ -47,8 +47,8 @@
 		"type": "git",
 		"url": "https://github.com/CommanderPho/vscode-jupyter-cell-tags"
 	},
-	"main": "./out/extension-node.js",
-	"browser": "./out/extension-web.js",
+	"main": "./out/extension.js",
+	"browser": "./out/extension.js",
 	"contributes": {
 		"configuration": {
 			"title": "Jupyter Cell Tags",
