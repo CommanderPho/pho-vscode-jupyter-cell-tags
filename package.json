@@ -434,7 +434,7 @@
 					"contextualTitle": "Notebook Tags",
 					"type": "tree",
 					"icon": "$(tag)",
-					"when": "jupyter:showAllTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"when": "jupyter:showAllTagsExplorer",
 					"visibility": "collapsed"
 				},
 				{
