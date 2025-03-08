@@ -443,7 +443,7 @@
 					"contextualTitle": "Notebook Jumpbacks",
 					"type": "tree",
 					"icon": "$(bookmark)",
-					"when": "jupyter.hasNativeNotebookOrInteractiveWindowOpen && config.jupyter-cell-tags.enableJumpbacks"
+					"when": "config.jupyter-cell-tags.enableJumpbacks"
 				}
 			]
 		},
