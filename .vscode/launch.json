@@ -5,39 +5,51 @@
 {
 	"version": "0.2.0",
 	"configurations": [
-
 		{
-			"name": "Run Extension",
+			"name": "Extension",
 			"type": "extensionHost",
 			"request": "launch",
-			"args": [
-                // "--profile-temp",
-				"--profile=PhoExtensionDev2025",
-				"--extensionDevelopmentPath=${workspaceFolder}",
-                // "--disable-extensions",
-                "--enable-proposed-api",
-                "phohale.jupyter"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
+			"args": ["--profile=PhoExtensionDev2025", "--extensionDevelopmentPath=${workspaceFolder}"],
+			"outFiles": ["${workspaceFolder}/out/**/*.js"],
 			"preLaunchTask": "${defaultBuildTask}",
-		},
-		{
-			"name": "Run Extension (Web)",
-			"type": "extensionHost",
-			"request": "launch",
-			"args": [
-                // "--profile-temp",
-				"--profile=PhoExtensionDev2025",
-				"--extensionDevelopmentPath=${workspaceFolder}",
-				"--extensionDevelopmentKind=web",
-                // "--disable-extensions"
-			],
-			"outFiles": [
-				"${workspaceFolder}/out/**/*.js"
-			],
-			"preLaunchTask": "${defaultBuildTask}",
+			"presentation": {
+				"hidden": false,
+				"group": "",
+				"order": 1
+			}
 		}
+		// {
+		// 	"name": "Run Extension",
+		// 	"type": "extensionHost",
+		// 	"request": "launch",
+		// 	"args": [
+        //         // "--profile-temp",
+		// 		"--profile=PhoExtensionDev2025",
+		// 		"--extensionDevelopmentPath=${workspaceFolder}",
+        //         // "--disable-extensions",
+        //         "--enable-proposed-api",
+        //         "phohale.jupyter"
+		// 	],
+		// 	"outFiles": [
+		// 		"${workspaceFolder}/out/**/*.js"
+		// 	],
+		// 	"preLaunchTask": "${defaultBuildTask}",
+		// }
+		// {
+		// 	"name": "Run Extension (Web)",
+		// 	"type": "extensionHost",
+		// 	"request": "launch",
+		// 	"args": [
+        //         // "--profile-temp",
+		// 		"--profile=PhoExtensionDev2025",
+		// 		"--extensionDevelopmentPath=${workspaceFolder}",
+		// 		"--extensionDevelopmentKind=web",
+        //         // "--disable-extensions"
+		// 	],
+		// 	"outFiles": [
+		// 		"${workspaceFolder}/out/**/*.js"
+		// 	],
+		// 	"preLaunchTask": "${defaultBuildTask}",
+		// }
 	]
 }
