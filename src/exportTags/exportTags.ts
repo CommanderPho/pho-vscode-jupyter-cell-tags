@@ -27,13 +27,29 @@ export async function exportTagsForNotebook(): Promise<void> {
 
     // Determine output directory: same directory as the notebook.
     const notebookDir = path.dirname(notebookUri.fsPath);
-    const exportFilePath = path.join(notebookDir, exportFileName);
-    const exportUri = vscode.Uri.file(exportFilePath);
+    const defaultUri = vscode.Uri.file(path.join(notebookDir, exportFileName));
+    // const exportFilePath = path.join(notebookDir, exportFileName);
+    // const exportUri = vscode.Uri.file(exportFilePath);
 
-    try {
-        await vscode.workspace.fs.writeFile(exportUri, Buffer.from(content, 'utf8'));
-        vscode.window.showInformationMessage(`Exported tags to ${exportFileName}`);
-    } catch (err: any) {
-        vscode.window.showErrorMessage(`Failed to export tags: ${err.message}`);
+     // Show save dialog with default name pre-populated
+    const saveDialogOptions: vscode.SaveDialogOptions = {
+        defaultUri: defaultUri,
+        filters: {
+            'JSON files': ['json'],
+            'All files': ['*']
+        },
+        title: 'Export Notebook Cell Tags'
+    };
+
+    const chosenUri = await vscode.window.showSaveDialog(saveDialogOptions);
+    
+    // Only proceed if user selected a location
+    if (chosenUri) {
+        try {
+            await vscode.workspace.fs.writeFile(chosenUri, Buffer.from(content, 'utf8'));
+            vscode.window.showInformationMessage(`Exported tags to ${path.basename(chosenUri.fsPath)}`);
+        } catch (err: any) {
+            vscode.window.showErrorMessage(`Failed to export tags: ${err.message}`);
+        }
     }
 }
