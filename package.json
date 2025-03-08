@@ -485,6 +485,7 @@
 	"devDependencies": {
 		"@types/node": "20.x",
 		"@types/vscode": "^1.98.0",
+		"@vscode/test-electron": "^2.4.1",
 		"typescript": "^5.8.2"
 	},
 	"dependencies": {
