@@ -175,6 +175,11 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.setTagPriority",
+				"title": "Set Tag Priority",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
 				"title": "⬆️❌ Navigate Up to Previous Error Cell",
 				"icon": "$(arrow-up)",
@@ -418,6 +423,11 @@
 					"command": "jupyter-cell-tags.selectAllCellsUnderTag",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "inline"
+				},
+				{
+					"command": "jupyter-cell-tags.setTagPriority",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
+					"group": "1_modification"
 				}
 			],
 			"notebook/cellGutter": [

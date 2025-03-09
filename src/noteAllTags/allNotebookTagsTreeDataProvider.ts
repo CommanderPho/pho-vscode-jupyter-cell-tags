@@ -7,6 +7,7 @@ import { argNotebookCell } from '../util/notebookSelection';
 import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
+import { updateNotebookMetadata } from '../util/notebookMetadata';
 
 
 export interface CellReference {
@@ -520,10 +521,11 @@ export function register(context: vscode.ExtensionContext) {
             }
             
             const priority = parseInt(input, 10);
+
             
-            // Get the current metadata - create a deep copy to avoid readonly issues
-            const metadata = JSON.parse(JSON.stringify(editor.notebook.metadata || {}));
-            const tagProperties = metadata['tagProperties'] || {};
+            // First get the current tagProperties
+            const currentMetadata = editor.notebook.metadata || {};
+            const tagProperties = currentMetadata['tagProperties'] || {};
             
             // Update the priority for this tag
             tagProperties[tagName] = { 
@@ -531,14 +533,28 @@ export function register(context: vscode.ExtensionContext) {
                 priority 
             };
             
-            // Update the metadata
-            metadata['tagProperties'] = tagProperties;
+            // Use updateNotebookMetadata to update the notebook metadata
+            await updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
             
-            // Apply the update to the notebook
-            const edit = new vscode.WorkspaceEdit();
-            // Use explicit type casting to satisfy the API
-            edit.replaceNotebookMetadata(editor.notebook.uri, metadata as vscode.NotebookDocumentMetadata);
-            await vscode.workspace.applyEdit(edit);
+
+            // // Get the current metadata - create a deep copy to avoid readonly issues
+            // const metadata = JSON.parse(JSON.stringify(editor.notebook.metadata || {}));
+            // const tagProperties = metadata['tagProperties'] || {};
+            
+            // // Update the priority for this tag
+            // tagProperties[tagName] = { 
+            //     ...tagProperties[tagName], 
+            //     priority 
+            // };
+            
+            // // Update the metadata
+            // metadata['tagProperties'] = tagProperties;
+            
+            // // Apply the update to the notebook
+            // const edit = new vscode.WorkspaceEdit();
+            // // Use explicit type casting to satisfy the API
+            // edit.replaceNotebookMetadata(editor.notebook.uri, metadata as vscode.NotebookDocumentMetadata);
+            // await vscode.workspace.applyEdit(edit);
             
             // Refresh the tree view
             treeDataProvider.refresh();
