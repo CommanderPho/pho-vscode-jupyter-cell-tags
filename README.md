@@ -136,3 +136,14 @@ In `.vscode\launch.json`, I had to add a fixed extension debugging profile: `"--
 
 # 2025-03-08 - Reference on Developing a VSCode Extension that uses the Jupyter Extension:
 https://github.com/Microsoft/vscode-jupyter/blob/main/CONTRIBUTING.md#development-process
+https://github.com/microsoft/vscode-jupyter/wiki/Jupyter-Kernels-and-the-Jupyter-Extension
+https://jupyter-protocol.readthedocs.io/en/latest/messaging.html
+https://github.com/microsoft/vscode-jupyter/wiki/Accessing-Jupyter-Kernels-from-3rd-party-extensions
+https://github.com/microsoft/vscode-jupyter/wiki/Extension-API
+
+
+### Using ipywidgets - https://github.com/microsoft/vscode-jupyter/wiki/Component:-IPyWidgets
+
+
+### Pending Issues:
+https://github.com/microsoft/vscode/issues/209787

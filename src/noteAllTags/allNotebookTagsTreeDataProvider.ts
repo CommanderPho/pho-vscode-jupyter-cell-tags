@@ -243,33 +243,36 @@ export function register(context: vscode.ExtensionContext) {
             vscode.window.showErrorMessage('No active notebook editor found.');
             return;
         }
-        vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
-        // const cell = editor.notebook.cellAt(cellIndex);
-        // if (!cell) {
-        //     vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
-        //     return;
-        // }
+        // vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
+        // 2025-03-08 - https://github.com/microsoft/vscode-extension-samples/blob/main/jupyter-kernel-execution-sample/src/extension.ts
 
-        // // Reveal and highlight the cell.
-        // const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
-        // editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
-        // editor.selections = [range];
+        const cell = editor.notebook.cellAt(cellIndex);
+        if (!cell) {
+            vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
+            return;
+        }
 
-        // try {
-        //     // Execute the single cell.
-        //     // Depending on your VS Code API version, one of the following methods should work:
-        //     // await editor.notebook.executeCell(cell.index);
-        //     // or
-        //     // await editor.executeCell(cell.index);
-        //     // Here we assume executeCell is available on notebook.
-        //     // await editor.notebook.executeCell(cell.index);
-        //     executeNotebookCell(cell)
-        //     // await editor.executeCell(cell.index);
+        // Reveal and highlight the cell.
+        const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+        editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+        editor.selections = [range];
 
-        //     showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
-        // } catch (err) {
-        //     vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
-        // }
+        try {
+            // Execute the single cell.
+            // Depending on your VS Code API version, one of the following methods should work:
+            // await editor.notebook.executeCell(cell.index);
+            // or
+            // await editor.executeCell(cell.index);
+            // Here we assume executeCell is available on notebook.
+            // await editor.notebook.executeCell(cell.index);
+            executeNotebookCell(cell)
+            // await editor.executeCell(cell.index);
+
+            showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+        } catch (err) {
+            vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
+        }
+
     }));
 
 
