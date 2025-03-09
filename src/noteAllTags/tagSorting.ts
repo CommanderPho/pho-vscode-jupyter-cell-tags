@@ -6,7 +6,8 @@ import { CellReference } from "./allNotebookTagsTreeDataProvider";
 export enum TagSortOrder {
     Alphabetical = 'alphabetical',
     CreationDate = 'creation-date',
-    ModificationDate = 'modification-date'
+    ModificationDate = 'modification-date',
+    Priority = 'priority'
 }
 
 /**

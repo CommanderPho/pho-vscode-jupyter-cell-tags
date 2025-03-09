@@ -22,6 +22,22 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
+    private _tagPriorities: Map<string, number> = new Map();
+
+    public setTagPriority(tag: string, priority: number) {
+        this._tagPriorities.set(tag, priority);
+        this.persistTagMetadata();
+        this._onDidChangeTreeData.fire();
+    }
+
+    private persistTagMetadata() {
+        const editor = vscode.window.activeNotebookEditor;
+        if (editor) {
+            const metadata = (editor.notebook.metadata || {}) as any;
+            metadata.tagPriorities = Object.fromEntries(this._tagPriorities);
+            // Trigger metadata update
+        }
+    }
 
     constructor() {
         this._tags = new Map();
@@ -65,7 +81,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         const options = [
             { label: 'Alphabetical', value: TagSortOrder.Alphabetical },
             { label: 'Creation Date', value: TagSortOrder.CreationDate },
-            { label: 'Modification Date', value: TagSortOrder.ModificationDate }
+            { label: 'Modification Date', value: TagSortOrder.ModificationDate },
+            { label: 'Priority', value: TagSortOrder.Priority }
         ];
 
         vscode.window.showQuickPick(options, {
@@ -440,5 +457,20 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.setTagPriority', async (tag: string) => {
+            const priority = await vscode.window.showInputBox({
+                prompt: 'Enter priority (0-100)',
+                validateInput: text => {
+                    const num = parseInt(text);
+                    return (num >= 0 && num <= 100) ? null : 'Please enter a number between 0 and 100';
+                }
+            });
+            if (priority !== undefined) {
+                treeDataProvider.setTagPriority(tag, parseInt(priority));
+            }
+        })
+    );
 
+    
 }
