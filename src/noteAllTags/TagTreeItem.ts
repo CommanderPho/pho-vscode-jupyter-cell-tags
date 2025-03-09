@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { TagProperties } from '../models/tagProperties';
 
 export class TagTreeItem extends vscode.TreeItem {
     constructor(

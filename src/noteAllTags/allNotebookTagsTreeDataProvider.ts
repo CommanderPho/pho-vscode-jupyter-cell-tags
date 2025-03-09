@@ -180,17 +180,20 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         
         if (element === undefined) {
             // Return root-level tags, sorted by the current sort mode
-            const allTags = this.getAllTags();
-            
-            if (this._sortMode === TagSortMode.Priority) {
-                return Promise.resolve(this.sortTagsByPriority(allTags, notebook));
-            } else {
-                // Default alphabetical sorting
-                return Promise.resolve([...allTags].sort());
-            }
+            // const allTags = this.getAllTags();
+            // if (this._sortMode === TagSortMode.Priority) {
+            //     return Promise.resolve(this.sortTagsByPriority(allTags, notebook));
+            // } else {
+            //     // Default alphabetical sorting
+            //     return Promise.resolve([...allTags].sort());
+            // }
+            const sortedTags = sortTags(this._tags, this._sortOrder);
+            return Promise.resolve(Array.from(sortedTags.keys()));
+
         } else if (typeof element === 'string') {
             // Return cells with this tag
-            return Promise.resolve(this.getCellsWithTag(element));
+            // return Promise.resolve(this.getCellsWithTag(element));
+            return Promise.resolve(this._tags.get(element) || []);
         }
         
         return Promise.resolve([]);
