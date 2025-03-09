@@ -6,6 +6,7 @@ import { executeGroup, executeNotebookCell } from '../notebookRunGroups/util/cel
 import { argNotebookCell } from '../util/notebookSelection';
 import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
+import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 
 
 export interface CellReference {
@@ -13,6 +14,10 @@ export interface CellReference {
     label: string;
 }
 
+// export enum TagSortMode {
+//     Alphabetical = 'alphabetical',
+//     Priority = 'priority'
+// }
 
 export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string | CellReference> {
     private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
@@ -22,21 +27,28 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
-    private _tagPriorities: Map<string, number> = new Map();
+    // private _sortMode: TagSortMode = TagSortMode.Alphabetical;    
+    // // Add a setter for the sort mode
+    // public set sortMode(mode: TagSortMode) {
+    //     this._sortMode = mode;
+    //     this._onDidChangeTreeData.fire(undefined);
+    // }
 
-    public setTagPriority(tag: string, priority: number) {
-        this._tagPriorities.set(tag, priority);
-        this.persistTagMetadata();
-        this._onDidChangeTreeData.fire();
-    }
 
-    private persistTagMetadata() {
-        const editor = vscode.window.activeNotebookEditor;
-        if (editor) {
-            const metadata = (editor.notebook.metadata || {}) as any;
-            metadata.tagPriorities = Object.fromEntries(this._tagPriorities);
-            // Trigger metadata update
-        }
+    private sortTagsByPriority(tags: string[], notebook: vscode.NotebookDocument): string[] {
+        const allProperties = TagPropertiesManager.getAllTagProperties(notebook);
+        
+        return [...tags].sort((a, b) => {
+            const priorityA = allProperties[a]?.priority ?? Number.MAX_VALUE;
+            const priorityB = allProperties[b]?.priority ?? Number.MAX_VALUE;
+            
+            if (priorityA === priorityB) {
+                // If priorities are the same, sort alphabetically
+                return a.localeCompare(b);
+            }
+            
+            return priorityA - priorityB;
+        });
     }
 
     constructor() {
@@ -150,15 +162,38 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
     // Get children for both tags and cells
     public getChildren(element?: string | undefined): vscode.ProviderResult<(string | CellReference)[]> {
-        if (!element) {
-            // Return all tags
-            const sortedTags = sortTags(this._tags, this._sortOrder);
-            return Array.from(sortedTags.keys());
-            // return Array.from(this._tags.keys());
-        } else {
-            // Return the list of cells for a given tag
-            return this._tags.get(element) || [];
+        // if (!element) {
+        //     // Return all tags
+        //     const sortedTags = sortTags(this._tags, this._sortOrder);
+        //     return Array.from(sortedTags.keys());
+        //     // return Array.from(this._tags.keys());
+        // } else {
+        //     // Return the list of cells for a given tag
+        //     return this._tags.get(element) || [];
+        // }
+        // If no active editor, return empty
+        if (!vscode.window.activeNotebookEditor) {
+            return Promise.resolve([]);
         }
+        
+        const notebook = vscode.window.activeNotebookEditor.notebook;
+        
+        if (element === undefined) {
+            // Return root-level tags, sorted by the current sort mode
+            const allTags = this.getAllTags();
+            
+            if (this._sortMode === TagSortMode.Priority) {
+                return Promise.resolve(this.sortTagsByPriority(allTags, notebook));
+            } else {
+                // Default alphabetical sorting
+                return Promise.resolve([...allTags].sort());
+            }
+        } else if (typeof element === 'string') {
+            // Return cells with this tag
+            return Promise.resolve(this.getCellsWithTag(element));
+        }
+        
+        return Promise.resolve([]);
     }
 
     dispose() {
@@ -457,20 +492,57 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+    // Add this to your existing command registrations
     context.subscriptions.push(
-        vscode.commands.registerCommand('jupyter-cell-tags.setTagPriority', async (tag: string) => {
-            const priority = await vscode.window.showInputBox({
-                prompt: 'Enter priority (0-100)',
-                validateInput: text => {
-                    const num = parseInt(text);
-                    return (num >= 0 && num <= 100) ? null : 'Please enter a number between 0 and 100';
-                }
-            });
-            if (priority !== undefined) {
-                treeDataProvider.setTagPriority(tag, parseInt(priority));
+        vscode.commands.registerCommand('jupyter-cell-tags.setTagPriority', async (tagName: string) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active notebook');
+                return;
             }
+            
+            const inputOptions: vscode.InputBoxOptions = {
+                prompt: `Set priority for tag "${tagName}"`,
+                placeHolder: 'Enter a number (lower values = higher priority)',
+                validateInput: (value) => {
+                    if (!/^\d+$/.test(value)) {
+                        return 'Please enter a valid number';
+                    }
+                    return null;
+                }
+            };
+            
+            const input = await vscode.window.showInputBox(inputOptions);
+            if (input === undefined) {
+                return; // User cancelled
+            }
+            
+            const priority = parseInt(input, 10);
+            
+            // Get the current metadata
+            const metadata = { ...editor.notebook.metadata } || {};
+            const tagProperties = metadata['tagProperties'] || {};
+            
+            // Update the priority for this tag
+            tagProperties[tagName] = { 
+                ...tagProperties[tagName], 
+                priority 
+            };
+            
+            // Update the metadata
+            metadata['tagProperties'] = tagProperties;
+            
+            // Apply the update to the notebook
+            const edit = new vscode.WorkspaceEdit();
+            edit.replaceNotebookMetadata(editor.notebook.uri, metadata);
+            await vscode.workspace.applyEdit(edit);
+            
+            // Refresh the tree view
+            treeDataProvider.refresh();
+            vscode.window.showInformationMessage(`Priority for tag "${tagName}" set to ${priority}`);
         })
     );
+
 
     
 }
