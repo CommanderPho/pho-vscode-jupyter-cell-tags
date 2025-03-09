@@ -132,3 +132,7 @@ In `.vscode\launch.json`, I had to add a fixed extension debugging profile: `"--
 		},
 
 ```
+
+
+# 2025-03-08 - Reference on Developing a VSCode Extension that uses the Jupyter Extension:
+https://github.com/Microsoft/vscode-jupyter/blob/main/CONTRIBUTING.md#development-process

@@ -83,8 +83,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
 	}
 	const output = vscode.window.createOutputChannel('Jupyter Kernel Execution');
 	context.subscriptions.push(output);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('jupyterKernelExecution.listKernels', async () => {
+	context.subscriptions.push(vscode.commands.registerCommand('jupyterKernelExecution.listKernels', async () => {
 			const kernel = await selectKernel();
 			if (!kernel) {
 				return;
