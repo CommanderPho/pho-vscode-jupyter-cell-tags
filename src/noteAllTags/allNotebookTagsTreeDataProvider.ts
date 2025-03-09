@@ -495,7 +495,6 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
-    // Add this to your existing command registrations
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.setTagPriority', async (tagName: string) => {
             const editor = vscode.window.activeNotebookEditor;
@@ -522,8 +521,8 @@ export function register(context: vscode.ExtensionContext) {
             
             const priority = parseInt(input, 10);
             
-            // Get the current metadata
-            const metadata = { ...editor.notebook.metadata } || {};
+            // Get the current metadata - create a deep copy to avoid readonly issues
+            const metadata = JSON.parse(JSON.stringify(editor.notebook.metadata || {}));
             const tagProperties = metadata['tagProperties'] || {};
             
             // Update the priority for this tag
@@ -537,7 +536,8 @@ export function register(context: vscode.ExtensionContext) {
             
             // Apply the update to the notebook
             const edit = new vscode.WorkspaceEdit();
-            edit.replaceNotebookMetadata(editor.notebook.uri, metadata);
+            // Use explicit type casting to satisfy the API
+            edit.replaceNotebookMetadata(editor.notebook.uri, metadata as vscode.NotebookDocumentMetadata);
             await vscode.workspace.applyEdit(edit);
             
             // Refresh the tree view
@@ -545,7 +545,7 @@ export function register(context: vscode.ExtensionContext) {
             vscode.window.showInformationMessage(`Priority for tag "${tagName}" set to ${priority}`);
         })
     );
-
+    
 
     
 }
