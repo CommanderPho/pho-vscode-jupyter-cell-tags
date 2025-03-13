@@ -1,12 +1,12 @@
-// import { CellReference } from './allNotebookTagsTreeDataProvider';
-
+import * as vscode from 'vscode';
 import { CellReference } from "./allNotebookTagsTreeDataProvider";
 
 
 export enum TagSortOrder {
     Alphabetical = 'alphabetical',
     CreationDate = 'creation-date',
-    ModificationDate = 'modification-date'
+    ModificationDate = 'modification-date',
+    Priority = 'priority'
 }
 
 /**
@@ -35,7 +35,31 @@ export function sortTags(tags: Map<string, CellReference[]>, sortOrder: TagSortO
                 Math.max(...aRefs.map(ref => ref.index))
             );
             break;
+        case TagSortOrder.Priority:
+            // Get the active notebook to access its metadata
+            const activeNotebook = vscode.window.activeNotebookEditor?.notebook;
+            if (activeNotebook) {
+                const metadata = activeNotebook.metadata || {};
+                const tagProperties = metadata['tagProperties'] || {};
+                
+                sortedEntries.sort(([tagA], [tagB]) => {
+                    // Get priorities from metadata, default to MAX_VALUE if not set
+                    const priorityA = tagProperties[tagA]?.priority ?? Number.MAX_VALUE;
+                    const priorityB = tagProperties[tagB]?.priority ?? Number.MAX_VALUE;
+                    
+                    // If priorities are equal, fall back to alphabetical sorting
+                    if (priorityA === priorityB) {
+                        return tagA.localeCompare(tagB);
+                    }
+                    
+                    // Lower priority values come first (higher priority)
+                    return priorityA - priorityB;
+                });
+            } else {
+                // If no active notebook, just sort alphabetically as fallback
+                sortedEntries.sort(([a], [b]) => a.localeCompare(b));
+            }
+            break;
     }
-
     return new Map(sortedEntries);
 }

@@ -9,7 +9,7 @@
 			"name": "Extension",
 			"type": "extensionHost",
 			"request": "launch",
-			"args": ["--profile=PhoExtensionDev2025", "--extensionDevelopmentPath=${workspaceFolder}"],
+			"args": ["--profile=PhoExtensionDev2025", "--extensionDevelopmentPath=${workspaceFolder}", "--enable-proposed-api", "phohale.jupyter"],
 			"outFiles": ["${workspaceFolder}/out/**/*.js"],
 			"preLaunchTask": "${defaultBuildTask}",
 			"presentation": {

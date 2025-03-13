@@ -31,5 +31,11 @@
             "loadNpmCommands": true
 		},
 		"jupyter-cell-tags.enableJumpbacks": true
+	},
+	"extensions": {
+		"recommendations": [
+			"function-runner.function-runner-vscode-extension",
+			"ubaid.varlens"
+		]
 	}
 }
