@@ -55,6 +55,8 @@ Use of Microsoft trademarks or logos in modified versions of this project must n
 Any use of third-party trademarks or logos are subject to those third-party's policies.
 
 
+## Pending Features:
+- The ability to right-click on tags in the All Tags Notebook View and delete them from all child cells (with a confirmation dialog)
 
 
 ## Required Includes:
