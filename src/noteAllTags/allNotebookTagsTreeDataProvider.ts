@@ -563,5 +563,69 @@ export function register(context: vscode.ExtensionContext) {
     );
     
 
+    // Register the new "removeTagFromAllCells" command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.removeTagFromAllCells', async (tagName: string) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active notebook');
+                return;
+            }
+            
+            // Get cell references for this tag
+        const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
+        if (!cellRefs || cellRefs.length === 0) {
+            showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
+            return;
+        }
+        
+        // Show confirmation dialog
+        const confirmation = await vscode.window.showWarningMessage(
+            `Remove tag "${tagName}" from all ${cellRefs.length} cells?`,
+            { modal: true },
+            'Confirm',
+            'Cancel'
+        );
+        
+        // Only proceed if user clicked "Confirm"
+        if (confirmation === 'Confirm') {
+            // Create workspace edit
+            const edit = new vscode.WorkspaceEdit();
+            
+            // Process each cell that contains this tag
+            for (const cellRef of cellRefs) {
+                if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+                    const cell = editor.notebook.cellAt(cellRef.index);
+                    if (cell) {
+                        const tags = getCellTags(cell).filter(tag => tag !== tagName);
+                        
+                        // Update the cell's metadata
+                        const metadata = { ...(cell.metadata || {}) };
+                        metadata.tags = tags;
+                        
+                        // Add the edit to our workspace edit
+                        edit.replaceNotebookCellMetadata(
+                            editor.notebook.uri,
+                            cellRef.index,
+                            metadata
+                        );
+                    }
+                }
+            }
+            
+            // Apply all edits at once
+            await vscode.workspace.applyEdit(edit);
+            
+            // Refresh the tree view
+            treeDataProvider.refresh();
+            showTimedInformationMessage(`Removed tag "${tagName}" from ${cellRefs.length} cells`, 3000);
+            log(`Removed tag "${tagName}" from ${cellRefs.length} cells`);
+        }
+        
+        })
+    );
+    
+
+
     
 }
