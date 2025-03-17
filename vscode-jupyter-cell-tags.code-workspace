@@ -23,7 +23,12 @@
             "defaultColor": "white",
             "reloadButton": "↻",
             "loadNpmCommands": true
-        }
+        },
+        "terminal.explorerKind": "external",
+        "terminal.integrated.allowChords": false,
+        // "terminal.integrated.automationProfile.windows": {
+        //     "env": {}
+        // }
     },
     "extensions": {
         "recommendations": [
