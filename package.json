@@ -527,10 +527,10 @@
 	},
 	"enabledApiProposals": [],
 	"devDependencies": {
-		"@types/node": "20.x",
+		"@types/node": "^20.17.24",
 		"@types/vscode": "^1.98.0",
 		"@vscode/test-electron": "^2.4.1",
-		"@vscode/vsce": "^3.2.2",
+		"@vscode/vsce": "^3.3.0",
 		"path": "^0.12.7",
 		"typescript": "^5.8.2"
 	},
