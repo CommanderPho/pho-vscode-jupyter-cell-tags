@@ -534,7 +534,7 @@ export function register(context: vscode.ExtensionContext) {
             };
             
             // Use updateNotebookMetadata to update the notebook metadata
-            await updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
+            updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties); // await
             
 
             // // Get the current metadata - create a deep copy to avoid readonly issues

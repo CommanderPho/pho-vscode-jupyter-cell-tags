@@ -4,6 +4,35 @@ import * as vscode from 'vscode';
  * This should handle getting/setting/updating cell and notebook level metadata
  */
 
+export function useCustomMetadata() {
+    if (vscode.extensions.getExtension('vscode.ipynb')?.exports.dropCustomMetadata) {
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Sort the JSON to minimize unnecessary SCM changes.
+ * Jupyter notbeooks/labs sorts the JSON keys in alphabetical order.
+ * https://github.com/microsoft/vscode/issues/208137
+ */
+export function sortObjectPropertiesRecursively(obj: any): any {
+    if (Array.isArray(obj)) {
+        return obj.map(sortObjectPropertiesRecursively);
+    }
+    if (obj !== undefined && obj !== null && typeof obj === 'object' && Object.keys(obj).length > 0) {
+        return (
+            Object.keys(obj)
+                .sort()
+                .reduce<Record<string, any>>((sortedObj, prop) => {
+                    sortedObj[prop] = sortObjectPropertiesRecursively(obj[prop]);
+                    return sortedObj;
+                }, {}) as any
+        );
+    }
+    return obj;
+}
+
 
 /**
  * Get arbitrary notebook metadata using a path array
@@ -56,6 +85,40 @@ export function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, met
     wsEdit.set(notebook.uri, [notebookEdit]);
     vscode.workspace.applyEdit(wsEdit);
 }
+
+
+export function getNotebookTags(notebook: vscode.NotebookDocument): string[] {
+    const currentTags = (useCustomMetadata() ? notebook.metadata.custom?.metadata?.tags : notebook.metadata.metadata?.tags) ?? [];
+    return [...currentTags];
+}
+
+export async function updateNotebookTags(notebook: vscode.NotebookDocument, tags: string[], defer_apply: boolean = false) {
+    const metadata = JSON.parse(JSON.stringify(notebook.metadata));
+    if (useCustomMetadata()) {
+        metadata.custom = metadata.custom || {};
+        metadata.custom.metadata = metadata.custom.metadata || {};
+        metadata.custom.metadata.tags = tags;
+        if (tags.length === 0) {
+            delete metadata.custom.metadata.tags;
+        }
+    } else {
+        metadata.metadata = metadata.metadata || {};
+        metadata.metadata.tags = tags;
+        if (tags.length === 0) {
+            delete metadata.metadata.tags;
+        }
+    }
+    if (!defer_apply) {
+        const edit = new vscode.WorkspaceEdit();
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        edit.set(cell.notebook.uri, [nbEdit]);
+        await vscode.workspace.applyEdit(edit);
+    } else {
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        return nbEdit;
+    }
+}
+
 
 
 /**
