@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { CellTreeItem } from './CellTreeItem'; // Import the custom TreeItem
-import { getCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
+import { getCellTags, updateCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
 import { argNotebookCell } from '../util/notebookSelection';
 import { log, showTimedInformationMessage } from '../util/logging';
@@ -573,59 +573,53 @@ export function register(context: vscode.ExtensionContext) {
             }
             
             // Get cell references for this tag
-        const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
-        if (!cellRefs || cellRefs.length === 0) {
-            showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
-            return;
-        }
-        
-        // Show confirmation dialog
-        const confirmation = await vscode.window.showWarningMessage(
-            `Remove tag "${tagName}" from all ${cellRefs.length} cells?`,
-            { modal: true },
-            'Confirm',
-            'Cancel'
-        );
-        
-        // Only proceed if user clicked "Confirm"
-        if (confirmation === 'Confirm') {
-            // Create workspace edit
-            const edit = new vscode.WorkspaceEdit();
-            
-            // Process each cell that contains this tag
-            for (const cellRef of cellRefs) {
-                if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
-                    const cell = editor.notebook.cellAt(cellRef.index);
-                    if (cell) {
-                        const tags = getCellTags(cell).filter(tag => tag !== tagName);
-                        
-                        // Update the cell's metadata
-                        const metadata = { ...(cell.metadata || {}) };
-                        metadata.tags = tags;
-                        
-                        // Add the edit to our workspace edit
-                        edit.replaceNotebookCellMetadata(
-                            editor.notebook.uri,
-                            cellRef.index,
-                            metadata
-                        );
-                    }
-                }
+            const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
+            if (!cellRefs || cellRefs.length === 0) {
+                showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
+                return;
             }
             
-            // Apply all edits at once
-            await vscode.workspace.applyEdit(edit);
-            
-            // Refresh the tree view
-            treeDataProvider.refresh();
-            showTimedInformationMessage(`Removed tag "${tagName}" from ${cellRefs.length} cells`, 3000);
-            log(`Removed tag "${tagName}" from ${cellRefs.length} cells`);
-        }
+            // Show confirmation dialog
+            const confirmation = await vscode.window.showWarningMessage(`Remove tag "${tagName}" from all ${cellRefs.length} cells?`, { modal: true }, 'Confirm', 'Cancel');
+        
+            // Only proceed if user clicked "Confirm"
+            if (confirmation === 'Confirm') {
+                // Create workspace edit
+                const edit = new vscode.WorkspaceEdit();
+                var nbEditList = [];
+
+                // Process each cell that contains this tag
+                for (const cellRef of cellRefs) {
+                    if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+                        const cell = editor.notebook.cellAt(cellRef.index);
+                        if (cell) {
+                            const tags = getCellTags(cell).filter(tag => tag !== tagName);
+                            
+                            // // Update the cell's metadata
+                            // const metadata = { ...(cell.metadata || {}) };
+                            // metadata.tags = tags;
+                            
+                            // Add the edit to our workspace edit
+                            const an_nbEdit = await updateCellTags(cell, tags, true);
+                            if (an_nbEdit) {
+                                nbEditList.push(an_nbEdit);
+                                edit.set(cell.notebook.uri, nbEditList);
+                                // edit.set(cell.notebook.uri, [an_nbEdit]);
+                            }
+                        }
+                    }
+                }
+                
+                // Apply all edits at once
+                await vscode.workspace.applyEdit(edit);
+                
+                // Refresh the tree view
+                treeDataProvider.refresh();
+                showTimedInformationMessage(`Removed tag "${tagName}" from ${cellRefs.length} cells`, 3000);
+                log(`Removed tag "${tagName}" from ${cellRefs.length} cells`);
+            } // end if (confirmation...
         
         })
     );
-    
-
-
     
 }

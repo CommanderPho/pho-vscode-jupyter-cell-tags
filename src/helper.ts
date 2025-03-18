@@ -13,7 +13,7 @@ export function getCellTags(cell: vscode.NotebookCell): string[] {
     return [...currentTags];
 }
 
-export async function updateCellTags(cell: vscode.NotebookCell, tags: string[]) {
+export async function updateCellTags(cell: vscode.NotebookCell, tags: string[], defer_apply: boolean = false) {
     const metadata = JSON.parse(JSON.stringify(cell.metadata));
     if (useCustomMetadata()) {
         metadata.custom = metadata.custom || {};
@@ -29,10 +29,15 @@ export async function updateCellTags(cell: vscode.NotebookCell, tags: string[]) 
             delete metadata.metadata.tags;
         }
     }
-    const edit = new vscode.WorkspaceEdit();
-    const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
-    edit.set(cell.notebook.uri, [nbEdit]);
-    await vscode.workspace.applyEdit(edit);
+    if (!defer_apply) {
+        const edit = new vscode.WorkspaceEdit();
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        edit.set(cell.notebook.uri, [nbEdit]);
+        await vscode.workspace.applyEdit(edit);
+    } else {
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        return nbEdit;
+    }
 }
 
 function useCustomMetadata() {
