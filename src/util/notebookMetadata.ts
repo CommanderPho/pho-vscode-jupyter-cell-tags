@@ -109,13 +109,14 @@ export async function updateNotebookTags(notebook: vscode.NotebookDocument, tags
         }
     }
     if (!defer_apply) {
-        const edit = new vscode.WorkspaceEdit();
-        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
-        edit.set(cell.notebook.uri, [nbEdit]);
-        await vscode.workspace.applyEdit(edit);
+        // Apply the edit
+        const wsEdit = new vscode.WorkspaceEdit();
+        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sortObjectPropertiesRecursively(metadata));
+        wsEdit.set(notebook.uri, [notebookEdit]);
+        await vscode.workspace.applyEdit(wsEdit);
     } else {
-        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
-        return nbEdit;
+        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sortObjectPropertiesRecursively(metadata));
+        return notebookEdit;
     }
 }
 
