@@ -3,7 +3,6 @@
 
 import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags/cellTags';
-// import { register as registerCellTagsView } from './cellTags/cellTagsTreeDataProvider';
 import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebookTagsTreeDataProvider';
 import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
@@ -28,7 +27,6 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(selectionStatusBar);
 
 	registerCellTags(context);
-	// registerCellTagsView(context);
     registerAllNotebookTagsView(context);
     registerJumpbackCommand(context);
     registerRemoveJumpbackCommand(context);
