@@ -73,14 +73,3 @@ export async function updateAndSaveCellMetadata(cell: vscode.NotebookCell, tags:
     }
 }
 
-export function countSelectedCells(selections: readonly vscode.NotebookRange[]): number {
-    let total_num_selected_cells = 0;
-    selections.forEach(selection => {
-        const range = selection as vscode.NotebookRange;
-        if (!range.isEmpty) {
-            const num_selected_cells = range.end - range.start;
-            total_num_selected_cells += num_selected_cells;
-        }
-    });
-    return total_num_selected_cells;
-}
