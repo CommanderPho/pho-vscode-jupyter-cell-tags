@@ -563,6 +563,89 @@ export function register(context: vscode.ExtensionContext) {
     );
     
 
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.renameTag', async (tagName: string) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active notebook');
+                return;
+            }
+            
+            const inputOptions: vscode.InputBoxOptions = {
+                prompt: `Enter new name to replace tag "${tagName}"`,
+                placeHolder: 'Enter a new tag name',
+                value: tagName,
+                validateInput: (value) => {
+                    if (!value || value.trim() === '') {
+                        return 'Tag name cannot be empty';
+                    }
+                    return null;
+                }
+            };
+            
+            const newTagName = await vscode.window.showInputBox(inputOptions);
+            if (newTagName === undefined) {
+                return; // User cancelled
+            }
+            
+            if (newTagName === tagName) {
+                vscode.window.showInformationMessage('Tag name unchanged');
+                return;
+            }
+            
+            // Get cell references for this tag
+            const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
+            if (!cellRefs || cellRefs.length === 0) {
+                showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
+                return;
+            }
+            
+            // Create workspace edit
+            const edit = new vscode.WorkspaceEdit();
+            var nbEditList = [];
+            
+            // Process each cell that contains this tag
+            for (const cellRef of cellRefs) {
+                if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
+                    const cell = editor.notebook.cellAt(cellRef.index);
+                    if (cell) {
+                        const tags = getCellTags(cell);
+                        const newTags = tags.map(tag => tag === tagName ? newTagName : tag);
+                        
+                        // Update the cell's metadata
+                        const an_nbEdit = await updateCellTags(cell, newTags, true);
+                        if (an_nbEdit) {
+                            nbEditList.push(an_nbEdit);
+                            edit.set(cell.notebook.uri, nbEditList);
+                        }
+                    }
+                }
+            }
+            
+            // Update tag properties if they exist
+            const currentMetadata = editor.notebook.metadata || {};
+            if (currentMetadata['tagProperties'] && currentMetadata['tagProperties'][tagName]) {
+                const tagProperties = { ...currentMetadata['tagProperties'] };
+                // Copy the properties from old tag to new tag
+                tagProperties[newTagName] = { ...tagProperties[tagName] };
+                // Delete the old tag properties
+                delete tagProperties[tagName];
+                
+                // Update the notebook metadata
+                updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
+            }
+            
+            // Apply all edits at once
+            await vscode.workspace.applyEdit(edit);
+            
+            // Refresh the tree view
+            treeDataProvider.refresh();
+            showTimedInformationMessage(`Renamed tag "${tagName}" to "${newTagName}" in ${cellRefs.length} cells`, 3000);
+        })
+    );
+    
+
     // Register the new "removeTagFromAllCells" command
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.removeTagFromAllCells', async (tagName: string) => {

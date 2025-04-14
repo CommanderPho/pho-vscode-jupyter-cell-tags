@@ -180,6 +180,11 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.renameTag",
+				"title": "Rename Tag",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.removeTagFromAllCells",
 				"title": "🏷️➖ Remove Tag from All Notebook Cells",
 				"icon": "$(close)"
@@ -345,6 +350,11 @@
 				},
 				{
 					"command": "jupyter-cell-tags.setTagPriority",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
+					"group": "1_modification"
+				},
+				{
+					"command": "jupyter-cell-tags.renameTag",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
 				},
