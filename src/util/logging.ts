@@ -52,7 +52,8 @@ export function activateCustomLogging(context: vscode.ExtensionContext) {
     // must be called first before any logging
     myChannel = vscode.window.createOutputChannel('PhoLogger');
     myChannel.appendLine('Extension activated.');
-    myChannel.show(true);
+    // myChannel.show(true);
+    // myChannel.show(false);
     log('Extension activated.');
 
 }
