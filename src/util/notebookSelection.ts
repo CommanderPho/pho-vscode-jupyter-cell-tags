@@ -7,6 +7,47 @@ import { log } from './logging';
  */
 
 
+/**
+ * Converts a NotebookRange to a flat array of cell indices
+ * @param range The notebook range to convert
+ * @returns Array of cell indices included in the range
+ */
+export function notebookRangeToIndices(range: vscode.NotebookRange): number[] {
+    const indices: number[] = [];
+    // Range is inclusive of start and end
+    for (let i = range.start; i < range.end; i++) { // < because range.end is exclusive
+        indices.push(i);
+    }
+    return indices;
+}
+
+/**
+ * Converts an array of NotebookRanges to a flat array of unique cell indices
+ * @param ranges The notebook ranges to convert
+ * @returns Array of unique cell indices included in any of the ranges
+ */
+export function notebookRangesToIndices(ranges: readonly vscode.NotebookRange[]): number[] {
+    // Use flatMap to collect all indices from each range and flatten the result
+    const allIndices: number[] = ranges.flatMap(range => {
+        const indices: number[] = [];
+        // Each range is inclusive of start but exclusive of end
+        for (let i = range.start; i < range.end; i++) {
+            indices.push(i);
+        }
+        return indices;
+    });
+    
+    // Remove duplicates in case there are overlapping ranges
+    const uniqueIndices = [...new Set(allIndices)];
+    
+    // Sort numerically for a consistent order
+    return uniqueIndices.sort((a, b) => a - b);
+}
+
+
+
+
+
 // Find the current active notebook document and the current active cell in it
 function getCurrentActiveCell(): vscode.NotebookCell | undefined {
     const activeNotebook = vscode.window.activeNotebookEditor;

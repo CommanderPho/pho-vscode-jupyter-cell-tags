@@ -57,6 +57,8 @@ Any use of third-party trademarks or logos are subject to those third-party's po
 
 ## Pending Features:
 - The ability to right-click on tags in the All Tags Notebook View and delete them from all child cells (with a confirmation dialog)
+- The ability to factor-out all cells with a given set of tags
+- The ability to recurrsively nest tags
 
 
 ## Required Includes:

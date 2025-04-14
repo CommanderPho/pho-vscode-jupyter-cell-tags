@@ -12,7 +12,7 @@ import { registerCommands } from './cellExecution/cellExecutionTracking';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
-import { VersionStatusBarItem } from './statusBar';
+import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 
@@ -21,7 +21,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateCustomLogging(context);
 
     // Instantiate and register the new status bar item.
-    const selectionStatusBar = new VersionStatusBarItem();
+    const selectionStatusBar = new CellSelectionsStatusBarItem();
     context.subscriptions.push(selectionStatusBar);
 
 	registerCellTags(context);
