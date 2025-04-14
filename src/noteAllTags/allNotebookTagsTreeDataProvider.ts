@@ -3,7 +3,7 @@ import { TagTreeItem } from './TagTreeItem'; // Import the custom TreeItem
 import { CellTreeItem } from './CellTreeItem'; // Import the custom TreeItem
 import { getCellTags, updateCellTags } from '../helper';  // Assuming this function fetches the tags for a cell
 import { executeGroup, executeNotebookCell } from '../notebookRunGroups/util/cellActionHelpers';
-import { argNotebookCell } from '../util/notebookSelection';
+// import { argNotebookCell } from '../util/notebookSelection';
 import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
@@ -231,20 +231,20 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
-    console.log('View registration started for all-notebook-tags-view');
+    log('View registration started for all-notebook-tags-view');
     // Your view registration code
-    console.log('View registration completed');
+    log('View registration completed');
 
     // register the command to show the view
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.showAllNotebookTags', () => {
-            console.log('showAllNotebookTags command triggered');
+            log('showAllNotebookTags command triggered');
             // Show the view in the explorer
             vscode.commands.executeCommand('workbench.view.explorer');
-            console.log('Explorer view opened');
+            log('Explorer view opened');
             // Focus/reveal the all-notebook-tags-view
             vscode.commands.executeCommand('all-notebook-tags-view.focus');
-            console.log('Tried to focus all-notebook-tags-view');
+            log('Tried to focus all-notebook-tags-view');
         })
     );
 
@@ -258,9 +258,6 @@ export function register(context: vscode.ExtensionContext) {
             editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
         }
     }));
-
-
-
 
 
     // vscode.commands.registerCommand('jupyter-cell-tags.refreshEntry', () =>
