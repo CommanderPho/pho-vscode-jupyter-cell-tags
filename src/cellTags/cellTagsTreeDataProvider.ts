@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { getCellTags, countSelectedCells } from '../helper';
+import { getCellTags } from '../helper';
+import { countSelectedCells } from '../util/notebookSelection';
+
 
 export class TagTreeDataProvider implements vscode.TreeDataProvider<string> {
 	private _onDidChangeTreeData: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();

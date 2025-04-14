@@ -5,7 +5,9 @@ import * as vscode from 'vscode';
 import * as json from '../json';
 import { getCellTags, updateCellTags } from '../helper';
 // import { getAllTagsFromActiveNotebook } from './allNotebookTagsTreeDataProvider';
-import { quickPickAllTags, getAllTagsFromActiveNotebook } from '../notebookRunGroups/util/cellActionHelpers';
+import { quickPickAllTags } from '../notebookRunGroups/util/cellActionHelpers';
+import { getAllTagsFromActiveNotebook, reviveCell } from '../util/notebookSelection';
+import { getActiveCell, getActiveCells } from '../util/notebookSelection';
 
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
@@ -66,74 +68,12 @@ export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarIte
     }
 }
 
-export function getActiveCell() {
-    // find active cell
-    const editor = vscode.window.activeNotebookEditor;
-    if (!editor) {
-        return;
-    }
-
-    if (editor.selections[0].start >= editor.notebook.cellCount) {
-        return;
-    }
-
-    return editor.notebook.cellAt(editor.selections[0].start);
-}
-
-
-export function getActiveCells(): vscode.NotebookCell[] | undefined {
-    const editor = vscode.window.activeNotebookEditor;
-    if (!editor) {
-        return;
-    }
-
-    let cells: vscode.NotebookCell[] = [];
-    for (const selection of editor.selections) {
-        cells = cells.concat(editor.notebook.getCells(selection));
-    }
-    return cells.length > 0 ? cells : undefined;
-}
-
-export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): vscode.NotebookCell | undefined {
-    if (!args) {
-        return getActiveCell();
-    }
-
-    if (args && 'index' in args && 'kind' in args && 'notebook' in args && 'document' in args) {
-        return args as vscode.NotebookCell;
-    }
-
-    if (args && 'scheme' in args && 'path' in args) {
-        const cellUri = vscode.Uri.from(args);
-        const cellUriStr = cellUri.toString();
-        let activeCell: vscode.NotebookCell | undefined = undefined;
-
-        for (const document of vscode.workspace.notebookDocuments) {
-            for (const cell of document.getCells()) {
-                if (cell.document.uri.toString() === cellUriStr) {
-                    activeCell = cell;
-                    break;
-                }
-            }
-
-            if (activeCell) {
-                break;
-            }
-        }
-
-        return activeCell;
-    }
-
-    return undefined;
-}
-
 export function register(context: vscode.ExtensionContext) {
     context.subscriptions.push(
         vscode.notebooks.registerNotebookCellStatusBarItemProvider('jupyter-notebook', new CellTagStatusBarProvider())
     );
     context.subscriptions.push(
-        vscode.commands.registerCommand(
-            'jupyter-cell-tags.removeTag',
+        vscode.commands.registerCommand('jupyter-cell-tags.removeTag',
             async (cell: vscode.NotebookCell | string, tag: string) => {
                 let activeCell: vscode.NotebookCell | undefined;
                 if (typeof cell === 'string') {

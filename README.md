@@ -4,9 +4,9 @@ This extension provides extended support for notebook cell tags and cell run gro
 
 I needed more functionality and was tired of fussing with the Jupter/VSCode/Powertoys version hell, so I forked the repo implemented it myself. My pull request on the official repo is here: https://github.com/microsoft/vscode-jupyter-cell-tags/pull/40, but there seems to be no progress on merging it.
 
-After this, I added custom run groups to work around https://github.com/microsoft/vscode-jupyter-powertoys/issues/90 and believe I improved the expierence (at least for myself) over the Jupyter Powertoys version, as it allows an arbitrary number of run groups with custom names. 
+After this, I added custom run groups to work around https://github.com/microsoft/vscode-jupyter-powertoys/issues/90 and believe I improved the expierence (at least for myself) over the Jupyter Powertoys version, as it allows an arbitrary number of run groups with custom names.
 
-This fork is available on marketplace here: 
+This fork is available on marketplace here:
 ```
 Name: Pho Jupyter Cell Tags
 Id: phohale.pho-vscode-jupyter-cell-tags
@@ -27,8 +27,8 @@ or via github https://github.com/CommanderPho/vscode-jupyter-cell-tags here
     ![Image](https://github.com/user-attachments/assets/12ed2764-768a-4cce-b4d4-0e49a4b560b3)
 - More undocumented commands available in the menus, documentation coming soon.
 
- 
-This extension replaces the forked extension that comes with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=phohale.jupyter). You must first uninstall the official Microsoft version before installing this one. 
+
+This extension replaces the forked extension that comes with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=phohale.jupyter). You must first uninstall the official Microsoft version before installing this one.
 
 
 
@@ -55,6 +55,10 @@ Use of Microsoft trademarks or logos in modified versions of this project must n
 Any use of third-party trademarks or logos are subject to those third-party's policies.
 
 
+## Pending Features:
+- The ability to right-click on tags in the All Tags Notebook View and delete them from all child cells (with a confirmation dialog)
+- The ability to factor-out all cells with a given set of tags
+- The ability to recurrsively nest tags
 
 
 ## Required Includes:
@@ -89,4 +93,61 @@ For example on Windows, my arguments are: `K:\FastSwap\AppData\VSCode\green\bin\
 
 
 
---enable-proposed-api notebookCellExecutionState 
+--enable-proposed-api notebookCellExecutionState
+
+
+## Potential Emoji:
+
+🎛️🎚️📃🗞️🧾🖼️🎐
+🔦🔗⚓
+🧰
+↪️↩️↩️
+⤵️⤴️🔙
+❇️
+🦘🥏🎯
+🐛🔖➖➕
+Error: 🐛‼️ ❌
+
+
+## 2025-02-25 - on macOS, I had to remove `nodenv` from path (an alternative to `nvm` for managing node versions) and move `nvm` up onto path. Also ahve to run with `zsh` instead of `bash`.
+
+# 2025-02-26 - IMPORTANT - Finally got extension debugging working reliably
+
+https://vscode.dev/editor/profile/github/62d11f2ed58b3e59527093d8318c1847
+
+In `.vscode\launch.json`, I had to add a fixed extension debugging profile: `"--profile=PhoExtensionDev2025",`
+```json
+		{
+			"name": "Run Extension",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+                // "--profile-temp",
+				"--profile=PhoExtensionDev2025",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+                // "--disable-extensions",
+                "--enable-proposed-api",
+                "phohale.jupyter"
+			],
+			"outFiles": [
+				"${workspaceFolder}/out/**/*.js"
+			],
+			"preLaunchTask": "${defaultBuildTask}",
+		},
+
+```
+
+
+# 2025-03-08 - Reference on Developing a VSCode Extension that uses the Jupyter Extension:
+https://github.com/Microsoft/vscode-jupyter/blob/main/CONTRIBUTING.md#development-process
+https://github.com/microsoft/vscode-jupyter/wiki/Jupyter-Kernels-and-the-Jupyter-Extension
+https://jupyter-protocol.readthedocs.io/en/latest/messaging.html
+https://github.com/microsoft/vscode-jupyter/wiki/Accessing-Jupyter-Kernels-from-3rd-party-extensions
+https://github.com/microsoft/vscode-jupyter/wiki/Extension-API
+
+
+### Using ipywidgets - https://github.com/microsoft/vscode-jupyter/wiki/Component:-IPyWidgets
+
+
+### Pending Issues:
+https://github.com/microsoft/vscode/issues/209787

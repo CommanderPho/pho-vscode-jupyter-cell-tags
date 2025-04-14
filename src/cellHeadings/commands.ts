@@ -40,38 +40,31 @@ function selectCellsUnderHeading() {
         vscode.window.showErrorMessage('No active notebook editor found.');
         return;
     }
-
     const notebook = notebookEditor.notebook;
     const selection = notebookEditor.selection;
     if (!selection) {
         vscode.window.showErrorMessage('No cell is selected.');
         return;
     }
-
     const selectedCell = notebook.cellAt(selection.start);
     if (selectedCell.kind !== vscode.NotebookCellKind.Markup) {
         vscode.window.showErrorMessage('Selected cell is not a markdown cell.');
         return;
     }
-
     const headingMatch = selectedCell.document.getText().match(/^(#+)\s+(.*)/);
     if (!headingMatch) {
         vscode.window.showErrorMessage('Selected markdown cell does not contain a heading.');
         return;
     }
-
     const headingLevel = headingMatch[1].length;
     const headingText = headingMatch[1].valueOf();
     const cellsToSelect = getCellsUnderHeading(notebook, selection.start, headingLevel);
-
     if (cellsToSelect.length === 0) {
         vscode.window.showInformationMessage('No cells to select under the selected heading.');
         return;
     }
-
-    const start = selection.start + 1;
-    const end = selection.start + cellsToSelect.length;
-
+    const start = selection.start + 1; // this always seems correct
+    const end = start + cellsToSelect.length;  // In VSCode's NotebookRange: the end index is exclusive (meaning it points to the position after the last element you want to include)
     notebookEditor.selection = new vscode.NotebookRange(start, end);
     vscode.window.showInformationMessage(`Selected ${cellsToSelect.length} cells under the heading "${headingText}".`);
 }

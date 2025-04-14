@@ -1,8 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
-import { log } from './util/logging';
-import { executeGroup, argNotebookCell, quickPickAllTags, getAllTagsFromActiveNotebook, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
+import { log } from '../util/logging';
+import { executeGroup, quickPickAllTags, selectKernel, selectCodeToRunAgainstKernel, executeCode } from './util/cellActionHelpers';
+import { argNotebookCell } from '../util/notebookSelection';
+import { getAllTagsFromActiveNotebook } from '../util/notebookSelection';
 import { Jupyter, Kernel } from '@vscode/jupyter-extension';
 
 export async function quickPickAllRunGroupTags() {
@@ -81,8 +83,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
 	}
 	const output = vscode.window.createOutputChannel('Jupyter Kernel Execution');
 	context.subscriptions.push(output);
-	context.subscriptions.push(
-		vscode.commands.registerCommand('jupyterKernelExecution.listKernels', async () => {
+	context.subscriptions.push(vscode.commands.registerCommand('jupyterKernelExecution.listKernels', async () => {
 			const kernel = await selectKernel();
 			if (!kernel) {
 				return;

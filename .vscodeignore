@@ -4,3 +4,6 @@ node_modules
 tsconfig.json
 webpack.config.js
 esbuild.js
+examples/
+examples/notebooks/
+.idea/

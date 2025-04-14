@@ -1,0 +1,87 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+        "actionButtons": {
+            "commands": [
+				{
+					"name": "Back",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateBack"
+				},
+				{
+					"name": "Forward",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateForward"
+				},
+				{
+					"name": "VSCode Dev Consoler",
+					"color": "#99CCFF",
+					"useVsCodeApi": true,
+					"command": "workbench.action.toggleDevTools"
+				},
+			],
+            "defaultColor": "white",
+            "reloadButton": "↻",
+            "loadNpmCommands": true
+		},
+		"jupyter-cell-tags.enableJumpbacks": true,
+		"workbench.tree.indent": 8,
+		"window.titleBarStyle": "custom",
+		"workbench.colorCustomizations": {
+			"editor.lineHighlightBackground": "#102dcf2d",
+            "editor.lineHighlightBorder": "#9fbfd11f",
+            "activityBar.background": "#232a4b",
+            // "titleBar.activeBackground": "#535bc7",
+			"titleBar.activeBackground": "#3c28f5",
+            "titleBar.activeForeground": "#ffffff",
+            "scrollbarSlider.background": "#fffb0057",
+            "scrollbarSlider.hoverBackground": "#fffb0082",
+            "scrollbarSlider.activeBackground": "#ccff00df",
+            "activityBar.inactiveForeground": "#ffffff3c",
+            "activityBar.foreground": "#ffffff",
+            "notebook.outputContainerBackgroundColor": "#395a3e50",
+            "notebook.outputContainerBorderColor": "#10ff10",
+            "notebook.focusedCellBorder": "#ffff00da",
+            "notebook.focusedEditorBorder": "#f6ff00",
+            "notebook.inactiveFocusedCellBorder": "#ffff0063",
+            "titleBar.inactiveBackground": "#5372c78e"
+			// "editor.background": "#ffffff",
+			// "editor.lineHighlightBackground": "rgba(0, 0, 0, 0.05)",
+			// "editorLineNumber.foreground": "#999999",
+			// "editor.selectionBackground": "rgba(0, 0, 0, 0.1)",
+			// "editor.inactiveSelectionBackground": "rgba(0, 0, 0, 0.05)",
+			// "editor.findMatchBackground": "rgba(255, 255, 0, 0.2)",
+			// "editor.findMatchHighlightBackground": "rgba(255, 255, 0, 0.1)",
+			// "editor.findRangeHighlightBackground": "rgba(0, 0, 0, 0.05)",
+			// "editor.hoverHighlightBackground": "rgba(0, 0, 0, 0.05)",
+			// "editor.wordHighlightBackground": "rgba(0, 0, 0, 0.05)",
+			// "editor.wordHighlightStrongBackground": "rgba(0, 0, 0, 0.1)",
+			// "editor.rangeHighlightBackground": "rgba(0, 0, 0, 0.05)",
+			// "editorCursor.foreground": "#000000",
+			// "editorWhitespace.foreground": "#e0e0e0",
+			// "editorIndentGuide.background": "#e0e0e0",
+			// "editorIndentGuide.activeBackground": "#b0b0b0",
+			// "editorRuler.foreground": "#e0e0e0",
+			// "editorCodeLens.foreground": "#999999",
+			// "editorBracketMatch.background": "rgba(0, 0, 0, 0.1)",
+			// "editorBracketMatch.border": "#b0b0b0",
+			// "editorOverviewRuler.border": "#e0e0e0",
+			// "editorGutter.background": "linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0), linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%, #f0f0f0)",
+			// "editorGutter.modifiedBackground": "#66bb6a",
+			// "editorGutter.addedBackground": "#4caf50",
+			// "editorGutter.deletedBackground": "#ef5350"
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"function-runner.function-runner-vscode-extension",
+			"ubaid.varlens"
+		]
+	}
+}
