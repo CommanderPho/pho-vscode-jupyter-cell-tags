@@ -69,9 +69,6 @@ export class CellSelectionsStatusBarItem {
         const activeNotebookEditor = vscode.window.activeNotebookEditor;
         if (activeNotebookEditor && activeNotebookEditor.selections && activeNotebookEditor.selections.length > 0) {
             // For this example, we assume each cell in the selection has an "index" property.
-            // const selectedCellIds = activeNotebookEditor.selections.map(cell => cell.index).join(', ');
-            // const selectedCellIds = activeNotebookEditor.selections.map(range => range.start).join(', ');
-            // const selectedCellIds = activeNotebookEditor.selections.map(range => notebookRangeToIndices(range)).join(', ');
             const selectedCellIds = notebookRangesToIndices(activeNotebookEditor.selections).join(', ');
             selectionIndicator = `Selected Cells: ${selectedCellIds} (${activeNotebookEditor.selections.length} cells)`;
         }
