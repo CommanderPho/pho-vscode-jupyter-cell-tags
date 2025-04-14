@@ -15,7 +15,7 @@ import { log } from './logging';
 export function notebookRangeToIndices(range: vscode.NotebookRange): number[] {
     const indices: number[] = [];
     // Range is inclusive of start and end
-    for (let i = range.start; i <= range.end; i++) {
+    for (let i = range.start; i < range.end; i++) { // < because range.end is exclusive
         indices.push(i);
     }
     return indices;
@@ -30,8 +30,8 @@ export function notebookRangesToIndices(ranges: readonly vscode.NotebookRange[])
     // Use flatMap to collect all indices from each range and flatten the result
     const allIndices: number[] = ranges.flatMap(range => {
         const indices: number[] = [];
-        // Each range is inclusive of start and end
-        for (let i = range.start; i <= range.end; i++) {
+        // Each range is inclusive of start but exclusive of end
+        for (let i = range.start; i < range.end; i++) {
             indices.push(i);
         }
         return indices;
