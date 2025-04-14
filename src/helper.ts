@@ -8,6 +8,20 @@ import { sortObjectPropertiesRecursively, useCustomMetadata } from './util/noteb
 // myOutputChannel.appendLine("This is a log message from my extension");
 // myOutputChannel.show(true);
 
+export function detect_conflicting_microsoft_extension(): boolean {
+    const incompatible_extension = vscode.extensions.getExtension('ms-toolsai.vscode-jupyter-cell-tags');
+    if (incompatible_extension) {
+        // const pluginVersion = incompatible_extension?.packageJSON.version || 'unknown';
+        const incompatible_message = 'Official Microsoft Jupyter Cell Tags extension ("ms-toolsai.vscode-jupyter-cell-tags") detected! Please manually uninstall the official version in the VSCode Extensions tab to use the phohale version ("phohale.pho-vscode-jupyter-cell-tags")!.'
+        vscode.window.showErrorMessage(incompatible_message);
+        return true;
+    }
+    else {
+        return false;
+    }
+
+}
+
 
 export function getCellTags(cell: vscode.NotebookCell): string[] {
     const currentTags = (useCustomMetadata() ? cell.metadata.custom?.metadata?.tags : cell.metadata.metadata?.tags) ?? [];

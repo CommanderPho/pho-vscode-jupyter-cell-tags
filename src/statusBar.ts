@@ -62,6 +62,7 @@ export class CellSelectionsStatusBarItem {
 
     private update() {
         // const extension = vscode.extensions.getExtension('phohale.pho-vscode-jupyter-cell-tags');
+        
         // const pluginVersion = extension?.packageJSON.version || 'unknown';
         // const vscodeVersion = vscode.version;
         log('CellSelectionsStatusBarItem.update()');

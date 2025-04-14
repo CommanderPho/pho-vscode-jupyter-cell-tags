@@ -9,6 +9,7 @@ import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
 import { registerCommands } from './cellExecution/cellExecutionTracking';
+import { detect_conflicting_microsoft_extension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
@@ -19,6 +20,8 @@ import { importTagsForNotebook } from './importTags/importTags';
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
+
+    const has_invalid_extension_installed = detect_conflicting_microsoft_extension();
 
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
