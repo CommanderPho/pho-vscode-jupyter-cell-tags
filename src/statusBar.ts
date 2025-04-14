@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 
-export class VersionStatusBarItem {
+
+export class CellSelectionsStatusBarItem {
     private statusBarItem: vscode.StatusBarItem;
     private disposables: vscode.Disposable[] = [];
 
