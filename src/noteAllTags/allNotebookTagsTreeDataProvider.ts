@@ -9,11 +9,19 @@ import { TagSortOrder, sortTags } from './tagSorting';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 import { updateNotebookMetadata } from '../util/notebookMetadata';
 
-
 export interface CellReference {
     index: number;
     label: string;
 }
+
+// Add this near your other imports
+declare global {
+    var _debug: {
+        tagsTreeProvider?: AllTagsTreeDataProvider;
+        [key: string]: any;
+    };
+}
+
 
 // export enum TagSortMode {
 //     Alphabetical = 'alphabetical',
@@ -230,6 +238,20 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
+
+    // Expose the provider globally for debugging
+    // if (!globalThis._debug) {
+    //     globalThis._debug = {};
+    // }
+    globalThis._debug = {};
+    globalThis._debug.tagsTreeProvider = treeDataProvider;
+
+    // // Expose the provider globally for debugging
+    // globalThis.jupyterCellTagsDebug = {
+    //     tagsTreeProvider: treeDataProvider
+    // };
+    
+    
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
     log('View registration started for all-notebook-tags-view');
     // Your view registration code
