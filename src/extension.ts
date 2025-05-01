@@ -15,6 +15,8 @@ import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/Ju
 import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
+import { registerBasicOperationCommands } from './basic';
+
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -30,6 +32,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerJumpbackCommand(context);
     registerRemoveJumpbackCommand(context);
     registerJumpbackTreeDataProvider(context);
+    registerBasicOperationCommands(context);
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),

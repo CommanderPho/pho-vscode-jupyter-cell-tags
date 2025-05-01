@@ -229,6 +229,11 @@
 				"title": "Jupyter: Import Cell Tags from JSON",
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
+			},
+			{
+				"command": "jupyter-cell-tags.newCellWithCreationDate",
+				"title": "🏷️➕📅 New Cell with Creation Date",
+				"icon": "$(calendar)"
 			}
 		],
 		"menus": {
@@ -387,6 +392,10 @@
 					"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
 					"group": "navigation/execute@8",
 					"when": "config.jupyter-cell-tags.enableErrorNavigation"
+				},
+				{
+					"command": "jupyter-cell-tags.newCellWithCreationDate",
+					"group": "navigation/execute@9"
 				}
 			],
 			"notebook/cellGutter": [
@@ -466,6 +475,10 @@
 				{
 					"command": "jupyter-cell-tags.addJumpback",
 					"when": "jupyter-cell-tags.singleCellSelected || jupyter-cell-tags.multipleCellsSelected",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.newCellWithCreationDate",
 					"group": "navigation"
 				}
 			]

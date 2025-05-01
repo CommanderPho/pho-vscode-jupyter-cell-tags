@@ -1,6 +1,8 @@
 import * as vscode from 'vscode';
 import { TagProperties } from '../models/tagProperties';
-import { updateNotebookMetadata } from '../util/notebookMetadata';
+// import { updateNotebookMetadata } from '../util/notebookMetadata';
+import { SidecarManager } from '../sidecar/sidecarManager';
+
 
 
 export class TagPropertiesManager {
@@ -19,39 +21,21 @@ export class TagPropertiesManager {
         return this.saveTagProperties(notebook, allProperties);
     }
     
-    // Get all tag properties from notebook metadata
+    // Get all tag properties from sidecar file
     public static getAllTagProperties(notebook: vscode.NotebookDocument): Record<string, TagProperties> {
+        // First try to get from sidecar file
+        const sidecarData = SidecarManager.loadFromSidecar(notebook.uri);
+        if (sidecarData && sidecarData[this.METADATA_KEY]) {
+            return sidecarData[this.METADATA_KEY];
+        }
+        
+        // Fall back to notebook metadata
         const metadata = notebook.metadata || {};
         return metadata[this.METADATA_KEY] || {};
     }
     
-    // // Save tag properties to notebook metadata
-    // private static saveTagProperties(notebook: vscode.NotebookDocument, properties: Record<string, TagProperties>): Thenable<boolean> {
-    //     // Call updateNotebookMetadata with the proper path and value
-    //     return updateNotebookMetadata(notebook, [this.METADATA_KEY], properties)
-    //         .then(() => true)  // Convert void return to Thenable<boolean>
-    //         .catch(error => {
-    //             console.error('Error saving tag properties:', error);
-    //             return false;
-    //         });
-
-    //     // const edit = new vscode.WorkspaceEdit();
-    //     // const metadata = { ...notebook.metadata } || {};
-    //     // metadata[this.METADATA_KEY] = properties;
-        
-    //     // edit.replaceNotebookMetadata(notebook.uri, metadata);
-    //     // return vscode.workspace.applyEdit(edit);
-    // }
-
-    // Save tag properties to notebook metadata
+    // Save tag properties to sidecar file
     private static saveTagProperties(notebook: vscode.NotebookDocument, properties: Record<string, TagProperties>): Thenable<boolean> {
-        // Call updateNotebookMetadata with the proper path and value
-        return Promise.resolve(updateNotebookMetadata(notebook, [this.METADATA_KEY], properties))
-            .then(() => true)  // Convert void return to Thenable<boolean>
-            .catch(error => {
-                console.error('Error saving tag properties:', error);
-                return false;
-            });
+        return SidecarManager.updateSidecarMetadata(notebook.uri, [this.METADATA_KEY], properties);
     }
-
 }
