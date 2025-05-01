@@ -440,6 +440,11 @@
 					"command": "jupyter-cell-tags.addJumpback",
 					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags_jumpbacks@1"
+				},
+				{
+					"command": "jupyter-cell-tags.newCellWithCreationDate",
+					"when": "notebookEditorFocused",
+					"group": "jupytercelltags@4"
 				}
 			],
 			"notebook/cell/context": [
@@ -533,6 +538,7 @@
 	"devDependencies": {
 		"@types/node": "^20.17.24",
 		"@types/vscode": "^1.98.0",
+		"@types/vscode-notebook-renderer": "^1.72.3",
 		"@vscode/test-electron": "^2.4.1",
 		"@vscode/vsce": "^3.3.0",
 		"path": "^0.12.7",
