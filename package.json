@@ -398,25 +398,6 @@
 					"group": "navigation/execute@9"
 				}
 			],
-			"notebook/cellGutter": [
-				{
-					"command": "jupyter-cell-tags.addJumpback",
-					"when": "notebookEditorFocused || view == cell-tag || view == all-notebook-tags-view",
-					"group": "navigation"
-				},
-				{
-					"command": "jupyter-cell-tags.removeJumpback",
-					"when": "notebookEditorFocused && jupyter-cell-tags.hasJumpback",
-					"group": "navigation"
-				},
-				{
-					"command": "jupyter-cell-tags.executeRunCell",
-					"title": "Run Cell",
-					"icon": "$(play)",
-					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
-					"group": "inline"
-				}
-			],
 			"notebook/cell/title": [
 				{
 					"command": "jupyter-cell-tags.addTag",
