@@ -23,13 +23,14 @@ export class PhoNotebookCustomSerializer implements vscode.NotebookSerializer {
 
 		const cells = raw.map(
 		item =>
-		new vscode.NotebookCellData(
-		item.cell_type === 'code'
-				? vscode.NotebookCellKind.Code
-				: vscode.NotebookCellKind.Markup,
-		item.source.join('\n'),
-		item.cell_type === 'code' ? 'python' : 'markdown'
-		)
+			new vscode.NotebookCellData(
+				item.cell_type === 'code'
+					? vscode.NotebookCellKind.Code
+					: vscode.NotebookCellKind.Markup,
+				// Simply concatenate the source array
+				item.source.join(''),
+				item.cell_type === 'code' ? 'python' : 'markdown'
+				)
 		);
 
 		return new vscode.NotebookData(cells);
@@ -38,13 +39,14 @@ export class PhoNotebookCustomSerializer implements vscode.NotebookSerializer {
 	async serializeNotebook(data: vscode.NotebookData, _token: vscode.CancellationToken): Promise<Uint8Array> {
 		let contents: RawNotebookCell[] = [];
 
-		for (const cell of data.cells) {
-		contents.push({
+	for (const cell of data.cells) {
+	contents.push({
 		cell_type: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
-		source: cell.value.split(/\r?\n/g)
-		});
-		}
-
+		// Store the entire cell content as a single string in the array
+		source: [cell.value]
+	});
+	}
+	  
 		return new TextEncoder().encode(JSON.stringify(contents));
 	}
 }
