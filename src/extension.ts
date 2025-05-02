@@ -16,12 +16,15 @@ import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { registerBasicOperationCommands } from './basic';
+import { activatePhoNotebookFeatures } from './phoNotebook/startup'
 
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
 
+    activatePhoNotebookFeatures(context);
+    
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
     context.subscriptions.push(selectionStatusBar);
