@@ -8,7 +8,7 @@ import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebo
 import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
-import { registerCommands } from './cellExecution/cellExecutionTracking';
+import { registerCommands as registerCellExecutionTrackingCommands } from './cellExecution/cellExecutionTracking';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
@@ -24,7 +24,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateCustomLogging(context);
 
     activatePhoNotebookFeatures(context);
-    
+
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
     context.subscriptions.push(selectionStatusBar);
@@ -36,6 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerRemoveJumpbackCommand(context);
     registerJumpbackTreeDataProvider(context);
     registerBasicOperationCommands(context);
+    registerCellExecutionTrackingCommands(context);
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),

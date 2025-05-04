@@ -10,6 +10,7 @@ export function registerDocuments(context: vscode.ExtensionContext) {
     // We need to update context keys when documents are swapped to update the top level toolbar commands
     context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(notebookEditorChanged));
 
+
     // Update our initial context keys
     updateContextKeys();
 }

@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.5.1",
+	"version": "0.5.2",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -128,7 +128,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.runTag",
-				"title": "Run Tag",
+				"title": "🏃‍♂️▶️ Run Tag",
 				"icon": "$(run-all)",
 				"category": "Jupyter"
 			},
@@ -150,7 +150,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.listKernels",
-				"title": "Execute code against a Python Kernel",
+				"title": "🏃‍♂️▶️🎛️ Execute code against a Python Kernel",
 				"category": "Jupyter Kernel API"
 			},
 			{
@@ -160,7 +160,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.listExecutedNotebookCells",
-				"title": "Show the previously executed notebook cells in the current jupyter notebook",
+				"title": "🏃‍♂️▶️ Show previously executed notebook cells",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -176,12 +176,12 @@
 			},
 			{
 				"command": "jupyter-cell-tags.setTagPriority",
-				"title": "Set Tag Priority",
+				"title": "🏷️Set Tag Priority",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.renameTag",
-				"title": "Rename Tag",
+				"title": "🏷️Rename Tag",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -220,13 +220,13 @@
 			},
 			{
 				"command": "jupyter-cell-tags.exportTags",
-				"title": "Jupyter: Export tags for notebook..",
+				"title": "🏷️Jupyter: Export tags for notebook..",
 				"icon": "$(file-code)",
 				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.importTags",
-				"title": "Jupyter: Import Cell Tags from JSON",
+				"title": "🏷️Jupyter: Import Cell Tags from JSON",
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
 			},
