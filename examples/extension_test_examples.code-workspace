@@ -1,9 +1,12 @@
 {
 	"folders": [
-		{
-			"path": "."
-		}
-	],
+        {
+            "path": "."
+        },
+        {
+            "path": "../../../Spike3DWorkEnv/pyPhoPlaceCellAnalysis/src/pyphoplacecellanalysis"
+        }
+    ],
 	"settings": {
         "actionButtons": {
             "commands": [
