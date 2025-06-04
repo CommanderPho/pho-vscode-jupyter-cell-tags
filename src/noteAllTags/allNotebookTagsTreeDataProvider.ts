@@ -36,7 +36,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
-    // private _sortMode: TagSortMode = TagSortMode.Alphabetical;    
+    // private _sortMode: TagSortMode = TagSortMode.Alphabetical;
     // // Add a setter for the sort mode
     // public set sortMode(mode: TagSortMode) {
     //     this._sortMode = mode;
@@ -46,16 +46,16 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
     private sortTagsByPriority(tags: string[], notebook: vscode.NotebookDocument): string[] {
         const allProperties = TagPropertiesManager.getAllTagProperties(notebook);
-        
+
         return [...tags].sort((a, b) => {
             const priorityA = allProperties[a]?.priority ?? Number.MAX_VALUE;
             const priorityB = allProperties[b]?.priority ?? Number.MAX_VALUE;
-            
+
             if (priorityA === priorityB) {
                 // If priorities are the same, sort alphabetically
                 return a.localeCompare(b);
             }
-            
+
             return priorityA - priorityB;
         });
     }
@@ -184,9 +184,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (!vscode.window.activeNotebookEditor) {
             return Promise.resolve([]);
         }
-        
+
         const notebook = vscode.window.activeNotebookEditor.notebook;
-        
+
         if (element === undefined) {
             // Return root-level tags, sorted by the current sort mode
             // const allTags = this.getAllTags();
@@ -204,7 +204,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             // return Promise.resolve(this.getCellsWithTag(element));
             return Promise.resolve(this._tags.get(element) || []);
         }
-        
+
         return Promise.resolve([]);
     }
 
@@ -250,8 +250,8 @@ export function register(context: vscode.ExtensionContext) {
     // globalThis.jupyterCellTagsDebug = {
     //     tagsTreeProvider: treeDataProvider
     // };
-    
-    
+
+
     context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
     log('View registration started for all-notebook-tags-view');
     // Your view registration code
@@ -277,7 +277,26 @@ export function register(context: vscode.ExtensionContext) {
         if (editor) {
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
             editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
-            editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
+            // editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
+
+            // Select the cell to highlight it
+            editor.selections = [range];
+
+            // Optional: Flash the cell or add additional visual emphasis
+            // You could temporarily add a decoration to the cell
+            const cell = editor.notebook.cellAt(cellIndex);
+            if (cell) {
+                // If you want to show a notification
+                showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1500);
+
+                // Optional: You could also focus the cell's editor if it's a code cell
+                if (cell.kind === vscode.NotebookCellKind.Code) {
+                    vscode.commands.executeCommand('notebook.cell.edit');
+                }
+            }
+
+
+
         }
     }));
 
@@ -522,7 +541,7 @@ export function register(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage('No active notebook');
                 return;
             }
-            
+
             const inputOptions: vscode.InputBoxOptions = {
                 prompt: `Set priority for tag "${tagName}"`,
                 placeHolder: 'Enter a number (lower values = higher priority)',
@@ -533,54 +552,54 @@ export function register(context: vscode.ExtensionContext) {
                     return null;
                 }
             };
-            
+
             const input = await vscode.window.showInputBox(inputOptions);
             if (input === undefined) {
                 return; // User cancelled
             }
-            
+
             const priority = parseInt(input, 10);
 
-            
+
             // First get the current tagProperties
             const currentMetadata = editor.notebook.metadata || {};
             const tagProperties = currentMetadata['tagProperties'] || {};
-            
+
             // Update the priority for this tag
-            tagProperties[tagName] = { 
-                ...tagProperties[tagName], 
-                priority 
+            tagProperties[tagName] = {
+                ...tagProperties[tagName],
+                priority
             };
-            
+
             // Use updateNotebookMetadata to update the notebook metadata
             updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties); // await
-            
+
 
             // // Get the current metadata - create a deep copy to avoid readonly issues
             // const metadata = JSON.parse(JSON.stringify(editor.notebook.metadata || {}));
             // const tagProperties = metadata['tagProperties'] || {};
-            
+
             // // Update the priority for this tag
-            // tagProperties[tagName] = { 
-            //     ...tagProperties[tagName], 
-            //     priority 
+            // tagProperties[tagName] = {
+            //     ...tagProperties[tagName],
+            //     priority
             // };
-            
+
             // // Update the metadata
             // metadata['tagProperties'] = tagProperties;
-            
+
             // // Apply the update to the notebook
             // const edit = new vscode.WorkspaceEdit();
             // // Use explicit type casting to satisfy the API
             // edit.replaceNotebookMetadata(editor.notebook.uri, metadata as vscode.NotebookDocumentMetadata);
             // await vscode.workspace.applyEdit(edit);
-            
+
             // Refresh the tree view
             treeDataProvider.refresh();
             vscode.window.showInformationMessage(`Priority for tag "${tagName}" set to ${priority}`);
         })
     );
-    
+
 
 
     context.subscriptions.push(
@@ -590,7 +609,7 @@ export function register(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage('No active notebook');
                 return;
             }
-            
+
             const inputOptions: vscode.InputBoxOptions = {
                 prompt: `Enter new name to replace tag "${tagName}"`,
                 placeHolder: 'Enter a new tag name',
@@ -602,28 +621,28 @@ export function register(context: vscode.ExtensionContext) {
                     return null;
                 }
             };
-            
+
             const newTagName = await vscode.window.showInputBox(inputOptions);
             if (newTagName === undefined) {
                 return; // User cancelled
             }
-            
+
             if (newTagName === tagName) {
                 vscode.window.showInformationMessage('Tag name unchanged');
                 return;
             }
-            
+
             // Get cell references for this tag
             const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
             if (!cellRefs || cellRefs.length === 0) {
                 showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
                 return;
             }
-            
+
             // Create workspace edit
             const edit = new vscode.WorkspaceEdit();
             var nbEditList = [];
-            
+
             // Process each cell that contains this tag
             for (const cellRef of cellRefs) {
                 if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
@@ -631,7 +650,7 @@ export function register(context: vscode.ExtensionContext) {
                     if (cell) {
                         const tags = getCellTags(cell);
                         const newTags = tags.map(tag => tag === tagName ? newTagName : tag);
-                        
+
                         // Update the cell's metadata
                         const an_nbEdit = await updateCellTags(cell, newTags, true);
                         if (an_nbEdit) {
@@ -641,7 +660,7 @@ export function register(context: vscode.ExtensionContext) {
                     }
                 }
             }
-            
+
             // Update tag properties if they exist
             const currentMetadata = editor.notebook.metadata || {};
             if (currentMetadata['tagProperties'] && currentMetadata['tagProperties'][tagName]) {
@@ -650,20 +669,20 @@ export function register(context: vscode.ExtensionContext) {
                 tagProperties[newTagName] = { ...tagProperties[tagName] };
                 // Delete the old tag properties
                 delete tagProperties[tagName];
-                
+
                 // Update the notebook metadata
                 updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
             }
-            
+
             // Apply all edits at once
             await vscode.workspace.applyEdit(edit);
-            
+
             // Refresh the tree view
             treeDataProvider.refresh();
             showTimedInformationMessage(`Renamed tag "${tagName}" to "${newTagName}" in ${cellRefs.length} cells`, 3000);
         })
     );
-    
+
 
     // Register the new "removeTagFromAllCells" command
     context.subscriptions.push(
@@ -673,17 +692,17 @@ export function register(context: vscode.ExtensionContext) {
                 vscode.window.showErrorMessage('No active notebook');
                 return;
             }
-            
+
             // Get cell references for this tag
             const cellRefs = treeDataProvider.getCellReferencesForTag(tagName);
             if (!cellRefs || cellRefs.length === 0) {
                 showTimedInformationMessage(`No cells found with tag: ${tagName}`, 3000);
                 return;
             }
-            
+
             // Show confirmation dialog
             const confirmation = await vscode.window.showWarningMessage(`Remove tag "${tagName}" from all ${cellRefs.length} cells?`, { modal: true }, 'Confirm', 'Cancel');
-        
+
             // Only proceed if user clicked "Confirm"
             if (confirmation === 'Confirm') {
                 // Create workspace edit
@@ -696,11 +715,11 @@ export function register(context: vscode.ExtensionContext) {
                         const cell = editor.notebook.cellAt(cellRef.index);
                         if (cell) {
                             const tags = getCellTags(cell).filter(tag => tag !== tagName);
-                            
+
                             // // Update the cell's metadata
                             // const metadata = { ...(cell.metadata || {}) };
                             // metadata.tags = tags;
-                            
+
                             // Add the edit to our workspace edit
                             const an_nbEdit = await updateCellTags(cell, tags, true);
                             if (an_nbEdit) {
@@ -711,17 +730,17 @@ export function register(context: vscode.ExtensionContext) {
                         }
                     }
                 }
-                
+
                 // Apply all edits at once
                 await vscode.workspace.applyEdit(edit);
-                
+
                 // Refresh the tree view
                 treeDataProvider.refresh();
                 showTimedInformationMessage(`Removed tag "${tagName}" from ${cellRefs.length} cells`, 3000);
                 log(`Removed tag "${tagName}" from ${cellRefs.length} cells`);
             } // end if (confirmation...
-        
+
         })
     );
-    
+
 }
