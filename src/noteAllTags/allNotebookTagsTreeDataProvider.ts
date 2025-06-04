@@ -289,10 +289,10 @@ export function register(context: vscode.ExtensionContext) {
                 // If you want to show a notification
                 showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1500);
 
-                // Optional: You could also focus the cell's editor if it's a code cell
-                if (cell.kind === vscode.NotebookCellKind.Code) {
-                    vscode.commands.executeCommand('notebook.cell.edit');
-                }
+                // // Optional: You could also focus the cell's editor if it's a code cell
+                // if (cell.kind === vscode.NotebookCellKind.Code) {
+                //     vscode.commands.executeCommand('notebook.cell.edit');
+                // }
             }
 
 
