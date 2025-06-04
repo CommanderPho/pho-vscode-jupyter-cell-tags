@@ -22,18 +22,30 @@ export async function importTagsForNotebook() {
     try {
         const fileContent = await vscode.workspace.fs.readFile(fileResult[0]);
         const tagsData = JSON.parse(fileContent.toString());
+        // Track metrics
+        let cellsUpdated = 0;
+        const uniqueTags = new Set<string>();
 
         // Apply tags to cells
         for (const [index, cellTags] of Object.entries(tagsData)) {
             const cellIndex = parseInt(index);
             if (cellIndex < editor.notebook.cellCount) {
                 const cell = editor.notebook.cellAt(cellIndex);
-                await updateCellTags(cell, cellTags as string[]);
+                const tagsArray = Array.isArray(cellTags) ? cellTags : [];
+                await updateCellTags(cell, tagsArray as string[]);
+                cellsUpdated++;
+
+                // Add each tag to the set of unique tags
+                tagsArray.forEach(tag => uniqueTags.add(tag));
             }
         }
 
-        vscode.window.showInformationMessage('Tags imported successfully');
+        // vscode.window.showInformationMessage('Tags imported successfully');
+        vscode.window.showInformationMessage(`Tags imported successfully: ${uniqueTags.size} unique tags applied to ${cellsUpdated} cells`);
+
+
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
         vscode.window.showErrorMessage('Failed to import tags: ' + errorMessage);
-    }}
+    }
+}

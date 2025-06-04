@@ -22,6 +22,7 @@
 	"activationEvents": [
 		"onStartupFinished",
 		"onNotebook:jupyter-notebook",
+		"onNotebook:pho-notebook",
 		"onNotebookEditor:editor.selection",
 		"onNotebookEditor:editor.onDidChangeActiveNotebookEditor",
 		"onCommand:jupyter-cell-tags.removeTag",
@@ -161,6 +162,12 @@
 			{
 				"command": "jupyter-cell-tags.listExecutedNotebookCells",
 				"title": "Show the previously executed notebook cells in the current jupyter notebook",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.createAndAddTagToAllExecutedCells",
+				"title": "🏷️➕🏃‍♂️▶️ Create and add Tag to all Executed Cells",
+				"icon": "$(add)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -542,7 +549,7 @@
 		"@vscode/test-electron": "^2.4.1",
 		"@vscode/vsce": "^3.3.0",
 		"path": "^0.12.7",
-		"typescript": "^5.8.2"
+		"typescript": "^5.8.3"
 	},
 	"dependencies": {
 		"@vscode/jupyter-extension": "^1.1.1",
