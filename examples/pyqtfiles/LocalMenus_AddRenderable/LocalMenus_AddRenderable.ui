@@ -1,0 +1,410 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <author>Pho Hale</author>
+ <class>LocalMenus_AddRenderable</class>
+ <widget class="QMainWindow" name="LocalMenus_AddRenderable">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>703</width>
+    <height>126</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string notr="true">LocalMenus</string>
+  </property>
+  <widget class="QWidget" name="centralwidget"/>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>703</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuAdd_Renderable">
+    <property name="title">
+     <string notr="true">Add Renderable</string>
+    </property>
+    <property name="icon">
+     <iconset resource="../../../../Resources/ActionIcons.qrc">
+      <normaloff>:/Render/Icons/actions/categories.png</normaloff>:/Render/Icons/actions/categories.png</iconset>
+    </property>
+    <widget class="QMenu" name="menuAddRenderable_Time_Curves">
+     <property name="title">
+      <string notr="true">Add Time Curves...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../../../Resources/ActionIcons.qrc">
+       <normaloff>:/Render/Icons/actions/chart-up-color.png</normaloff>:/Render/Icons/actions/chart-up-color.png</iconset>
+     </property>
+     <addaction name="actionAddTimeCurves_Position"/>
+     <addaction name="actionAddTimeCurves_Velocity"/>
+     <addaction name="actionAddTimeCurves_ThetaPhase"/>
+     <addaction name="actionAddTimeCurves_Random"/>
+     <addaction name="actionAddTimeCurves_RelativeEntropySurprise"/>
+     <addaction name="actionAddTimeCurves_Custom"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_all_Time_Curves"/>
+    </widget>
+    <widget class="QMenu" name="menuAddRenderable_Time_Intervals">
+     <property name="title">
+      <string notr="true">Add Time Intervals...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../../../Resources/ActionIcons.qrc">
+       <normaloff>:/Render/Icons/actions/spectrum-emission.png</normaloff>:/Render/Icons/actions/spectrum-emission.png</iconset>
+     </property>
+     <addaction name="actionAddTimeIntervals_SessionEpochs"/>
+     <addaction name="actionAddTimeIntervals_Laps"/>
+     <addaction name="actionAddTimeIntervals_PBEs"/>
+     <addaction name="actionAddTimeIntervals_NonPBEs"/>
+     <addaction name="actionAddTimeIntervals_NonPBEEndcaps"/>
+     <addaction name="actionAddTimeIntervals_Ripples"/>
+     <addaction name="actionAddTimeIntervals_Replays"/>
+     <addaction name="actionAddTimeIntervals_Bursts"/>
+     <addaction name="actionAddTimeIntervals_Custom"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_all_Time_Intervals"/>
+    </widget>
+    <widget class="QMenu" name="menuAddRenderable_Matplotlib_Plot">
+     <property name="title">
+      <string>Add Matplotlib Plot...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../../../Resources/ActionIcons.qrc">
+       <normaloff>:/Graphics/Icons/graphics/ic_multiline_chart_48px.png</normaloff>:/Graphics/Icons/graphics/ic_multiline_chart_48px.png</iconset>
+     </property>
+     <addaction name="actionAddMatplotlibPlot_DecodedPosition"/>
+     <addaction name="actionAddMatplotlibPlot_Custom"/>
+     <addaction name="separator"/>
+     <addaction name="actionClear_all_Matplotlib_Plots"/>
+    </widget>
+    <addaction name="menuAddRenderable_Time_Curves"/>
+    <addaction name="menuAddRenderable_Time_Intervals"/>
+    <addaction name="menuAddRenderable_Matplotlib_Plot"/>
+    <addaction name="actionCreate_paired_time_synchronized_widget"/>
+    <addaction name="actionAddCustomRenderable"/>
+    <addaction name="separator"/>
+    <addaction name="actionClear_all_Renderables"/>
+   </widget>
+   <widget class="QMenu" name="menuCreate_Paired_Widget">
+    <property name="title">
+     <string notr="true">Create Paired Widget</string>
+    </property>
+    <addaction name="actionTimeSynchronizedOccupancyPlotter"/>
+    <addaction name="actionTimeSynchronizedPlacefieldsPlotter"/>
+    <addaction name="actionTimeSynchronizedDecoderPlotter"/>
+    <addaction name="separator"/>
+    <addaction name="actionCombineTimeSynchronizedPlotterWindow"/>
+   </widget>
+   <widget class="QMenu" name="menuDocked_Widgets">
+    <property name="title">
+     <string>Docked Widgets</string>
+    </property>
+    <widget class="QMenu" name="menuAdd_Docked_Widget">
+     <property name="title">
+      <string>Add Docked Widget</string>
+     </property>
+     <addaction name="actionMatplotlib_View"/>
+     <addaction name="actionContext_Nested_Docks"/>
+     <addaction name="actionCustom"/>
+    </widget>
+    <addaction name="menuAdd_Docked_Widget"/>
+    <addaction name="actionTest"/>
+   </widget>
+   <widget class="QMenu" name="menuDecoder">
+    <property name="title">
+     <string>Decoder</string>
+    </property>
+    <widget class="QMenu" name="menuDecoded_Epoch_Slices">
+     <property name="title">
+      <string>Decoded Epoch Slices</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../../../Resources/ActionIcons.qrc">
+       <normaloff>:/Graphics/Icons/graphics/Rectangles.png</normaloff>:/Graphics/Icons/graphics/Rectangles.png</iconset>
+     </property>
+     <addaction name="actionDecoded_Epoch_Slices_Laps"/>
+     <addaction name="actionDecoded_Epoch_Slices_PBEs"/>
+     <addaction name="actionDecoded_Epoch_Slices_Ripple"/>
+     <addaction name="actionDecoded_Epoch_Slices_Replay"/>
+     <addaction name="actionDecoded_Epoch_Slices_NonPBEs"/>
+     <addaction name="separator"/>
+     <addaction name="actionDecoded_Epoch_Slices_Custom"/>
+    </widget>
+    <addaction name="menuDecoded_Epoch_Slices"/>
+   </widget>
+   <widget class="QMenu" name="menuStandaloneWindows">
+    <property name="title">
+     <string>Standalone Windows</string>
+    </property>
+    <addaction name="actionSpike3DLauncher"/>
+   </widget>
+   <addaction name="menuAdd_Renderable"/>
+   <addaction name="menuCreate_Paired_Widget"/>
+   <addaction name="menuDocked_Widgets"/>
+   <addaction name="menuDecoder"/>
+   <addaction name="menuStandaloneWindows"/>
+  </widget>
+  <action name="actionAddTimeCurves_Position">
+   <property name="text">
+    <string notr="true">Position</string>
+   </property>
+  </action>
+  <action name="actionAddTimeCurves_Custom">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Custom...</string>
+   </property>
+  </action>
+  <action name="actionAddCustomRenderable">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string notr="true">Add Custom...</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_PBEs">
+   <property name="text">
+    <string notr="true">PBEs</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_SessionEpochs">
+   <property name="text">
+    <string notr="true">Session Epochs</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_Laps">
+   <property name="text">
+    <string notr="true">Laps</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_Custom">
+   <property name="text">
+    <string notr="true">Custom...</string>
+   </property>
+  </action>
+  <action name="actionAddTimeCurves_Random">
+   <property name="text">
+    <string notr="true">Random</string>
+   </property>
+  </action>
+  <action name="actionClear_all_Time_Curves">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/chart--minus.png</normaloff>:/Render/Icons/actions/chart--minus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear all Time Curves</string>
+   </property>
+  </action>
+  <action name="actionClear_all_Time_Intervals">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/chart--minus.png</normaloff>:/Render/Icons/actions/chart--minus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear all Time Intervals</string>
+   </property>
+  </action>
+  <action name="actionClear_all_Renderables">
+   <property name="text">
+    <string>Clear all Renderables</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_Ripples">
+   <property name="text">
+    <string>Ripples</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_Replays">
+   <property name="text">
+    <string>Replays</string>
+   </property>
+  </action>
+  <action name="actionCreate_paired_time_synchronized_widget">
+   <property name="text">
+    <string>Create paired time synchronized widget</string>
+   </property>
+  </action>
+  <action name="actionTimeSynchronizedOccupancyPlotter">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/bar-chart_2@1x.png</normaloff>:/Render/Icons/actions/bar-chart_2@1x.png</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">TimeSynchronizedOccupancyPlotter</string>
+   </property>
+  </action>
+  <action name="actionTimeSynchronizedPlacefieldsPlotter">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/wifi-channel_2@1x.png</normaloff>:/Render/Icons/actions/wifi-channel_2@1x.png</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">TimeSynchronizedPlacefieldsPlotter</string>
+   </property>
+  </action>
+  <action name="actionCombineTimeSynchronizedPlotterWindow">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Graphics/Icons/graphics/ic_multiline_chart_48px.png</normaloff>:/Graphics/Icons/graphics/ic_multiline_chart_48px.png</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">Combined Time Syncrhonized Plotter</string>
+   </property>
+  </action>
+  <action name="actionTimeSynchronizedDecoderPlotter">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/area-chart_2@1x.png</normaloff>:/Render/Icons/actions/area-chart_2@1x.png</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">TimeSynchronizedDecoderPlotter</string>
+   </property>
+  </action>
+  <action name="actionAddMatplotlibPlot_DecodedPosition">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Graphics/Icons/graphics/ic_blur_linear_48px.png</normaloff>:/Graphics/Icons/graphics/ic_blur_linear_48px.png</iconset>
+   </property>
+   <property name="text">
+    <string>Add Position Decoding</string>
+   </property>
+   <property name="statusTip">
+    <string>Use from &quot;Create Connected Widget&quot; menu</string>
+   </property>
+  </action>
+  <action name="actionClear_all_Matplotlib_Plots">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Render/Icons/actions/chart--minus.png</normaloff>:/Render/Icons/actions/chart--minus.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear all Matplotlib Plots</string>
+   </property>
+  </action>
+  <action name="actionAddMatplotlibPlot_Custom">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Custom Matplotlib Plot...</string>
+   </property>
+  </action>
+  <action name="actionMatplotlib_View">
+   <property name="text">
+    <string>Matplotlib View</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Matplotlib View&lt;img src=&quot;:/Graphics/Icons/graphics/ic_timeline_48px.png&quot;/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+  </action>
+  <action name="actionCustom">
+   <property name="text">
+    <string>Custom...</string>
+   </property>
+  </action>
+  <action name="actionTest">
+   <property name="text">
+    <string>Test</string>
+   </property>
+  </action>
+  <action name="actionContext_Nested_Docks">
+   <property name="text">
+    <string>Context Nested Docks</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_Laps">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Graphics/Icons/graphics/Rectangles.png</normaloff>:/Graphics/Icons/graphics/Rectangles.png</iconset>
+   </property>
+   <property name="text">
+    <string>Laps</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_PBEs">
+   <property name="text">
+    <string>PBEs</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_Ripple">
+   <property name="text">
+    <string>Ripple</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_Replay">
+   <property name="text">
+    <string>Replay</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_Custom">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Custom...</string>
+   </property>
+  </action>
+  <action name="actionAddTimeCurves_Velocity">
+   <property name="text">
+    <string>Velocity</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_Bursts">
+   <property name="text">
+    <string>Bursts</string>
+   </property>
+  </action>
+  <action name="actionAddTimeCurves_RelativeEntropySurprise">
+   <property name="text">
+    <string>Relative Entropy Surprise</string>
+   </property>
+  </action>
+  <action name="actionSpike3DLauncher">
+   <property name="icon">
+    <iconset resource="../../../../Resources/ActionIcons.qrc">
+     <normaloff>:/Graphics/Icons/Icon/LauncherWidget@22w.png</normaloff>:/Graphics/Icons/Icon/LauncherWidget@22w.png</iconset>
+   </property>
+   <property name="text">
+    <string>Spike3D Launcher</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_NonPBEs">
+   <property name="text">
+    <string>Non-PBEs</string>
+   </property>
+  </action>
+  <action name="actionDecoded_Epoch_Slices_NonPBEs">
+   <property name="text">
+    <string>Non-PBEs</string>
+   </property>
+  </action>
+  <action name="actionAddTimeIntervals_NonPBEEndcaps">
+   <property name="text">
+    <string>Non-PBE Endcaps (Only)</string>
+   </property>
+  </action>
+  <action name="actionAddTimeCurves_ThetaPhase">
+   <property name="text">
+    <string>Theta Phase</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../../../Resources/GuiResources.qrc"/>
+  <include location="../../../../Resources/ActionIcons.qrc"/>
+  <include location="../../../../External/breeze_style_sheets/dist/qrc/breeze.qrc"/>
+ </resources>
+ <connections/>
+</ui>
