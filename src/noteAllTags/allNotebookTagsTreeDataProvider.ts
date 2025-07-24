@@ -88,9 +88,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         if (!editor || editor.notebook.notebookType !== 'jupyter-notebook') {
             return;
         }
-        console.log('Setting jupyter:showAllTagsExplorer context');
+        log('Setting jupyter:showAllTagsExplorer context');
         await vscode.commands.executeCommand('setContext', 'jupyter:showAllTagsExplorer', true);
-        console.log('Context set');
+        log('Context set');
 
         this._editorDisposables.push(vscode.workspace.onDidChangeNotebookDocument(e => {
             this.updateTags(editor);

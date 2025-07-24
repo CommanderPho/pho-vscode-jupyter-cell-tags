@@ -8,6 +8,7 @@ import { getCellTags, updateCellTags } from '../helper';
 import { quickPickAllTags } from '../notebookRunGroups/util/cellActionHelpers';
 import { getAllTagsFromActiveNotebook, reviveCell } from '../util/notebookSelection';
 import { getActiveCell, getActiveCells } from '../util/notebookSelection';
+import { log } from '../util/logging';
 
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
@@ -101,7 +102,7 @@ export function register(context: vscode.ExtensionContext) {
 
     // Test getAllTagsFromActiveNotebook function
     const tags = getAllTagsFromActiveNotebook();
-    console.log('Retrieved tags:', tags);
+    log('Retrieved tags:', tags);
 
     context.subscriptions.push(
         vscode.commands.registerCommand(

@@ -73,6 +73,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enable/disable the Jumpback functionality including commands and views"
+				},
+				"jupyter-cell-tags.debugPrint": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable/disable the logging to the debug console"
 				}
 			}
 		},

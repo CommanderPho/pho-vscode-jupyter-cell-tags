@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { log } from '../util/logging';
 
 async function getJupyterAPI() {
     const jupyterExtension = vscode.extensions.getExtension('ms-toolsai.jupyter');
@@ -43,7 +44,7 @@ async function showExecutedCells() {
     }
 
     executedCells.forEach(cell => {
-        console.log(`Cell Index: ${cell.index}, Content: ${cell.document.getText()}`);
+        log(`Cell Index: ${cell.index}, Content: ${cell.document.getText()}`);
     });
 }
 
