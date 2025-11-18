@@ -63,10 +63,11 @@ function selectCellsUnderHeading() {
         vscode.window.showInformationMessage('No cells to select under the selected heading.');
         return;
     }
-    const start = selection.start + 1; // this always seems correct
-    const end = start + cellsToSelect.length;  // In VSCode's NotebookRange: the end index is exclusive (meaning it points to the position after the last element you want to include)
+    // Include the heading cell itself plus all cells returned by getCellsUnderHeading.
+    const start = selection.start; // start at the heading cell
+    const end = start + 1 + cellsToSelect.length;  // end is exclusive; +1 accounts for the heading cell
     notebookEditor.selection = new vscode.NotebookRange(start, end);
-    vscode.window.showInformationMessage(`Selected ${cellsToSelect.length} cells under the heading "${headingText}".`);
+    vscode.window.showInformationMessage(`Selected ${cellsToSelect.length + 1} cells (including the heading) for "${headingText}".`);
 }
 
 

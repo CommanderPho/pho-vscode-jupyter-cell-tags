@@ -8,8 +8,12 @@ let myChannel: vscode.OutputChannel;
 
 // Function for logging
 export function log(...args: any[]) {
-    // Might eventually go to output channel, but this is fine as a placeholder
-    console.log(...args);
+    const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
+    const debugPrintEnabled = config.get<boolean>('debugPrint', false);
+    
+    if (debugPrintEnabled) {
+        console.log(...args);
+    }
     myChannel.appendLine(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '));
     // showTimedInformationMessage(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '), 1000);
 }
