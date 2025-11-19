@@ -80,6 +80,8 @@
 
 
 
+
+
   - [ ]* 3.5 Write property test for synchronization timing
     - **Property 2: Synchronization timing**
     - **Validates: Requirements 1.3**
@@ -91,6 +93,7 @@
     - Test configuration management
     - Test retry logic with mocked failures
     - _Requirements: 1.1, 3.4_
+
 
 - [ ] 4. Implement Focus Manager
 
@@ -114,13 +117,23 @@
 
 - [ ] 5. Integrate with existing selectAllChildCells command
 
-  - [ ] 5.1 Modify selectAllChildCells command
+  - [x] 5.1 Modify selectAllChildCells command
+
+
+
+
 
     - Add call to OutlineSyncManager after setting selections
     - Ensure existing functionality remains unchanged
     - _Requirements: 1.1, 5.1_
 
-  - [ ] 5.2 Test integration with selectAllChildCells
+
+  - [x] 5.2 Test integration with selectAllChildCells
+
+
+
+
+
 
     - Verify Outline updates after command execution
     - Verify existing command functionality works
@@ -130,13 +143,23 @@
   - **Property 3: Notebook state independence**
   - **Validates: Requirements 4.1, 4.2, 4.3**
 
+
+
+
+
+
+
 - [ ] 6. Add configuration support
+
+
+
 
 
   - [ ] 6.1 Add configuration properties to package.json
     - Add outlineSync.enabled boolean setting
     - Add outlineSync.debounceMs number setting
     - _Requirements: 5.3_
+
 
   - [ ] 6.2 Implement configuration reading
     - Read configuration on extension activation
