@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.5.5",
+	"version": "0.5.6",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",

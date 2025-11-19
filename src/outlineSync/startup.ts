@@ -20,7 +20,7 @@ function readConfiguration(): Partial<OutlineSyncConfig> {
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags.outlineSync');
     
     const enabled = config.get<boolean>('enabled', true);
-    const debounceMs = config.get<number>('debounceMs', 100);
+    const debounceMs = config.get<number>('debounceMs', 300);
     
     log(`Configuration read: enabled=${enabled}, debounceMs=${debounceMs}`);
     
