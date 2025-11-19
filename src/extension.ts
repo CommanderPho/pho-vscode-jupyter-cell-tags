@@ -16,6 +16,7 @@ import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { activateOutlineSync } from './outlineSync/startup';
+import { registerCustomOutline } from './customOutline/startup';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -45,6 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
     activateOutlineSync(context);
+    registerCustomOutline(context);
     log('Extension activated.');
 }
 

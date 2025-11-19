@@ -108,8 +108,9 @@ export class HeadingParser implements IHeadingParser {
         }
         
         // Now calculate proper child cell ranges for all items
+        const totalCellCount = notebook.cellCount;
         for (let i = 0; i < outlineItems.length; i++) {
-            const range = this.getHeadingCellRange(i, outlineItems);
+            const range = this.getHeadingCellRange(i, outlineItems, totalCellCount);
             // Update the child cell range
             (outlineItems[i] as any).childCellRange = range;
         }
@@ -123,10 +124,24 @@ export class HeadingParser implements IHeadingParser {
      * @param headings All outline items in the notebook
      * @returns The range of cells under this heading
      */
-    getHeadingCellRange(headingIndex: number, headings: OutlineItem[]): vscode.NotebookRange {
-        // This will be implemented in subtask 2.5
-        // For now, return a simple range
+    getHeadingCellRange(headingIndex: number, headings: OutlineItem[], totalCellCount?: number): vscode.NotebookRange {
         const currentItem = headings[headingIndex];
-        return new vscode.NotebookRange(currentItem.cellIndex, currentItem.cellIndex + 1);
+        const currentLevel = currentItem.heading.level;
+
+        // Default end is either the next cell after this heading or the total notebook cell count
+        let endExclusive = totalCellCount ?? (currentItem.cellIndex + 1);
+
+        // Find the next heading of equal or higher level
+        for (let i = headingIndex + 1; i < headings.length; i++) {
+            const nextItem = headings[i];
+
+            // Stop when we reach a heading at the same or higher level in the hierarchy
+            if (nextItem.heading.level <= currentLevel) {
+                endExclusive = nextItem.cellIndex;
+                break;
+            }
+        }
+
+        return new vscode.NotebookRange(currentItem.cellIndex, endExclusive);
     }
 }
