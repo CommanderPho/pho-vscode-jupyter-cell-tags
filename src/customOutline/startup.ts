@@ -116,15 +116,16 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
                 return;
             }
 
-            // Collect all outline items whose child cell range intersects any
-            // of the visible notebook ranges.
+            // Mark headings whose *heading cell* is currently within any visible
+            // notebook range. This tends to match user expectation better than
+            // using the full child range, and avoids gaps between items.
             const visibleItems = new Set<OutlineItem>();
             for (const item of outlineItems) {
-                const range = item.childCellRange;
-                const intersects = visibleRanges.some(v =>
-                    v.end > range.start && v.start < range.end
+                const cellIndex = item.cellIndex;
+                const isHeadingCellVisible = visibleRanges.some(v =>
+                    v.start <= cellIndex && cellIndex < v.end
                 );
-                if (intersects) {
+                if (isHeadingCellVisible) {
                     visibleItems.add(item);
                 }
             }

@@ -106,6 +106,21 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Show cell indices in custom outline item labels"
+				},
+				"jupyter-cell-tags.customOutline.headingIcons": {
+					"type": "array",
+					"description": "Codicon icon ids to use for heading levels 1-6 in the custom outline view",
+					"default": [
+						"symbol-class",
+						"symbol-method",
+						"symbol-property",
+						"symbol-field",
+						"symbol-variable",
+						"symbol-constant"
+					],
+					"items": {
+						"type": "string"
+					}
 				}
 			}
 		},

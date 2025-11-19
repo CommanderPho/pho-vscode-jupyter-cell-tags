@@ -21,6 +21,7 @@ export interface Heading {
 export class OutlineItem extends vscode.TreeItem {
     private baseIcon: vscode.ThemeIcon;
     private inView: boolean = false;
+    private baseLabel: string;
 
     /**
      * Creates a new outline item
@@ -36,6 +37,7 @@ export class OutlineItem extends vscode.TreeItem {
         collapsibleState: vscode.TreeItemCollapsibleState
     ) {
         super(heading.text, collapsibleState);
+        this.baseLabel = heading.text;
 
         // Respect configuration for showing cell indices in the outline
         const config = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
@@ -66,11 +68,18 @@ export class OutlineItem extends vscode.TreeItem {
      */
     public setInView(inView: boolean): void {
         this.inView = inView;
-        // Use a distinct icon when the section is in view, fall back to the
-        // heading-level icon otherwise.
-        this.iconPath = inView
-            ? new vscode.ThemeIcon('debug-stackframe-current')
-            : this.baseIcon;
+        // Use a distinct, high-contrast icon and label when the section is in view,
+        // fall back to the heading-level icon otherwise.
+        if (inView) {
+            this.iconPath = new vscode.ThemeIcon(
+                'eye',
+                new vscode.ThemeColor('charts.yellow')
+            );
+            this.label = `👁 ${this.baseLabel}`;
+        } else {
+            this.iconPath = this.baseIcon;
+            this.label = this.baseLabel;
+        }
     }
 
     /**
@@ -86,16 +95,19 @@ export class OutlineItem extends vscode.TreeItem {
      * @returns The icon name
      */
     private getIconForLevel(level: number): string {
-        // Use different icons for different heading levels
-        switch (level) {
-            case 1: return 'symbol-class';
-            case 2: return 'symbol-method';
-            case 3: return 'symbol-property';
-            case 4: return 'symbol-field';
-            case 5: return 'symbol-variable';
-            case 6: return 'symbol-constant';
-            default: return 'symbol-misc';
-        }
+        // Allow users to customize icons per heading level via configuration.
+        const config = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
+        const defaultIcons = [
+            'symbol-class',    // level 1
+            'symbol-method',   // level 2
+            'symbol-property', // level 3
+            'symbol-field',    // level 4
+            'symbol-variable', // level 5
+            'symbol-constant'  // level 6
+        ];
+        const configured = config.get<string[]>('headingIcons', defaultIcons);
+        const index = Math.max(1, Math.min(6, level)) - 1;
+        return configured[index] ?? defaultIcons[index] ?? 'symbol-misc';
     }
 }
 
