@@ -33,9 +33,11 @@ export class OutlineItem extends vscode.TreeItem {
         collapsibleState: vscode.TreeItemCollapsibleState
     ) {
         super(heading.text, collapsibleState);
-        
-        // Set the description to show cell index if configured
-        this.description = `Cell ${cellIndex}`;
+
+        // Respect configuration for showing cell indices in the outline
+        const config = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
+        const showCellIndices = config.get<boolean>('showCellIndices', false);
+        this.description = showCellIndices ? `Cell ${cellIndex}` : undefined;
         
         // Set the tooltip with more details
         this.tooltip = `${heading.text}\nCell: ${cellIndex}\nLevel: ${heading.level}\nChild cells: ${childCellRange.start}-${childCellRange.end - 1}`;

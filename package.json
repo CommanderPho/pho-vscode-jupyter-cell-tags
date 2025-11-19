@@ -42,7 +42,10 @@
 		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
 		"onCommand:jupyter-cell-tags.removeJumpback",
-		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks"
+		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks",
+		"onView:custom-notebook-outline",
+		"onCommand:jupyter-cell-tags.customOutline.selectCell",
+		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells"
 	],
 	"repository": {
 		"type": "git",
@@ -88,6 +91,21 @@
 					"type": "number",
 					"default": 100,
 					"description": "Debounce delay in milliseconds for Outline synchronization"
+				},
+				"jupyter-cell-tags.customOutline.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable custom notebook outline view with multi-select support"
+				},
+				"jupyter-cell-tags.customOutline.updateDebounceMs": {
+					"type": "number",
+					"default": 200,
+					"description": "Debounce delay in milliseconds for custom notebook outline updates"
+				},
+				"jupyter-cell-tags.customOutline.showCellIndices": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show cell indices in custom outline item labels"
 				}
 			}
 		},
@@ -188,6 +206,16 @@
 			{
 				"command": "jupyter-cell-tags.selectAllCellsUnderTag",
 				"title": "Select All Cells Under Tag",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.selectCell",
+				"title": "Notebook Outline: Select Cell",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+				"title": "Notebook Outline: Select All Child Cells",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -384,6 +412,11 @@
 					"command": "jupyter-cell-tags.removeTagFromAllCells",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+					"when": "view == custom-notebook-outline && viewItem == outlineItem",
+					"group": "navigation"
 				}
 			],
 			"notebook/toolbar": [
@@ -520,6 +553,15 @@
 					"type": "tree",
 					"icon": "$(bookmark)",
 					"when": "config.jupyter-cell-tags.enableJumpbacks"
+				},
+				{
+					"id": "custom-notebook-outline",
+					"name": "Notebook Custom Outline",
+					"contextualTitle": "Notebook Outline",
+					"type": "tree",
+					"icon": "$(list-tree)",
+					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"visibility": "collapsed"
 				}
 			]
 		},
@@ -535,6 +577,10 @@
 			{
 				"view": "jumpbacks",
 				"contents": "No Jumpbacks found."
+			},
+			{
+				"view": "custom-notebook-outline",
+				"contents": "No outline available. Add markdown headings (e.g. `# Heading`) to your notebook to see a structure here."
 			}
 		],
 		"keybindings": [
