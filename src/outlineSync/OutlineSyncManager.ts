@@ -10,7 +10,7 @@ import { log } from '../util/logging';
  */
 const DEFAULT_CONFIG: OutlineSyncConfig = {
     enabled: true,
-    debounceMs: 100,
+    debounceMs: 300,
     maxRetries: 3,
     retryDelayMs: 100
 };

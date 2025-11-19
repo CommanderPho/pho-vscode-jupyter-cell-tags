@@ -27,9 +27,9 @@ export class SelectionChangeDetector implements ISelectionChangeDetector {
 
     /**
      * Creates a new SelectionChangeDetector
-     * @param debounceDelayMs Delay in milliseconds for debouncing selection changes (default: 100ms)
+     * @param debounceDelayMs Delay in milliseconds for debouncing selection changes (default: 300ms)
      */
-    constructor(debounceDelayMs: number = 100) {
+    constructor(debounceDelayMs: number = 300) {
         this.debounceDelayMs = debounceDelayMs;
         this.initialize();
     }
@@ -69,7 +69,8 @@ export class SelectionChangeDetector implements ISelectionChangeDetector {
         
         log(`Selection change detected: ${selections.length} ranges, programmatic: ${isProgrammatic}`);
         
-        // Debounce the notification to callbacks
+        // Trigger sync for all selection changes
+        // The debouncing will help avoid issues with rapid changes during UI interactions
         this.debounceNotification(editor, selections);
     }
 
