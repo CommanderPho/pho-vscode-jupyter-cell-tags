@@ -17,6 +17,7 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
     private parentMap: Map<OutlineItem, OutlineItem | undefined> = new Map();
     private childrenMap: Map<OutlineItem, OutlineItem[]> = new Map();
     private selectedItems: OutlineItem[] = [];
+    private visibleItems: Set<OutlineItem> = new Set();
 
     constructor(private readonly headingParser: IHeadingParser) {}
 
@@ -33,6 +34,7 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
             };
             this.parentMap.clear();
             this.childrenMap.clear();
+            this.visibleItems.clear();
             this._onDidChangeTreeData.fire();
             return;
         }
@@ -61,6 +63,7 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
             };
             this.parentMap.clear();
             this.childrenMap.clear();
+            this.visibleItems.clear();
         }
 
         this._onDidChangeTreeData.fire();
@@ -135,5 +138,30 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
         const items = this.structure?.items ?? [];
         const indexSet = new Set(cellIndices);
         this.selectedItems = items.filter(item => indexSet.has(item.cellIndex));
+    }
+
+    /**
+     * Update which outline items are currently in view in the notebook.
+     * This is used to render a \"scroll bar\" style indicator in the outline.
+     */
+    updateVisibleItems(visibleItems: Set<OutlineItem>): void {
+        const previous = this.visibleItems;
+        this.visibleItems = visibleItems;
+
+        // Clear \"in view\" state for items that are no longer visible
+        for (const item of previous) {
+            if (!visibleItems.has(item)) {
+                item.setInView(false);
+                this._onDidChangeTreeData.fire(item);
+            }
+        }
+
+        // Mark new visible items
+        for (const item of visibleItems) {
+            if (!item.isInView()) {
+                item.setInView(true);
+                this._onDidChangeTreeData.fire(item);
+            }
+        }
     }
 }
