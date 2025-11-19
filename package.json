@@ -547,7 +547,6 @@
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "tsc -p ./"
 	},
-	"enabledApiProposals": [],
 	"devDependencies": {
 		"@types/node": "^20.17.24",
 		"@types/vscode": "^1.98.0",
