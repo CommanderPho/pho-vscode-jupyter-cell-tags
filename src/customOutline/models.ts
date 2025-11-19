@@ -19,6 +19,9 @@ export interface Heading {
  * Extends vscode.TreeItem to integrate with VS Code's tree view API
  */
 export class OutlineItem extends vscode.TreeItem {
+    private baseIcon: vscode.ThemeIcon;
+    private inView: boolean = false;
+
     /**
      * Creates a new outline item
      * @param heading The heading information (text, level, line number)
@@ -44,9 +47,10 @@ export class OutlineItem extends vscode.TreeItem {
         
         // Set context value for context menu items
         this.contextValue = 'outlineItem';
-        
-        // Set icon based on heading level
-        this.iconPath = new vscode.ThemeIcon(this.getIconForLevel(heading.level));
+
+        // Set icon based on heading level and keep a base copy
+        this.baseIcon = new vscode.ThemeIcon(this.getIconForLevel(heading.level));
+        this.iconPath = this.baseIcon;
         
         // Set command to execute when clicked (navigate to cell)
         this.command = {
@@ -54,6 +58,26 @@ export class OutlineItem extends vscode.TreeItem {
             title: 'Select Cell',
             arguments: [this]
         };
+    }
+
+    /**
+     * Mark this outline item as being within the currently visible notebook range.
+     * This is used to provide a \"scroll bar\" style indicator in the custom view.
+     */
+    public setInView(inView: boolean): void {
+        this.inView = inView;
+        // Use a distinct icon when the section is in view, fall back to the
+        // heading-level icon otherwise.
+        this.iconPath = inView
+            ? new vscode.ThemeIcon('debug-stackframe-current')
+            : this.baseIcon;
+    }
+
+    /**
+     * Check whether this item is currently marked as in view.
+     */
+    public isInView(): boolean {
+        return this.inView;
     }
     
     /**

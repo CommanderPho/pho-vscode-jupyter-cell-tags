@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { IOutlineSelectionSync } from './IOutlineSelectionSync';
 import { OutlineItem } from './models';
-import { notebookRangesToIndices } from '../util/notebookSelection';
 import { SelectionChangeDetector } from '../outlineSync/SelectionChangeDetector';
 import { log } from '../util/logging';
 
@@ -10,37 +9,52 @@ import { log } from '../util/logging';
  * the custom notebook outline view, reusing SelectionChangeDetector.
  */
 export class OutlineSelectionSync implements IOutlineSelectionSync {
+    private currentSection: OutlineItem | undefined;
+
     constructor(
         private readonly treeView: vscode.TreeView<OutlineItem>,
         private readonly selectionDetector: SelectionChangeDetector | undefined
     ) {}
 
     /**
-     * Sync notebook editor selections to outline view items.
-     * Highlights outline items whose heading cells are selected in the editor.
+     * Sync notebook editor position to outline view items.
+     * Finds the deepest heading whose child range contains the primary
+     * selected cell and scrolls the outline so that item is visible.
      */
     async syncEditorToOutline(editor: vscode.NotebookEditor, outlineItems: OutlineItem[]): Promise<void> {
         if (!outlineItems.length) {
             return;
         }
 
-        // Determine which cell indices are selected
-        const selectedIndices = new Set<number>(notebookRangesToIndices(editor.selections));
-        if (!selectedIndices.size) {
+        if (!editor.selections.length) {
             return;
         }
 
-        const itemsToSelect = outlineItems.filter(item => selectedIndices.has(item.cellIndex));
-        if (!itemsToSelect.length) {
+        // Use the first selection's start index as the primary position
+        const primaryIndex = editor.selections[0].start;
+
+        // Find the deepest heading whose child range contains the primary cell
+        let bestMatch: OutlineItem | undefined;
+        for (const item of outlineItems) {
+            const range = item.childCellRange;
+            if (range.start <= primaryIndex && primaryIndex < range.end) {
+                if (!bestMatch || item.heading.level >= bestMatch.heading.level) {
+                    bestMatch = item;
+                }
+            }
+        }
+
+        if (!bestMatch || bestMatch === this.currentSection) {
             return;
         }
+
+        this.currentSection = bestMatch;
 
         try {
-            // Reveal and select all corresponding outline items. Sequential reveal
-            // calls with select=true are used as TreeView has no direct multi-select API.
-            for (const item of itemsToSelect) {
-                await this.treeView.reveal(item, { select: true, focus: false, expand: false });
-            }
+            // Scroll the custom outline so the current section is visible.
+            // We intentionally do not change selection here to avoid
+            // interfering with multi-select behavior.
+            await this.treeView.reveal(bestMatch, { select: false, focus: false, expand: true });
         } catch (error) {
             log(`Failed to sync editor selections to custom outline: ${error}`);
         }

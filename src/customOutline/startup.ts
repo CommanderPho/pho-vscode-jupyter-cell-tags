@@ -96,6 +96,43 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         context.subscriptions.push(disposable);
     }
 
+    // Track which outline items are currently within the visible notebook range
+    context.subscriptions.push(
+        vscode.window.onDidChangeNotebookEditorVisibleRanges(async event => {
+            const editor = event.notebookEditor;
+            if (!editor || editor !== vscode.window.activeNotebookEditor) {
+                return;
+            }
+
+            const outlineItems = provider.getOutlineItems();
+            if (!outlineItems.length) {
+                provider.updateVisibleItems(new Set());
+                return;
+            }
+
+            const visibleRanges = editor.visibleRanges ?? [];
+            if (!visibleRanges.length) {
+                provider.updateVisibleItems(new Set());
+                return;
+            }
+
+            // Collect all outline items whose child cell range intersects any
+            // of the visible notebook ranges.
+            const visibleItems = new Set<OutlineItem>();
+            for (const item of outlineItems) {
+                const range = item.childCellRange;
+                const intersects = visibleRanges.some(v =>
+                    v.end > range.start && v.start < range.end
+                );
+                if (intersects) {
+                    visibleItems.add(item);
+                }
+            }
+
+            provider.updateVisibleItems(visibleItems);
+        })
+    );
+
     // Command: click on outline item selects its heading cell
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.customOutline.selectCell', async (item: OutlineItem) => {
