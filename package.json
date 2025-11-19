@@ -78,6 +78,16 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enable/disable the logging to the debug console"
+				},
+				"jupyter-cell-tags.outlineSync.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable automatic Outline pane synchronization with programmatic cell selections"
+				},
+				"jupyter-cell-tags.outlineSync.debounceMs": {
+					"type": "number",
+					"default": 100,
+					"description": "Debounce delay in milliseconds for Outline synchronization"
 				}
 			}
 		},
