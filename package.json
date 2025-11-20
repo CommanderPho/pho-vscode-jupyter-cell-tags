@@ -45,7 +45,8 @@
 		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks",
 		"onView:custom-notebook-outline",
 		"onCommand:jupyter-cell-tags.customOutline.selectCell",
-		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells"
+		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells",
+		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading"
 	],
 	"repository": {
 		"type": "git",
@@ -231,6 +232,11 @@
 			{
 				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
 				"title": "Notebook Outline: Select All Child Cells",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+				"title": "Notebook Outline: Delete Cells Under Heading",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -454,6 +460,11 @@
 					"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
 					"when": "view == custom-notebook-outline && viewItem == outlineItem",
 					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+					"when": "view == custom-notebook-outline && viewItem == outlineItem",
+					"group": "1_modification"
 				}
 			],
 			"notebook/toolbar": [
