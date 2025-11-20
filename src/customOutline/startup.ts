@@ -176,5 +176,62 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
+    // Command: delete all cells under a heading
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.customOutline.deleteCellsUnderHeading', async (item: OutlineItem) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor || !item) {
+                return;
+            }
+
+            const range = item.childCellRange;
+            const cellCount = range.end - range.start;
+
+            if (cellCount === 0) {
+                vscode.window.showInformationMessage('No cells to delete under this heading.');
+                return;
+            }
+
+            // Show confirmation dialog
+            const confirmation = await vscode.window.showWarningMessage(
+                `Delete ${cellCount} cell${cellCount === 1 ? '' : 's'} under heading "${item.heading.text}"?`,
+                { modal: true },
+                'Delete',
+                'Cancel'
+            );
+
+            if (confirmation !== 'Delete') {
+                return;
+            }
+
+            try {
+                // First, select the cells (using existing command logic)
+                const ranges = [range];
+                if (selectionDetector) {
+                    selectionDetector.triggerSelectionChange(editor, ranges);
+                } else {
+                    editor.selections = ranges;
+                }
+
+                // Create and apply the delete edit
+                const edit = new vscode.WorkspaceEdit();
+                const notebookEdit = vscode.NotebookEdit.deleteCells(range);
+                edit.set(editor.notebook.uri, [notebookEdit]);
+                
+                const success = await vscode.workspace.applyEdit(edit);
+                if (success) {
+                    log(`Deleted ${cellCount} cell${cellCount === 1 ? '' : 's'} under heading "${item.heading.text}"`);
+                } else {
+                    vscode.window.showErrorMessage('Failed to delete cells.');
+                    log(`Failed to delete cells under heading "${item.heading.text}"`);
+                }
+            } catch (error) {
+                const errorMessage = `Failed to delete cells under heading: ${error}`;
+                vscode.window.showErrorMessage(errorMessage);
+                log(errorMessage);
+            }
+        })
+    );
+
     log('Custom notebook outline view registered successfully.');
 }
