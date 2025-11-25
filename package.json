@@ -46,7 +46,8 @@
 		"onView:custom-notebook-outline",
 		"onCommand:jupyter-cell-tags.customOutline.selectCell",
 		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells",
-		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading"
+		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+		"onCommand:jupyter-cell-tags.showCustomNotebookOutline"
 	],
 	"repository": {
 		"type": "git",
@@ -300,6 +301,11 @@
 				"title": "Jupyter: Import Cell Tags from JSON",
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
+			},
+			{
+				"command": "jupyter-cell-tags.showCustomNotebookOutline",
+				"title": "Show Custom Notebook Outline",
+				"category": "Jupyter Cell Tags"
 			}
 		],
 		"menus": {
@@ -337,6 +343,11 @@
 					"command": "jupyter-cell-tags.showAllNotebookTags",
 					"title": "🎛️Show All Notebook Tags View",
 					"category": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.showCustomNotebookOutline",
+					"title": "Show Custom Notebook Outline",
+					"group": "Jupyter Cell Tags"
 				}
 			],
 			"view/title": [

@@ -64,10 +64,21 @@ export function activateOutlineSync(context: vscode.ExtensionContext): void {
     
     // Register selection change handler
     const selectionChangeDisposable = selectionDetector.onSelectionChange(
-        async (editor, selections) => {
-            if (syncManager) {
-                await syncManager.syncOutline(editor);
+        async (editor, _selections) => {
+            if (!syncManager) {
+                return;
             }
+
+            // Built-in Outline already reacts to manual selections. Only sync when we
+            // know the selection change was triggered programmatically (e.g. by the
+            // custom outline), which is when VS Code fails to refresh automatically.
+            const isProgrammatic = selectionDetector?.isProgrammaticChange(editor);
+            if (!isProgrammatic) {
+                log('Skipping outline sync for manual selection change');
+                return;
+            }
+
+            await syncManager.syncOutline(editor);
         }
     );
     context.subscriptions.push(selectionChangeDisposable);
