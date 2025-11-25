@@ -233,5 +233,18 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
+    // Command: show the custom notebook outline view
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.showCustomNotebookOutline', () => {
+            log('showCustomNotebookOutline command triggered');
+            // Show the view in the explorer
+            vscode.commands.executeCommand('workbench.view.explorer');
+            log('Explorer view opened');
+            // Focus/reveal the custom-notebook-outline view
+            vscode.commands.executeCommand('custom-notebook-outline.focus');
+            log('Tried to focus custom-notebook-outline view');
+        })
+    );
+
     log('Custom notebook outline view registered successfully.');
 }
