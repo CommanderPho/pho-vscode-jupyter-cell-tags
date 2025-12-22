@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.5.7",
+	"version": "0.5.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -47,7 +47,9 @@
 		"onCommand:jupyter-cell-tags.customOutline.selectCell",
 		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells",
 		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
-		"onCommand:jupyter-cell-tags.showCustomNotebookOutline"
+		"onCommand:jupyter-cell-tags.showCustomNotebookOutline",
+		"onCommand:jupyter-cell-tags.customOutline.filter",
+		"onCommand:jupyter-cell-tags.customOutline.clearFilter"
 	],
 	"repository": {
 		"type": "git",
@@ -302,11 +304,23 @@
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
 			},
-			{
-				"command": "jupyter-cell-tags.showCustomNotebookOutline",
-				"title": "Show Custom Notebook Outline",
-				"category": "Jupyter Cell Tags"
-			}
+		{
+			"command": "jupyter-cell-tags.showCustomNotebookOutline",
+			"title": "Show Custom Notebook Outline",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.customOutline.filter",
+			"title": "Notebook Outline: Filter Items",
+			"icon": "$(search)",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.customOutline.clearFilter",
+			"title": "Notebook Outline: Clear Filter",
+			"icon": "$(close)",
+			"category": "Jupyter Cell Tags"
+		}
 		],
 		"menus": {
 			"commandPalette": [
@@ -392,13 +406,23 @@
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
-				{
-					"command": "jupyter-cell-tags.importTags",
-					"title": "Import tags for notebook..",
-					"when": "view == all-notebook-tags-view",
-					"group": "navigation"
-				}
-			],
+			{
+				"command": "jupyter-cell-tags.importTags",
+				"title": "Import tags for notebook..",
+				"when": "view == all-notebook-tags-view",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			}
+		],
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
@@ -445,16 +469,26 @@
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
 				},
-				{
-					"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
-					"when": "view == custom-notebook-outline && viewItem == outlineItem",
-					"group": "navigation"
-				},
-				{
-					"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
-					"when": "view == custom-notebook-outline && viewItem == outlineItem",
-					"group": "1_modification"
-				}
+			{
+				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+				"when": "view == custom-notebook-outline && viewItem == outlineItem",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+				"when": "view == custom-notebook-outline && viewItem == outlineItem",
+				"group": "1_modification"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			}
 			],
 			"notebook/toolbar": [
 				{
@@ -593,8 +627,8 @@
 				},
 				{
 					"id": "custom-notebook-outline",
-					"name": "Notebook Custom Outline",
-					"contextualTitle": "Notebook Outline",
+					"name": "★ Custom NB Outline",
+					"contextualTitle": "Custom NB Outline",
 					"type": "tree",
 					"icon": "$(list-tree)",
 					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
@@ -630,6 +664,16 @@
 				"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
 				"key": "ctrl+shift+[",
 				"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"key": "ctrl+f",
+				"when": "focusedView == 'custom-notebook-outline'"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"key": "escape",
+				"when": "focusedView == 'custom-notebook-outline'"
 			}
 		]
 	},

@@ -246,5 +246,38 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
+    // Command: filter outline items by text
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.customOutline.filter', async () => {
+            const currentFilter = provider.getFilter();
+            const result = await vscode.window.showInputBox({
+                prompt: 'Filter outline items',
+                placeHolder: 'Type to filter headings...',
+                value: currentFilter,
+                validateInput: () => null // Allow any input
+            });
+
+            if (result !== undefined) {
+                provider.setFilter(result);
+                if (result) {
+                    log(`Custom outline filtered by: "${result}"`);
+                } else {
+                    log('Custom outline filter cleared');
+                }
+            }
+        })
+    );
+
+    // Command: clear outline filter
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.customOutline.clearFilter', () => {
+            const hadFilter = provider.getFilter();
+            provider.clearFilter();
+            if (hadFilter) {
+                log('Custom outline filter cleared');
+            }
+        })
+    );
+
     log('Custom notebook outline view registered successfully.');
 }

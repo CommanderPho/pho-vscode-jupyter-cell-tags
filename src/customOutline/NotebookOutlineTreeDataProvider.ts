@@ -18,6 +18,7 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
     private childrenMap: Map<OutlineItem, OutlineItem[]> = new Map();
     private selectedItems: OutlineItem[] = [];
     private visibleItems: Set<OutlineItem> = new Set();
+    private filterText: string = '';
 
     constructor(private readonly headingParser: IHeadingParser) {}
 
@@ -115,6 +116,20 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
             return [];
         }
 
+        // When filtering, show a flat list of matching items
+        if (this.filterText && !element) {
+            const filterLower = this.filterText.toLowerCase();
+            return items.filter(item => 
+                item.heading.text.toLowerCase().includes(filterLower)
+            );
+        }
+
+        // If filtering is active and we're asked for children, return empty
+        // (filtered view is flat)
+        if (this.filterText && element) {
+            return [];
+        }
+
         if (!element) {
             // Root-level items: headings without parents
             const roots = items.filter(item => !this.parentMap.get(item));
@@ -162,6 +177,35 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
                 item.setInView(true);
                 this._onDidChangeTreeData.fire(item);
             }
+        }
+    }
+
+    /**
+     * Set the filter text to filter displayed items.
+     * Items matching the filter (case-insensitive) will be shown in a flat list.
+     */
+    setFilter(filterText: string): void {
+        const newFilter = filterText.trim();
+        if (newFilter !== this.filterText) {
+            this.filterText = newFilter;
+            this._onDidChangeTreeData.fire();
+        }
+    }
+
+    /**
+     * Get the current filter text.
+     */
+    getFilter(): string {
+        return this.filterText;
+    }
+
+    /**
+     * Clear the current filter.
+     */
+    clearFilter(): void {
+        if (this.filterText) {
+            this.filterText = '';
+            this._onDidChangeTreeData.fire();
         }
     }
 }
