@@ -18,8 +18,24 @@ export interface INotebookOutlineTreeDataProvider extends vscode.TreeDataProvide
     selectItems(cellIndices: number[]): void;
 
     /**
-     * Update which outline items are currently \"in view\" in the notebook.
+     * Update which outline items are currently "in view" in the notebook.
      * Implementations should update any visual indicators and refresh the tree.
      */
     updateVisibleItems(visibleItems: Set<OutlineItem>): void;
+
+    /**
+     * Set the filter text to filter displayed items.
+     * Items matching the filter (case-insensitive) will be shown.
+     */
+    setFilter(filterText: string): void;
+
+    /**
+     * Get the current filter text.
+     */
+    getFilter(): string;
+
+    /**
+     * Clear the current filter.
+     */
+    clearFilter(): void;
 }
