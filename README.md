@@ -151,3 +151,22 @@ https://github.com/microsoft/vscode-jupyter/wiki/Extension-API
 
 ### Pending Issues:
 https://github.com/microsoft/vscode/issues/209787
+
+
+## 2025-11-19 - Default Settings
+```json
+
+"jupyter-cell-tags.customOutline.headingIcons": [
+  "symbol-number",
+  "symbol-ruler",
+  "type-hierarchy",
+  "symbol-field",
+  "symbol-field",
+  "symbol-variable",
+  "symbol-constant",
+  "type-hierarchy",
+  "symbol-number",
+  "symbol-field"
+]
+
+```

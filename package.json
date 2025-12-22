@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.5.5",
+	"version": "0.5.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -42,7 +42,14 @@
 		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
 		"onCommand:jupyter-cell-tags.removeJumpback",
-		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks"
+		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks",
+		"onView:custom-notebook-outline",
+		"onCommand:jupyter-cell-tags.customOutline.selectCell",
+		"onCommand:jupyter-cell-tags.customOutline.selectAllChildCells",
+		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+		"onCommand:jupyter-cell-tags.showCustomNotebookOutline",
+		"onCommand:jupyter-cell-tags.customOutline.filter",
+		"onCommand:jupyter-cell-tags.customOutline.clearFilter"
 	],
 	"repository": {
 		"type": "git",
@@ -78,6 +85,46 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enable/disable the logging to the debug console"
+				},
+				"jupyter-cell-tags.outlineSync.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable automatic Outline pane synchronization with programmatic cell selections"
+				},
+				"jupyter-cell-tags.outlineSync.debounceMs": {
+					"type": "number",
+					"default": 100,
+					"description": "Debounce delay in milliseconds for Outline synchronization"
+				},
+				"jupyter-cell-tags.customOutline.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable custom notebook outline view with multi-select support"
+				},
+				"jupyter-cell-tags.customOutline.updateDebounceMs": {
+					"type": "number",
+					"default": 200,
+					"description": "Debounce delay in milliseconds for custom notebook outline updates"
+				},
+				"jupyter-cell-tags.customOutline.showCellIndices": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show cell indices in custom outline item labels"
+				},
+				"jupyter-cell-tags.customOutline.headingIcons": {
+					"type": "array",
+					"description": "Codicon icon ids to use for heading levels 1-6 in the custom outline view",
+					"default": [
+						"symbol-class",
+						"symbol-method",
+						"symbol-property",
+						"symbol-field",
+						"symbol-variable",
+						"symbol-constant"
+					],
+					"items": {
+						"type": "string"
+					}
 				}
 			}
 		},
@@ -181,6 +228,21 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.customOutline.selectCell",
+				"title": "Notebook Outline: Select Cell",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+				"title": "Notebook Outline: Select All Child Cells",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+				"title": "Notebook Outline: Delete Cells Under Heading",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.changeSortOrder",
 				"title": "Change Tag Sort Order",
 				"icon": "$(sort-precedence)",
@@ -241,7 +303,24 @@
 				"title": "Jupyter: Import Cell Tags from JSON",
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
-			}
+			},
+		{
+			"command": "jupyter-cell-tags.showCustomNotebookOutline",
+			"title": "Show Custom Notebook Outline",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.customOutline.filter",
+			"title": "Notebook Outline: Filter Items",
+			"icon": "$(search)",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.customOutline.clearFilter",
+			"title": "Notebook Outline: Clear Filter",
+			"icon": "$(close)",
+			"category": "Jupyter Cell Tags"
+		}
 		],
 		"menus": {
 			"commandPalette": [
@@ -278,6 +357,11 @@
 					"command": "jupyter-cell-tags.showAllNotebookTags",
 					"title": "🎛️Show All Notebook Tags View",
 					"category": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.showCustomNotebookOutline",
+					"title": "Show Custom Notebook Outline",
+					"group": "Jupyter Cell Tags"
 				}
 			],
 			"view/title": [
@@ -322,13 +406,23 @@
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
-				{
-					"command": "jupyter-cell-tags.importTags",
-					"title": "Import tags for notebook..",
-					"when": "view == all-notebook-tags-view",
-					"group": "navigation"
-				}
-			],
+			{
+				"command": "jupyter-cell-tags.importTags",
+				"title": "Import tags for notebook..",
+				"when": "view == all-notebook-tags-view",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			}
+		],
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
@@ -374,7 +468,27 @@
 					"command": "jupyter-cell-tags.removeTagFromAllCells",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
-				}
+				},
+			{
+				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+				"when": "view == custom-notebook-outline && viewItem == outlineItem",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+				"when": "view == custom-notebook-outline && viewItem == outlineItem",
+				"group": "1_modification"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"when": "view == custom-notebook-outline",
+				"group": "navigation"
+			}
 			],
 			"notebook/toolbar": [
 				{
@@ -510,6 +624,15 @@
 					"type": "tree",
 					"icon": "$(bookmark)",
 					"when": "config.jupyter-cell-tags.enableJumpbacks"
+				},
+				{
+					"id": "custom-notebook-outline",
+					"name": "★ Custom NB Outline",
+					"contextualTitle": "Custom NB Outline",
+					"type": "tree",
+					"icon": "$(list-tree)",
+					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"visibility": "collapsed"
 				}
 			]
 		},
@@ -525,6 +648,10 @@
 			{
 				"view": "jumpbacks",
 				"contents": "No Jumpbacks found."
+			},
+			{
+				"view": "custom-notebook-outline",
+				"contents": "No outline available. Add markdown headings (e.g. `# Heading`) to your notebook to see a structure here."
 			}
 		],
 		"keybindings": [
@@ -537,6 +664,16 @@
 				"command": "jupyter-cell-tags.decreaseSelectionHeadingDepth",
 				"key": "ctrl+shift+[",
 				"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"key": "ctrl+f",
+				"when": "focusedView == 'custom-notebook-outline'"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"key": "escape",
+				"when": "focusedView == 'custom-notebook-outline'"
 			}
 		]
 	},
@@ -548,10 +685,12 @@
 		"pretest": "tsc -p ./"
 	},
 	"devDependencies": {
+		"@types/mocha": "^10.0.10",
 		"@types/node": "^20.17.24",
 		"@types/vscode": "^1.98.0",
 		"@vscode/test-electron": "^2.4.1",
 		"@vscode/vsce": "^3.3.0",
+		"fast-check": "^4.3.0",
 		"path": "^0.12.7",
 		"typescript": "^5.8.3"
 	},
