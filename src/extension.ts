@@ -47,6 +47,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateCellHeadings(context);
     activateOutlineSync(context);
     registerCustomOutline(context);
+    registerCommands(context);
     log('Extension activated.');
 }
 

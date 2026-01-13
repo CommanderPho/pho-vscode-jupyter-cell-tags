@@ -332,6 +332,16 @@
 			"title": "Notebook Outline: Clear Filter",
 			"icon": "$(close)",
 			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
+			"title": "Execute Cell and Select Below (with tracking)",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
+			"title": "Execute Cell and Focus Container (with tracking)",
+			"category": "Jupyter Cell Tags"
 		}
 		],
 		"menus": {
@@ -696,6 +706,16 @@
 				"command": "jupyter-cell-tags.customOutline.clearFilter",
 				"key": "escape",
 				"when": "focusedView == 'custom-notebook-outline'"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
+				"key": "shift+enter",
+				"when": "notebookCellListFocused && !inlineChatFocused && notebookCellType == 'markup' || notebookCellListFocused && notebookMissingKernelExtension && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
+				"key": "ctrl+enter",
+				"when": "notebookCellListFocused || editorTextFocus && inputFocus && notebookEditorFocused"
 			}
 		]
 	},
