@@ -7,3 +7,4 @@ esbuild.js
 examples/
 examples/notebooks/
 .idea/
+.kiro/

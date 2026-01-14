@@ -30,7 +30,7 @@
             "reloadButton": "↻",
             "loadNpmCommands": true
 		},
-		"jupyter-cell-tags.enableJumpbacks": true,
+		"jupyter-cell-tags.enableJumpbacks": false,
 		"workbench.tree.indent": 8,
 		"window.titleBarStyle": "custom",
 		"workbench.colorCustomizations": {
@@ -76,7 +76,9 @@
 			// "editorGutter.modifiedBackground": "#66bb6a",
 			// "editorGutter.addedBackground": "#4caf50",
 			// "editorGutter.deletedBackground": "#ef5350"
-		}
+		},
+		"jupyter-cell-tags.customOutline.enabled": true,
+		"editor.fontSize": 11
 	},
 	"extensions": {
 		"recommendations": [

@@ -16,7 +16,8 @@
 		"resolveJsonModule": true,
 		"types": [
 			"node",
-			"vscode"
+			"vscode",
+			"mocha"
 		]
 	},
 	"include": [

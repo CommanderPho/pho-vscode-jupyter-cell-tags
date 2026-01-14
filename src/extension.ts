@@ -15,6 +15,8 @@ import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/Ju
 import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
+import { activateOutlineSync } from './outlineSync/startup';
+import { registerCustomOutline } from './customOutline/startup';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -43,6 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
 	updateContext();
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
+    activateOutlineSync(context);
+    registerCustomOutline(context);
+    registerCommands(context);
     log('Extension activated.');
 }
 

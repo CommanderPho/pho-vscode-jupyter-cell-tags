@@ -1,0 +1,37 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# Build outputs
+out/
+
+# Dependencies
+node_modules/
+
+# VS Code extension packages
+*.vsix
+
+# IDE files
+.idea/
+.vscode-test/
+
+# Build artifacts and temporary files
+*.log
+*.cache
+*.tmp
+
+# OS files
+desktop.ini
+Thumbs.db
+.DS_Store
+
+# Test outputs
+coverage/
+*.test.js
+*.test.js.map
+
+# Package manager files
+# package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Generated documentation (if any)
+docs/generated/
