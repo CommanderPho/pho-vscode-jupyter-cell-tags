@@ -14,13 +14,38 @@ export class TagTreeItem extends vscode.TreeItem {
         if (vscode.window.activeNotebookEditor) {
             const properties = this.getTagProperties(tagName);
             
+            // Build description parts
+            const descriptionParts: string[] = [];
+            const tooltipParts: string[] = [`Tag: ${tagName}`];
+            
             if (properties?.priority !== undefined) {
-                this.description = `Priority: ${properties.priority}`;
-                this.tooltip = `Tag: ${tagName}\nPriority: ${properties.priority}`;
+                descriptionParts.push(`Priority: ${properties.priority}`);
+                tooltipParts.push(`Priority: ${properties.priority}`);
             }
+            
+            if (properties?.color) {
+                descriptionParts.push(`Color: ${properties.color}`);
+                tooltipParts.push(`Color: ${properties.color}`);
+            }
+            
+            if (descriptionParts.length > 0) {
+                this.description = descriptionParts.join(' | ');
+                this.tooltip = tooltipParts.join('\n');
+            }
+            
+            // Set icon with custom color if available
+            if (properties?.color) {
+                // Use ThemeIcon with a ThemeColor - VS Code will use the closest theme color
+                // For custom colors, we create a colored circle icon
+                this.iconPath = new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor('charts.foreground'));
+                // Note: VS Code TreeItem icons don't support arbitrary colors directly,
+                // so we show the color in description and use a filled circle icon
+            } else {
+                this.iconPath = new vscode.ThemeIcon('tag');
+            }
+        } else {
+            this.iconPath = new vscode.ThemeIcon('tag');
         }
-        
-        this.iconPath = new vscode.ThemeIcon('tag');
     }
     
     private getTagProperties(tagName: string): TagProperties | undefined {
