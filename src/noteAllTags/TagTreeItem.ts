@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { TagProperties } from '../models/tagProperties';
+import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 
 export class TagTreeItem extends vscode.TreeItem {
     constructor(
@@ -35,11 +36,8 @@ export class TagTreeItem extends vscode.TreeItem {
             
             // Set icon with custom color if available
             if (properties?.color) {
-                // Use ThemeIcon with a ThemeColor - VS Code will use the closest theme color
-                // For custom colors, we create a colored circle icon
-                this.iconPath = new vscode.ThemeIcon('circle-filled', new vscode.ThemeColor('charts.foreground'));
-                // Note: VS Code TreeItem icons don't support arbitrary colors directly,
-                // so we show the color in description and use a filled circle icon
+                // Create a custom colored icon using SVG data URI
+                this.iconPath = this.createColoredIconUri(properties.color);
             } else {
                 this.iconPath = new vscode.ThemeIcon('tag');
             }
@@ -54,9 +52,14 @@ export class TagTreeItem extends vscode.TreeItem {
         }
         
         const notebook = vscode.window.activeNotebookEditor.notebook;
-        const metadata = notebook.metadata || {};
-        const tagProperties = metadata['tagProperties'] || {};
-        
-        return tagProperties[tagName];
+        return TagPropertiesManager.getTagProperties(notebook, tagName);
+    }
+    
+    private createColoredIconUri(color: string): vscode.Uri {
+        // Create an SVG with a filled circle using the tag's color
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${color}"/></svg>`;
+        // Encode the SVG as a data URI
+        const encodedSvg = encodeURIComponent(svg);
+        return vscode.Uri.parse(`data:image/svg+xml;charset=utf-8,${encodedSvg}`);
     }
 }
