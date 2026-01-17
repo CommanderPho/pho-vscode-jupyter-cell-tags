@@ -254,6 +254,18 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.setTagColor",
+				"title": "Set Tag Color",
+				"icon": "$(symbol-color)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.clearTagColor",
+				"title": "Clear Tag Color",
+				"icon": "$(close)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.renameTag",
 				"title": "Rename Tag",
 				"category": "Jupyter Cell Tags"
@@ -319,6 +331,16 @@
 			"command": "jupyter-cell-tags.customOutline.clearFilter",
 			"title": "Notebook Outline: Clear Filter",
 			"icon": "$(close)",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
+			"title": "Execute Cell and Select Below (with tracking)",
+			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
+			"title": "Execute Cell and Focus Container (with tracking)",
 			"category": "Jupyter Cell Tags"
 		}
 		],
@@ -456,6 +478,16 @@
 				},
 				{
 					"command": "jupyter-cell-tags.setTagPriority",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
+					"group": "1_modification"
+				},
+				{
+					"command": "jupyter-cell-tags.setTagColor",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem",
+					"group": "1_modification"
+				},
+				{
+					"command": "jupyter-cell-tags.clearTagColor",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
 				},
@@ -674,6 +706,16 @@
 				"command": "jupyter-cell-tags.customOutline.clearFilter",
 				"key": "escape",
 				"when": "focusedView == 'custom-notebook-outline'"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
+				"key": "shift+enter",
+				"when": "notebookCellListFocused && !inlineChatFocused && notebookCellType == 'markup' || notebookCellListFocused && notebookMissingKernelExtension && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' || notebookCellListFocused && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelCount > 0 || notebookCellListFocused && !inlineChatFocused && !notebookCellExecuting && notebookCellType == 'code' && notebookKernelSourceCount > 0"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
+				"key": "ctrl+enter",
+				"when": "notebookCellListFocused || editorTextFocus && inputFocus && notebookEditorFocused"
 			}
 		]
 	},

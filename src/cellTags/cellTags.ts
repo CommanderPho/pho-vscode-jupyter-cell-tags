@@ -9,6 +9,31 @@ import { quickPickAllTags } from '../notebookRunGroups/util/cellActionHelpers';
 import { getAllTagsFromActiveNotebook, reviveCell } from '../util/notebookSelection';
 import { getActiveCell, getActiveCells } from '../util/notebookSelection';
 import { log } from '../util/logging';
+import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
+
+// Map of common hex colors to colored circle unicode characters
+const COLOR_TO_EMOJI: Record<string, string> = {
+    '#e74c3c': '🔴', '#ff0000': '🔴', '#dc3545': '🔴', // Red variants
+    '#e67e22': '🟠', '#ff8c00': '🟠', '#fd7e14': '🟠', // Orange variants
+    '#f1c40f': '🟡', '#ffff00': '🟡', '#ffc107': '🟡', // Yellow variants
+    '#2ecc71': '🟢', '#00ff00': '🟢', '#28a745': '🟢', '#008000': '🟢', // Green variants
+    '#3498db': '🔵', '#0000ff': '🔵', '#007bff': '🔵', '#0d6efd': '🔵', // Blue variants
+    '#9b59b6': '🟣', '#800080': '🟣', '#6f42c1': '🟣', // Purple variants
+    '#795548': '🟤', '#8b4513': '🟤', // Brown variants
+    '#000000': '⚫', // Black
+    '#ffffff': '⚪', '#f8f9fa': '⚪', // White variants
+};
+
+// Helper function to get a colored indicator for a hex color
+function getColorIndicator(hexColor: string): string {
+    const normalizedColor = hexColor.toLowerCase();
+    // Check for exact match first
+    if (COLOR_TO_EMOJI[normalizedColor]) {
+        return COLOR_TO_EMOJI[normalizedColor];
+    }
+    // For custom colors, use a generic colored square unicode
+    return '◆';
+}
 
 
 export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
@@ -33,37 +58,40 @@ export async function addTagsToMultipleCells(cells: vscode.NotebookCell[], tags:
 }
 
 export class CellTagStatusBarProvider implements vscode.NotebookCellStatusBarItemProvider {
-    provideCellStatusBarItems(
-        cell: vscode.NotebookCell,
-        token: vscode.CancellationToken
-    ): vscode.ProviderResult<vscode.NotebookCellStatusBarItem[]> {
+    provideCellStatusBarItems(cell: vscode.NotebookCell, token: vscode.CancellationToken): vscode.ProviderResult<vscode.NotebookCellStatusBarItem[]> {
         const items: vscode.NotebookCellStatusBarItem[] = [];
+        const notebook = cell.notebook;
+        
         getCellTags(cell).forEach((tag: string) => {
+            // Get tag properties to check for custom color
+            const tagProperties = TagPropertiesManager.getTagProperties(notebook, tag);
+            const tagColor = tagProperties?.color;
+            
+            // Build the display text with optional color indicator
+            let displayText = '$(close) ' + tag;
+            let tooltipText = tag;
+            
+            if (tagColor) {
+                const colorIndicator = getColorIndicator(tagColor);
+                displayText = `${colorIndicator} $(close) ${tag}`;
+                tooltipText = `${tag} (${tagColor})`;
+            }
+            
             items.push({
-                text: '$(close) ' + tag,
-                tooltip: tag,
-                command: {
-                    title: `Remove Tag ${tag}`,
-                    command: 'jupyter-cell-tags.removeTag',
-                    arguments: [cell, tag]
-                },
+                text: displayText,
+                tooltip: tooltipText,
+                command: { title: `Remove Tag ${tag}`, command: 'jupyter-cell-tags.removeTag', arguments: [cell, tag] },
                 alignment: vscode.NotebookCellStatusBarAlignment.Left
             });
         });
 
-        // if (items.length) { // require at least one item for the + tag button to show up
         // add insert tag status bar item
         items.push({
             text: '$(plus) Tag',
             tooltip: 'Add Tag',
-            command: {
-                title: 'Add Tag',
-                command: 'jupyter-cell-tags.addTag',
-                arguments: [cell]
-            },
+            command: { title: 'Add Tag', command: 'jupyter-cell-tags.addTag', arguments: [cell] },
             alignment: vscode.NotebookCellStatusBarAlignment.Left
         });
-        // }
 
         return items;
     }

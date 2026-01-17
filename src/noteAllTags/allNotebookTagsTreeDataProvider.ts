@@ -9,6 +9,22 @@ import { TagSortOrder, sortTags } from './tagSorting';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
+import { TagProperties } from '../models/tagProperties';
+
+// Predefined color options for quick selection
+const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
+    { label: '$(circle-filled) Red', color: '#e74c3c', description: '#e74c3c' },
+    { label: '$(circle-filled) Orange', color: '#e67e22', description: '#e67e22' },
+    { label: '$(circle-filled) Yellow', color: '#f1c40f', description: '#f1c40f' },
+    { label: '$(circle-filled) Green', color: '#2ecc71', description: '#2ecc71' },
+    { label: '$(circle-filled) Teal', color: '#1abc9c', description: '#1abc9c' },
+    { label: '$(circle-filled) Blue', color: '#3498db', description: '#3498db' },
+    { label: '$(circle-filled) Purple', color: '#9b59b6', description: '#9b59b6' },
+    { label: '$(circle-filled) Pink', color: '#e91e63', description: '#e91e63' },
+    { label: '$(circle-filled) Brown', color: '#795548', description: '#795548' },
+    { label: '$(circle-filled) Gray', color: '#95a5a6', description: '#95a5a6' },
+    { label: '$(pencil) Custom Color...', color: 'custom', description: 'Enter a custom hex color' }
+];
 
 export interface CellReference {
     index: number;
@@ -719,6 +735,74 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+
+    // Register the new "setTagColor" command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.setTagColor', async (tagName: string) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active notebook');
+                return;
+            }
+
+            // Show quick pick with color options
+            const selection = await vscode.window.showQuickPick(COLOR_OPTIONS, { placeHolder: `Select a color for tag "${tagName}"`, matchOnDescription: true });
+
+            if (!selection) {
+                return; // User cancelled
+            }
+
+            let selectedColor = selection.color;
+
+            // If user selected custom color, prompt for hex value
+            if (selectedColor === 'custom') {
+                const customColor = await vscode.window.showInputBox({ prompt: `Enter a hex color for tag "${tagName}"`, placeHolder: '#FF5733', validateInput: (value) => {
+                    if (!/^#[0-9A-Fa-f]{6}$/.test(value) && !/^#[0-9A-Fa-f]{3}$/.test(value)) {
+                        return 'Please enter a valid hex color (e.g., #FF5733 or #F53)';
+                    }
+                    return null;
+                }});
+
+                if (!customColor) {
+                    return; // User cancelled
+                }
+                selectedColor = customColor;
+            }
+
+            // Get existing properties and update with new color
+            const existingProperties = TagPropertiesManager.getTagProperties(editor.notebook, tagName);
+            const updatedProperties: TagProperties = { ...existingProperties, color: selectedColor };
+
+            // Save the updated properties
+            await TagPropertiesManager.setTagProperties(editor.notebook, tagName, updatedProperties);
+
+            // Refresh the tree view
+            treeDataProvider.refresh();
+            showTimedInformationMessage(`Color for tag "${tagName}" set to ${selectedColor}`, 3000);
+        })
+    );
+
+    // Register the new "clearTagColor" command
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.clearTagColor', async (tagName: string) => {
+            const editor = vscode.window.activeNotebookEditor;
+            if (!editor) {
+                vscode.window.showErrorMessage('No active notebook');
+                return;
+            }
+
+            // Get existing properties and remove color
+            const existingProperties = TagPropertiesManager.getTagProperties(editor.notebook, tagName);
+            const { color, ...propertiesWithoutColor } = existingProperties;
+
+            // Save the updated properties (without color)
+            await TagPropertiesManager.setTagProperties(editor.notebook, tagName, propertiesWithoutColor);
+
+            // Refresh the tree view
+            treeDataProvider.refresh();
+            showTimedInformationMessage(`Color for tag "${tagName}" cleared`, 3000);
+        })
+    );
 
     // Register the new "removeTagFromAllCells" command
     context.subscriptions.push(
