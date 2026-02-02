@@ -315,14 +315,9 @@ export function register(context: vscode.ExtensionContext) {
 
 
     // Register a command to open and highlight a cell
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndexOrItem: number | { cellRef?: { index: number } }) => {
-        const cellIndex = typeof cellIndexOrItem === 'number' ? cellIndexOrItem : (cellIndexOrItem?.cellRef?.index ?? -1);
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
         if (editor) {
-            if (cellIndex < 0) {
-                vscode.window.showErrorMessage('Invalid cell index.');
-                return;
-            }
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
             editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
             // editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
@@ -382,15 +377,10 @@ export function register(context: vscode.ExtensionContext) {
     //     title: 'Open Cell',
     //     arguments: [element.index]  // Pass the cell index to the command
     // };
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', (cellIndexOrItem: number | { cellRef?: { index: number } }) => {
-        const cellIndex = typeof cellIndexOrItem === 'number' ? cellIndexOrItem : (cellIndexOrItem?.cellRef?.index ?? -1);
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
             vscode.window.showErrorMessage('No active notebook editor found.');
-            return;
-        }
-        if (cellIndex < 0) {
-            vscode.window.showErrorMessage('Invalid cell index.');
             return;
         }
         // vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
