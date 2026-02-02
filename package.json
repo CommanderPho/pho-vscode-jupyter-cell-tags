@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.5.9",
+	"version": "0.6.0",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -85,6 +85,11 @@
 					"type": "boolean",
 					"default": false,
 					"description": "Enable/disable the logging to the debug console"
+				},
+				"jupyter-cell-tags.showDebugExecutionMessages": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show debug message boxes for cell navigation and execution (e.g. 'Navigated to cell X', 'Executed cell X'). Useful for extension debugging; leave disabled for normal use."
 				},
 				"jupyter-cell-tags.outlineSync.enabled": {
 					"type": "boolean",

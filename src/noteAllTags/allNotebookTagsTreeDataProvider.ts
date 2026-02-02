@@ -315,9 +315,14 @@ export function register(context: vscode.ExtensionContext) {
 
 
     // Register a command to open and highlight a cell
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndexOrItem: number | { cellRef?: { index: number } }) => {
+        const cellIndex = typeof cellIndexOrItem === 'number' ? cellIndexOrItem : (cellIndexOrItem?.cellRef?.index ?? -1);
         const editor = vscode.window.activeNotebookEditor;
         if (editor) {
+            if (cellIndex < 0) {
+                vscode.window.showErrorMessage('Invalid cell index.');
+                return;
+            }
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
             editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
             // editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
@@ -330,7 +335,10 @@ export function register(context: vscode.ExtensionContext) {
             const cell = editor.notebook.cellAt(cellIndex);
             if (cell) {
                 // If you want to show a notification
-                showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1500);
+                const showDebugMessages = vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('showDebugExecutionMessages', false);
+                if (showDebugMessages) {
+                    showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1500);
+                }
 
                 // // Optional: You could also focus the cell's editor if it's a code cell
                 // if (cell.kind === vscode.NotebookCellKind.Code) {
@@ -374,10 +382,15 @@ export function register(context: vscode.ExtensionContext) {
     //     title: 'Open Cell',
     //     arguments: [element.index]  // Pass the cell index to the command
     // };
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', (cellIndex: number) => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.executeRunCell', (cellIndexOrItem: number | { cellRef?: { index: number } }) => {
+        const cellIndex = typeof cellIndexOrItem === 'number' ? cellIndexOrItem : (cellIndexOrItem?.cellRef?.index ?? -1);
         const editor = vscode.window.activeNotebookEditor;
         if (!editor) {
             vscode.window.showErrorMessage('No active notebook editor found.');
+            return;
+        }
+        if (cellIndex < 0) {
+            vscode.window.showErrorMessage('Invalid cell index.');
             return;
         }
         // vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
@@ -405,7 +418,10 @@ export function register(context: vscode.ExtensionContext) {
             executeNotebookCell(cell)
             // await editor.executeCell(cell.index);
 
-            showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+            const showDebugMessages = vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('showDebugExecutionMessages', false);
+            if (showDebugMessages) {
+                showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+            }
         } catch (err) {
             vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
         }
