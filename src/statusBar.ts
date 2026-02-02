@@ -14,7 +14,6 @@ export class CellSelectionsStatusBarItem {
         );
         this.registerEventListeners();
         this.update();
-        this.statusBarItem.show();
     }
 
     private registerEventListeners() {
@@ -61,24 +60,22 @@ export class CellSelectionsStatusBarItem {
 
 
     private update() {
-        // const extension = vscode.extensions.getExtension('phohale.pho-vscode-jupyter-cell-tags');
-        
-        // const pluginVersion = extension?.packageJSON.version || 'unknown';
-        // const vscodeVersion = vscode.version;
         log('CellSelectionsStatusBarItem.update()');
-        let selectionIndicator = '';
         const activeNotebookEditor = vscode.window.activeNotebookEditor;
-        if (activeNotebookEditor && activeNotebookEditor.selections && activeNotebookEditor.selections.length > 0) {
-            // For this example, we assume each cell in the selection has an "index" property.
+        if (!activeNotebookEditor) {
+            this.statusBarItem.hide();
+            return;
+        }
+        let selectionIndicator = '';
+        if (activeNotebookEditor.selections && (activeNotebookEditor.selections.length > 0)) {
             const selectedCellIds = notebookRangesToIndices(activeNotebookEditor.selections).join(', ');
             selectionIndicator = `Selected Cells: ${selectedCellIds} (${activeNotebookEditor.selections.length} cells)`;
-        }
-        else {
+        } else {
             selectionIndicator = '<No Notebook Cell Selections>';
         }
-
         this.statusBarItem.text = `$(heart) $(preview) ${selectionIndicator}`;
-        this.statusBarItem.tooltip = 'Jupyter Cell Tags Version Info';
+        this.statusBarItem.tooltip = 'Jupyter Cell Tags - Selected Notebook Cells Info';
+        this.statusBarItem.show();
     }
 
     public dispose() {

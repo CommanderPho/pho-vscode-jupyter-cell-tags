@@ -53,6 +53,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.notebookActive', !!editor);
     if (!editor) {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);

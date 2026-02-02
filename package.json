@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.0",
+	"version": "0.6.1",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -640,7 +640,7 @@
 					"name": "Cell Tags",
 					"type": "tree",
 					"icon": "$(tag)",
-					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
 				}
 			],
@@ -651,7 +651,7 @@
 					"contextualTitle": "Notebook Tags",
 					"type": "tree",
 					"icon": "$(tag)",
-					"when": "jupyter:showAllTagsExplorer",
+					"when": "jupyter:showAllTagsExplorer && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
 				},
 				{
@@ -660,7 +660,7 @@
 					"contextualTitle": "Notebook Jumpbacks",
 					"type": "tree",
 					"icon": "$(bookmark)",
-					"when": "config.jupyter-cell-tags.enableJumpbacks"
+					"when": "config.jupyter-cell-tags.enableJumpbacks && jupyter-cell-tags.notebookActive"
 				},
 				{
 					"id": "custom-notebook-outline",
@@ -668,7 +668,7 @@
 					"contextualTitle": "Custom NB Outline",
 					"type": "tree",
 					"icon": "$(list-tree)",
-					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter.hasNativeNotebookOrInteractiveWindowOpen",
+					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
 				}
 			]
