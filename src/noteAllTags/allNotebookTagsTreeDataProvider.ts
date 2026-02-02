@@ -332,7 +332,7 @@ export function register(context: vscode.ExtensionContext) {
                 // If you want to show a notification
                 const showDebugMessages = vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('showDebugExecutionMessages', false);
                 if (showDebugMessages) {
-                    showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1500);
+                    showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1200);
                 }
 
                 // // Optional: You could also focus the cell's editor if it's a code cell
@@ -410,7 +410,7 @@ export function register(context: vscode.ExtensionContext) {
 
             const showDebugMessages = vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('showDebugExecutionMessages', false);
             if (showDebugMessages) {
-                showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 3000);
+                showTimedInformationMessage(`Executed cell ${cellIndex + 1}`, 1200);
             }
         } catch (err) {
             vscode.window.showErrorMessage(`Error executing cell ${cellIndex + 1}: ${err}`);
