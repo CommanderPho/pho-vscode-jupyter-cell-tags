@@ -10,7 +10,6 @@ import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
-// import { highlightCellWithDecoration, highlightCellWithVisualFeedback } from '../util/notebookSelection';
 import { highlightCell } from '../util/cellVisualHighlight';
 
 // Predefined color options for quick selection
