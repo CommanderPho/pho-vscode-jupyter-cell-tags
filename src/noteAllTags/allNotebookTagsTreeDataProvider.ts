@@ -10,6 +10,8 @@ import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
+// import { highlightCellWithDecoration, highlightCellWithVisualFeedback } from '../util/notebookSelection';
+import { highlightCell } from '../util/cellVisualHighlight';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -315,7 +317,7 @@ export function register(context: vscode.ExtensionContext) {
 
 
     // Register a command to open and highlight a cell
-    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
+    context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', async (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
         if (editor) {
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
@@ -334,6 +336,17 @@ export function register(context: vscode.ExtensionContext) {
                 if (showDebugMessages) {
                     showTimedInformationMessage(`Navigated to cell ${cellIndex + 1}`, 1200);
                 }
+
+                // highlight the cell
+                // await highlightCellWithVisualFeedback(cellIndex);
+                // await highlightCellWithDecoration(cellIndex);
+
+
+                await highlightCell(cellIndex, {
+                    duration: 1500,
+                    pulse: true,
+                    pulseCount: 2
+                });
 
                 // // Optional: You could also focus the cell's editor if it's a code cell
                 // if (cell.kind === vscode.NotebookCellKind.Code) {

@@ -4,6 +4,7 @@
 import * as vscode from 'vscode';
 import { register as registerCellTags } from './cellTags/cellTags';
 import { register as registerAllNotebookTagsView } from './noteAllTags/allNotebookTagsTreeDataProvider';
+import { initializeCellHighlight, disposeCellHighlight, highlightCell } from './util/cellVisualHighlight';
 import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
@@ -43,6 +44,7 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
 
 	updateContext();
+    initializeCellHighlight();
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
     activateOutlineSync(context);
@@ -74,4 +76,6 @@ function updateContext() {
 }
 
 
-export function deactivate() {}
+export function deactivate() {
+    disposeCellHighlight();
+}

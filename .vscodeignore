@@ -8,3 +8,23 @@ examples/
 examples/notebooks/
 .idea/
 .kiro/
+
+# Cursor / SpecStory
+.cursor/
+.specstory/
+.cursorignore
+.cursorindexingignore
+
+# Dev / CI / tooling
+.gitignore
+.nvmrc
+azure-pipeline.stable.yml
+vscode-jupyter-cell-tags.code-workspace
+desktop.ini
+.editorconfig
+.prettierrc.js
+package-lock.json
+FM-*.ico
+
+# TypeScript source (runtime uses out/ only)
+src/

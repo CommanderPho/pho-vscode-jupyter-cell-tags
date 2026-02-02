@@ -207,3 +207,141 @@ export function reviveCell(args: vscode.NotebookCell | vscode.Uri | undefined): 
     return undefined;
 }
 
+
+// // Visual Cell Selection Indication
+// export async function highlightCellWithVisualFeedback(cellIndex: number) {
+//     const editor = vscode.window.activeNotebookEditor;
+//     if (!editor) {
+//         vscode.window.showWarningMessage('No active notebook editor found');
+//         return;
+//     }
+
+//     const notebook = editor.notebook;
+//     if (cellIndex < 0 || cellIndex >= notebook.cellCount) {
+//         vscode.window.showWarningMessage(`Cell index ${cellIndex} is out of range`);
+//         return;
+//     }
+
+//     const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+    
+//     // 1. Center and reveal the cell
+//     editor.revealRange(range, vscode.NotebookEditorRevealType.InCenter);
+    
+//     // 2. Select the cell
+//     editor.selections = [range];
+    
+//     // 3. Show status bar message
+//     const statusBarMessage = vscode.window.setStatusBarMessage(
+//         `$(target) Focused on Cell #${cellIndex}`,
+//         3000
+//     );
+    
+//     // 4. Optional: Flash effect
+//     await flashCell(editor, range);
+    
+//     // 5. Optional: Show toast notification
+//     const cell = notebook.cellAt(cellIndex);
+//     const cellType = cell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown';
+//     vscode.window.showInformationMessage(
+//         `Navigated to ${cellType} Cell #${cellIndex}`,
+//         { modal: false }
+//     );
+// }
+
+
+// // Create a decoration type for highlighting cells
+// const cellHighlightDecorationType = vscode.window.createTextEditorDecorationType({
+//     backgroundColor: 'rgba(255, 200, 0, 0.3)',  // Yellow highlight
+//     border: '2px solid rgba(255, 165, 0, 0.8)',  // Orange border
+//     borderRadius: '4px',
+//     isWholeLine: true,
+//     overviewRulerColor: 'rgba(255, 165, 0, 0.8)',
+//     overviewRulerLane: vscode.OverviewRulerLane.Full,
+// });
+
+// // // Alternative: Animated glow effect
+// // const cellGlowDecorationType = vscode.window.createTextEditorDecorationType({
+// //     backgroundColor: 'rgba(100, 150, 255, 0.2)',  // Blue glow
+// //     border: '3px solid rgba(100, 150, 255, 0.9)',
+// //     borderRadius: '6px',
+// //     isWholeLine: true,
+// //     outline: '2px solid rgba(100, 150, 255, 0.5)',
+// //     outlineOffset: '2px',
+// // });
+
+// export async function highlightCellWithDecoration(cellIndex: number, duration: number = 2000) {
+//     const editor = vscode.window.activeNotebookEditor;
+//     if (!editor) {
+//         vscode.window.showWarningMessage('No active notebook editor found');
+//         return;
+//     }
+
+//     const notebook = editor.notebook;
+//     if (cellIndex < 0 || cellIndex >= notebook.cellCount) {
+//         vscode.window.showWarningMessage(`Cell index ${cellIndex} is out of range`);
+//         return;
+//     }
+
+//     const cell = notebook.cellAt(cellIndex);
+//     const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
+    
+//     // 1. Reveal and select the cell
+//     await editor.revealRange(range, vscode.NotebookEditorRevealType.InCenter);
+//     editor.selections = [range];
+    
+//     // 2. Apply decoration to the cell's text document
+//     const textEditor = await getCellTextEditor(cell);
+//     if (textEditor) {
+//         // Create a range covering the entire cell content
+//         const fullRange = new vscode.Range(
+//             0, 
+//             0, 
+//             textEditor.document.lineCount - 1,
+//             textEditor.document.lineAt(textEditor.document.lineCount - 1).text.length
+//         );
+        
+//         // Apply the decoration
+//         textEditor.setDecorations(cellHighlightDecorationType, [fullRange]);
+        
+//         // Show status message
+//         vscode.window.setStatusBarMessage(
+//             `$(target) Focused on Cell #${cellIndex}`,
+//             duration
+//         );
+        
+//         // Remove decoration after duration
+//         setTimeout(() => {
+//             textEditor.setDecorations(cellHighlightDecorationType, []);
+//         }, duration);
+//     }
+// }
+
+// // Helper function to get the text editor for a notebook cell
+// async function getCellTextEditor(cell: vscode.NotebookCell): Promise<vscode.TextEditor | undefined> {
+//     // The cell's document URI
+//     const cellUri = cell.document.uri;
+    
+//     // Find the text editor for this cell
+//     return vscode.window.visibleTextEditors.find(
+//         editor => editor.document.uri.toString() === cellUri.toString()
+//     );
+// }
+
+
+// // Wave one
+// async function flashCell(editor: vscode.NotebookEditor, range: vscode.NotebookRange) {
+//     // Create a flashing effect by toggling selection
+//     const flashCount = 2;
+//     const flashDuration = 150;
+    
+//     for (let i = 0; i < flashCount; i++) {
+//         editor.selections = [];
+//         await delay(flashDuration);
+//         editor.selections = [range];
+//         await delay(flashDuration);
+//     }
+// }
+
+// function delay(ms: number): Promise<void> {
+//     return new Promise(resolve => setTimeout(resolve, ms));
+// }
