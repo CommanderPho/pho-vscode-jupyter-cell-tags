@@ -344,7 +344,8 @@ export function register(context: vscode.ExtensionContext) {
                 await highlightCell(cellIndex, {
                     duration: 1500,
                     pulse: true,
-                    pulseCount: 2
+                    pulseCount: 2,
+                    notebookUri: editor.notebook.uri
                 });
 
                 // // Optional: You could also focus the cell's editor if it's a code cell

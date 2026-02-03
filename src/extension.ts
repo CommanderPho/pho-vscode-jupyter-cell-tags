@@ -45,6 +45,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 	updateContext();
     initializeCellHighlight();
+    context.subscriptions.push({ dispose: disposeCellHighlight });
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
     activateOutlineSync(context);
