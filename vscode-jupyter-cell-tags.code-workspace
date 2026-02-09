@@ -1,9 +1,15 @@
 {
 	"folders": [
-		{
-			"path": "./"
-		}
-	],
+        {
+            "path": "./"
+        },
+        {
+            "path": "../jupyter-enhancements"
+        },
+        {
+            "path": "../ring-me-jupyter"
+        }
+    ],
 	"settings": {
         "workbench.colorCustomizations": {
             "editor.lineHighlightBackground": "#102dcf2d",
@@ -33,7 +39,8 @@
     "extensions": {
         "recommendations": [
             "jkearins.action-buttons-ext",
-            "vscode-icons-team.vscode-icons"
+            "vscode-icons-team.vscode-icons",
+            "kavinrajasekaran.notebook-snapshots"
         ]
     }
 }
