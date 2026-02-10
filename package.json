@@ -690,6 +690,14 @@
 					"icon": "$(list-tree)",
 					"when": "config.jupyter-cell-tags.customOutline.enabled && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
+				},
+				{
+					"id": "executed-cells-view",
+					"name": "Executed Cells",
+					"contextualTitle": "Executed Cells",
+					"type": "tree",
+					"icon": "$(play)",
+					"when": "jupyter-cell-tags.notebookActive"
 				}
 			]
 		},
@@ -709,6 +717,10 @@
 			{
 				"view": "custom-notebook-outline",
 				"contents": "No outline available. Add markdown headings (e.g. `# Heading`) to your notebook to see a structure here."
+			},
+			{
+				"view": "executed-cells-view",
+				"contents": "No cells have been executed in this session. Execute cells to see them listed here with their execution status."
 			}
 		],
 		"keybindings": [

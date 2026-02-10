@@ -3,10 +3,31 @@ import { log } from '../util/logging';
 import { getActiveCell } from '../util/notebookSelection';
 import { addTagsToMultipleCells } from '../cellTags/cellTags';
 
-interface CellExecutionRecord {
+export interface CellExecutionRecord {
 	cellIndex: number;
 	executionTime: string;
 	executionOrder: number;
+}
+
+export type ExecutionStatus = 'success' | 'error' | 'unknown';
+
+export function getCellExecutionStatus(cell: vscode.NotebookCell): ExecutionStatus {
+	if (cell.outputs.length === 0) {
+		return 'unknown';
+	}
+	
+	// Check if any output contains an error
+	const ErrorMimeType = vscode.NotebookCellOutputItem.error(new Error('')).mime;
+	for (const output of cell.outputs) {
+		for (const item of output.items) {
+			if (item.mime === ErrorMimeType) {
+				return 'error';
+			}
+		}
+	}
+	
+	// If there are outputs but no errors, consider it a success
+	return 'success';
 }
 
 interface NotebookExecutionHistory {
@@ -97,6 +118,34 @@ function getExecutionHistory(context: vscode.ExtensionContext, notebookUri: vsco
 export function getExecutionHistoryForNotebook(context: vscode.ExtensionContext, notebookUri: vscode.Uri): CellExecutionRecord[] {
 	const history = getExecutionHistory(context, notebookUri);
 	return history.executions;
+}
+
+export function getExecutedCellsForCurrentSessionWithStatus(context: vscode.ExtensionContext, notebookUri: vscode.Uri, notebook: vscode.NotebookDocument): Array<{ cellIndex: number; status: ExecutionStatus; executionOrder: number; executionTime: string }> {
+	if (!sessionStartTime) {
+		initializeSessionStartTime(context);
+	}
+	
+	const history = getExecutionHistory(context, notebookUri);
+	const executedCells: Array<{ cellIndex: number; status: ExecutionStatus; executionOrder: number; executionTime: string }> = [];
+	
+	for (const record of history.executions) {
+		const executionTime = new Date(record.executionTime);
+		if (executionTime >= sessionStartTime!) {
+			const cell = notebook.cellAt(record.cellIndex);
+			if (cell) {
+				const status = getCellExecutionStatus(cell);
+				executedCells.push({
+					cellIndex: record.cellIndex,
+					status,
+					executionOrder: record.executionOrder,
+					executionTime: record.executionTime
+				});
+			}
+		}
+	}
+	
+	// Sort by execution order (most recent first)
+	return executedCells.sort((a, b) => b.executionOrder - a.executionOrder);
 }
 
 function initializeSessionStartTime(context: vscode.ExtensionContext): void {
