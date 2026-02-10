@@ -8,7 +8,8 @@ import { initializeCellHighlight, disposeCellHighlight, highlightCell } from './
 import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
-import { registerCommands } from './cellExecution/cellExecutionTracking';
+// import { registerCommands } from './cellExecution/cellExecutionTracking';
+import { activateNotebookCellExecutionTracking } from './cellExecution/startup';
 import { detect_conflicting_microsoft_extension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
@@ -18,7 +19,7 @@ import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { activateOutlineSync } from './outlineSync/startup';
 import { registerCustomOutline } from './customOutline/startup';
-import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
+// import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -47,12 +48,11 @@ export function activate(context: vscode.ExtensionContext) {
 	updateContext();
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
+    activateNotebookCellExecutionTracking(context);
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
     activateOutlineSync(context);
     registerCustomOutline(context);
-    registerCommands(context);
-    registerExecutedCellsView(context);
     log('Extension activated.');
 }
 

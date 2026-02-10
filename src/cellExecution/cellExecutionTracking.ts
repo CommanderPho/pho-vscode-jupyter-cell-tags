@@ -85,7 +85,7 @@ async function showExecutedCells() {
     });
 }
 
-function recordCellExecution(context: vscode.ExtensionContext, notebookUri: vscode.Uri, cellIndex: number, executionTime: Date): void {
+export function recordCellExecution(context: vscode.ExtensionContext, notebookUri: vscode.Uri, cellIndex: number, executionTime: Date): void {
 	const history = getExecutionHistory(context, notebookUri);
 	const executionOrder = history.executions.length + 1;
 	

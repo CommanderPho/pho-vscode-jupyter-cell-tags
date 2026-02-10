@@ -30,7 +30,7 @@
             "reloadButton": "↻",
             "loadNpmCommands": true
 		},
-		"jupyter-cell-tags.enableJumpbacks": false,
+		"jupyter-cell-tags.enableJumpbacks": true,
 		"workbench.tree.indent": 8,
 		"window.titleBarStyle": "custom",
 		"workbench.colorCustomizations": {
@@ -78,7 +78,16 @@
 			// "editorGutter.deletedBackground": "#ef5350"
 		},
 		"jupyter-cell-tags.customOutline.enabled": true,
-		"editor.fontSize": 11
+		"editor.fontSize": 11,
+		"files.exclude": {
+			"**/.specstory": true,
+			"**/.venv": true
+		},
+		"jupyter-cell-tags.customOutline.showCellIndices": true,
+		"jupyter-cell-tags.debugPrint": true,
+		"jupyter-cell-tags.enableErrorNavigation": true,
+		"jupyter-cell-tags.showDebugExecutionMessages": true,
+		"jupyter-cell-tags.tagSortOrder": "creation-date"
 	},
 	"extensions": {
 		"recommendations": [
