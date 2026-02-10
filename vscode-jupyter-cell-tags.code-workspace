@@ -8,6 +8,9 @@
         },
         {
             "path": "../ring-me-jupyter"
+        },
+        {
+            "path": "../group-bookmark"
         }
     ],
 	"settings": {
@@ -40,7 +43,8 @@
         "recommendations": [
             "jkearins.action-buttons-ext",
             "vscode-icons-team.vscode-icons",
-            "kavinrajasekaran.notebook-snapshots"
+            "kavinrajasekaran.notebook-snapshots",
+            "olavovieiradecarvalho.notebook-mcp-server"
         ]
     }
 }
