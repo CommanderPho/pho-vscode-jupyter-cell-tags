@@ -359,3 +359,4 @@ FM-{B33549E0-AF79-4E17-A777-511E230ACF50}.ico
 .specstory
 .cursor/rules/derived-cursor-rules.mdc
 examples/notebooks/.snapshots
+examples/.cursorindexingignore
