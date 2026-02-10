@@ -9,7 +9,11 @@
 			"name": "Extension",
 			"type": "extensionHost",
 			"request": "launch",
-			"args": ["--profile=PhoExtensionDev2025", "--extensionDevelopmentPath=${workspaceFolder}", "--enable-proposed-api", "phohale.jupyter"],
+			"args": ["--profile=PhoExtensionDev2025", "--extensionDevelopmentPath=${workspaceFolder}", "--enable-proposed-api", "phohale.jupyter", 
+				"--python-interpreter", "C:\\Users\\pho\\repos\\VSCODE_EXTENSIONS\\vscode-jupyter-cell-tags\\examples\\.venv\\Scripts\\python.exe",
+				"${workspaceFolder}\\examples\\extension_test_examples.code-workspace",
+				// "C:\\Users\\pho\\repos\\VSCODE_EXTENSIONS\\vscode-jupyter-cell-tags\\examples\\extension_test_examples.code-workspace",
+			],
 			"outFiles": ["${workspaceFolder}/out/**/*.js"],
 			"preLaunchTask": "${defaultBuildTask}",
 			"presentation": {

@@ -8,6 +8,9 @@
         },
         {
             "path": "../ring-me-jupyter"
+        },
+        {
+            "path": "../group-bookmark"
         }
     ],
 	"settings": {
