@@ -293,6 +293,18 @@
 				"when": "config.jupyter-cell-tags.enableErrorNavigation"
 			},
 			{
+				"command": "jupyter-cell-tags.navigateToPreviousExecutedCell",
+				"title": "⬆️▶️ Navigate to Previous Executed Cell",
+				"icon": "$(arrow-up)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.navigateToNextExecutedCell",
+				"title": "⬇️▶️ Navigate to Next Executed Cell",
+				"icon": "$(arrow-down)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.addJumpback",
 				"title": "🔖↩️➕ Add Jumpback",
 				"icon": "$(bookmark)",
@@ -550,6 +562,14 @@
 					"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
 					"group": "navigation/execute@8",
 					"when": "config.jupyter-cell-tags.enableErrorNavigation"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateToPreviousExecutedCell",
+					"group": "navigation/execute@9"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateToNextExecutedCell",
+					"group": "navigation/execute@10"
 				}
 			],
 			"notebook/cellGutter": [

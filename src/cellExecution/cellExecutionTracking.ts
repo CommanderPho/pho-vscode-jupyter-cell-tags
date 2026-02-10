@@ -226,6 +226,100 @@ async function createAndAddTagToAllExecutedCells(context: vscode.ExtensionContex
 	}
 }
 
+async function navigateToPreviousExecutedCell(context: vscode.ExtensionContext) {
+	const editor = vscode.window.activeNotebookEditor;
+	if (!editor) {
+		vscode.window.showWarningMessage('No active notebook editor found.');
+		return;
+	}
+	
+	const activeCell = getActiveCell();
+	if (!activeCell) {
+		vscode.window.showWarningMessage('No active cell found.');
+		return;
+	}
+	
+	const notebookUri = editor.notebook.uri;
+	const executionHistory = getExecutionHistoryForNotebook(context, notebookUri);
+	
+	if (executionHistory.length === 0) {
+		vscode.window.showInformationMessage('No executed cells found in this notebook.');
+		return;
+	}
+	
+	// Get unique executed cell indices, sorted by cell index
+	const executedCellIndices = Array.from(new Set(executionHistory.map(record => record.cellIndex))).sort((a, b) => a - b);
+	
+	// Find the previous executed cell (highest index that is less than current cell index)
+	const currentCellIndex = activeCell.index;
+	let previousExecutedIndex = -1;
+	
+	for (let i = executedCellIndices.length - 1; i >= 0; i--) {
+		if (executedCellIndices[i] < currentCellIndex) {
+			previousExecutedIndex = executedCellIndices[i];
+			break;
+		}
+	}
+	
+	if (previousExecutedIndex === -1) {
+		vscode.window.showInformationMessage('No previous executed cell found.');
+		return;
+	}
+	
+	// Navigate to the previous executed cell
+	const range = new vscode.NotebookRange(previousExecutedIndex, previousExecutedIndex + 1);
+	editor.selection = range;
+	await editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+	log(`Navigated to previous executed cell at index ${previousExecutedIndex}`);
+}
+
+async function navigateToNextExecutedCell(context: vscode.ExtensionContext) {
+	const editor = vscode.window.activeNotebookEditor;
+	if (!editor) {
+		vscode.window.showWarningMessage('No active notebook editor found.');
+		return;
+	}
+	
+	const activeCell = getActiveCell();
+	if (!activeCell) {
+		vscode.window.showWarningMessage('No active cell found.');
+		return;
+	}
+	
+	const notebookUri = editor.notebook.uri;
+	const executionHistory = getExecutionHistoryForNotebook(context, notebookUri);
+	
+	if (executionHistory.length === 0) {
+		vscode.window.showInformationMessage('No executed cells found in this notebook.');
+		return;
+	}
+	
+	// Get unique executed cell indices, sorted by cell index
+	const executedCellIndices = Array.from(new Set(executionHistory.map(record => record.cellIndex))).sort((a, b) => a - b);
+	
+	// Find the next executed cell (lowest index that is greater than current cell index)
+	const currentCellIndex = activeCell.index;
+	let nextExecutedIndex = -1;
+	
+	for (let i = 0; i < executedCellIndices.length; i++) {
+		if (executedCellIndices[i] > currentCellIndex) {
+			nextExecutedIndex = executedCellIndices[i];
+			break;
+		}
+	}
+	
+	if (nextExecutedIndex === -1) {
+		vscode.window.showInformationMessage('No next executed cell found.');
+		return;
+	}
+	
+	// Navigate to the next executed cell
+	const range = new vscode.NotebookRange(nextExecutedIndex, nextExecutedIndex + 1);
+	editor.selection = range;
+	await editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+	log(`Navigated to next executed cell at index ${nextExecutedIndex}`);
+}
+
 // Register our commands for run groups
 export function registerCommands(context: vscode.ExtensionContext) {
 	// Initialize session start time
@@ -253,6 +347,15 @@ export function registerCommands(context: vscode.ExtensionContext) {
 	// Register create tag with executed cells command
 	context.subscriptions.push(
 		vscode.commands.registerCommand('jupyter-cell-tags.createAndAddTagToAllExecutedCells', () => createAndAddTagToAllExecutedCells(context))
+	);
+	
+	// Register navigation commands for executed cells
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jupyter-cell-tags.navigateToPreviousExecutedCell', () => navigateToPreviousExecutedCell(context))
+	);
+	
+	context.subscriptions.push(
+		vscode.commands.registerCommand('jupyter-cell-tags.navigateToNextExecutedCell', () => navigateToNextExecutedCell(context))
 	);
 }
 
