@@ -18,6 +18,7 @@ import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { activateOutlineSync } from './outlineSync/startup';
 import { registerCustomOutline } from './customOutline/startup';
+import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
@@ -51,6 +52,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateOutlineSync(context);
     registerCustomOutline(context);
     registerCommands(context);
+    registerExecutedCellsView(context);
     log('Extension activated.');
 }
 
