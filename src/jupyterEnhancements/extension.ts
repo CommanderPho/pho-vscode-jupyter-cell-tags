@@ -25,6 +25,7 @@ let extensionContext: vscode.ExtensionContext;
 // --- HIJACK DISPOSABLES ---
 let singleHijack: vscode.Disposable | undefined;
 let allHijack: vscode.Disposable | undefined;
+let isHijacking = false; // Flag to prevent concurrent hijack operations
 
 export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	extensionContext = context;
@@ -59,9 +60,15 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	context.subscriptions.push({ dispose: () => clearInterval(pollInterval) });
 
 	// 4. Global Event Listener
+	// Type definition for notebook execution state change event
+	interface NotebookCellExecutionStateChangeEvent {
+		cell: vscode.NotebookCell;
+		state: number; // 1 = idle, 3 = executing
+	}
+	
 	const notebooksAny = vscode.notebooks as any;
 	if (notebooksAny && typeof notebooksAny.onDidChangeNotebookCellExecutionState === 'function') {
-		context.subscriptions.push(notebooksAny.onDidChangeNotebookCellExecutionState((e: any) => {
+		context.subscriptions.push(notebooksAny.onDidChangeNotebookCellExecutionState((e: NotebookCellExecutionStateChangeEvent) => {
 			handleExecutionStateChange(e);
 		}));
 	}
@@ -146,20 +153,31 @@ function updateLayoutSettings() {
 
 // --- HIJACK SETUP ---
 function registerHijacks() {
-	singleHijack?.dispose();
-	allHijack?.dispose();
+	// Prevent concurrent hijack operations
+	if (isHijacking) {
+		output.appendLine("[WARN] Hijack registration already in progress, skipping");
+		return;
+	}
+	
+	isHijacking = true;
+	try {
+		singleHijack?.dispose();
+		allHijack?.dispose();
 
-	singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
-		output.appendLine("[DEBUG] >> Hijack: Run Single");
-		await runSingleHandler(args);
-	});
-	extensionContext.subscriptions.push(singleHijack);
+		singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
+			output.appendLine("[DEBUG] >> Hijack: Run Single");
+			await runSingleHandler(args);
+		});
+		extensionContext.subscriptions.push(singleHijack);
 
-	allHijack = vscode.commands.registerCommand('notebook.execute', async (args) => {
-		output.appendLine("[DEBUG] >> Hijack: Run All");
-		await runSequenceHandler('all', args);
-	});
-	extensionContext.subscriptions.push(allHijack);
+		allHijack = vscode.commands.registerCommand('notebook.execute', async (args) => {
+			output.appendLine("[DEBUG] >> Hijack: Run All");
+			await runSequenceHandler('all', args);
+		});
+		extensionContext.subscriptions.push(allHijack);
+	} finally {
+		isHijacking = false;
+	}
 }
 
 // --- SCRATCHPAD HANDLER ---
@@ -252,13 +270,16 @@ const runSingleHandler = async (args?: any) => {
 				notebookUri: cell.notebook.uri 
 			});
 		} catch (e) {
-			output.appendLine(`[ERROR] Exec failed: ${e}`);
+			const errorMsg = `Failed to execute cell ${cell.index}: ${e}`;
+			output.appendLine(`[ERROR] ${errorMsg}`);
+			vscode.window.showErrorMessage(errorMsg);
 		} finally {
 			registerHijacks(); 
 		}
 
 		stopAnim();
-		handleCellFinished(cell, cell.executionSummary?.success ?? false);
+		const success = cell.executionSummary?.success ?? false;
+		handleCellFinished(cell, success);
 	}
 };
 
@@ -310,10 +331,17 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 			await new Promise(r => setTimeout(r, 100));
 
 			const stopAnim = startAnimationLoopForCell(cell);
-			await executeCellAndWaitNative(cell);
-			stopAnim();
+			let success = false;
+			try {
+				success = await executeCellAndWaitNative(cell);
+			} catch (error) {
+				output.appendLine(`[ERROR] Cell ${cell.index} execution failed: ${error}`);
+				vscode.window.showErrorMessage(`Failed to execute cell ${cell.index}. Execution stopped.`);
+				success = false;
+			} finally {
+				stopAnim();
+			}
 			
-			const success = cell.executionSummary?.success ?? false;
 			handleCellFinished(cell, success);
 
 			if (!success) break;
@@ -326,10 +354,18 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 // --- CORE HELPERS ---
 
 async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<boolean> {
-	return new Promise<boolean>((resolve) => {
+	return new Promise<boolean>((resolve, reject) => {
+		const timeout = setTimeout(() => {
+			clearInterval(poller);
+			const errorMsg = `Cell ${cell.index} execution timed out after 5 minutes`;
+			output.appendLine(`[ERROR] ${errorMsg}`);
+			reject(new Error(errorMsg));
+		}, 5 * 60 * 1000); // 5 minute timeout
+
 		const poller = setInterval(() => {
 			if (cell.executionSummary?.success !== undefined) {
 				clearInterval(poller);
+				clearTimeout(timeout);
 				resolve(cell.executionSummary.success);
 			}
 		}, 100);
@@ -337,7 +373,14 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 		vscode.commands.executeCommand('notebook.cell.execute', {
 			ranges: [{ start: cell.index, end: cell.index + 1 }],
 			notebookUri: cell.notebook.uri
-		}).then(undefined, (err) => { output.appendLine(`[ERROR] Exec failed: ${err}`); });
+		}).then(undefined, (err) => {
+			clearInterval(poller);
+			clearTimeout(timeout);
+			const errorMsg = `Failed to execute cell ${cell.index}: ${err}`;
+			output.appendLine(`[ERROR] ${errorMsg}`);
+			vscode.window.showErrorMessage(errorMsg);
+			reject(err);
+		});
 	});
 }
 
@@ -365,7 +408,7 @@ function startAnimationLoopForCell(cell: vscode.NotebookCell): () => void {
 
 // --- VISUAL LOGIC ---
 
-function handleExecutionStateChange(e: any) {
+function handleExecutionStateChange(e: { cell: vscode.NotebookCell; state: number }) {
 	const cell = e.cell;
 	if (e.state === 3) { 
 		if (!activeAnimations.has(cell.document.uri.toString())) {

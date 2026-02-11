@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import { getActiveCell, reviveCell } from '../util/notebookSelection';
+import { updateNotebookMetadata, getNotebookMetadata } from '../util/notebookMetadata';
+import { JumpbackEntry } from './jumpbackDataSource';
 
 
 export function registerJumpbackCommand(context: vscode.ExtensionContext) {
@@ -41,30 +43,34 @@ export function registerJumpbackCommand(context: vscode.ExtensionContext) {
       return;
     }
 
-    // Access notebook metadata for a jumpback list. Assume metadata is a mutable object.
+    // Get the current jumpback list from notebook metadata
     const notebook = notebookEditor.notebook;
-    // In practice, you may need to use the Notebook API to update notebook metadata,
-    // here we simply assume we can modify a 'jumpbackList' property.
-    let metadata = notebook.metadata as { jumpbackList?: any[] } || {};
-    if (!metadata.jumpbackList) {
-      metadata.jumpbackList = [];
+    const currentJumpbackList = getNotebookMetadata<JumpbackEntry[]>(notebook, ['jumpbackList'], []);
+    
+    // Check if jumpback already exists for this cell
+    const existingIndex = currentJumpbackList.findIndex(entry => entry.cellIndex === cellIndex);
+    if (existingIndex !== -1) {
+      vscode.window.showInformationMessage(`Jumpback already exists for cell ${cellIndex}.`);
+      return;
     }
 
-    // Create a new jumpback entry for the current cell.
-    // You might also want to store additional information (like a timestamp).
-    metadata.jumpbackList.push({
+    // Create a new jumpback entry for the current cell
+    const newJumpback: JumpbackEntry = {
       cellIndex,
       addedAt: new Date().toISOString()
-    });
+    };
 
-    // Now update the notebook metadata.
-    // Depending on your VS Code API version this could be done via a WorkspaceEdit or an API on the Notebook.
-    // Below is a pseudo-code example; please adjust with your actual API.
+    // Add the new jumpback to the list
+    const updatedJumpbackList = [...currentJumpbackList, newJumpback];
+
+    // Update the notebook metadata
     try {
-      await vscode.workspace.applyEdit(new vscode.WorkspaceEdit()); // replace with actual metadata update method
+      await updateNotebookMetadata(notebook, ['jumpbackList'], updatedJumpbackList);
       vscode.window.showInformationMessage(`Jumpback added for cell ${cellIndex}.`);
     } catch (error) {
-      vscode.window.showErrorMessage("Failed to update notebook metadata.");
+      const errorMsg = `Failed to update notebook metadata: ${error}`;
+      vscode.window.showErrorMessage(errorMsg);
+      console.error(errorMsg, error);
     }
   }));
 }
@@ -83,32 +89,35 @@ export function registerRemoveJumpbackCommand(context: vscode.ExtensionContext) 
       return;
     }
 
-    // Retrieve the notebook metadata jumpback list.
-    const metadata = notebookEditor.notebook.metadata as { jumpbackList?: { cellIndex: number, addedAt: string }[] } || {};
-    if (!metadata.jumpbackList) {
+    // Retrieve the notebook metadata jumpback list
+    const notebook = notebookEditor.notebook;
+    const currentJumpbackList = getNotebookMetadata<JumpbackEntry[]>(notebook, ['jumpbackList'], []);
+    
+    if (currentJumpbackList.length === 0) {
       vscode.window.showInformationMessage(`Jumpback not set for cell ${cellIndex}.`);
       return;
     }
 
-    // Check if the jumpback for the current cell exists.
-    const index = metadata.jumpbackList.findIndex(entry => entry.cellIndex === cellIndex);
+    // Check if the jumpback for the current cell exists
+    const index = currentJumpbackList.findIndex(entry => entry.cellIndex === cellIndex);
     if (index === -1) {
       vscode.window.showInformationMessage(`Jumpback not set for cell ${cellIndex}.`);
       return;
     }
 
-    // Remove the jumpback entry.
-    metadata.jumpbackList.splice(index, 1);
+    // Remove the jumpback entry
+    const updatedJumpbackList = currentJumpbackList.filter((_, i) => i !== index);
 
     try {
-      // Update the metadata. Depending on the VS Code API you may need a WorkspaceEdit or a dedicated API call.
-      // Here we use a placeholder for metadata update.
-      await vscode.workspace.applyEdit(new vscode.WorkspaceEdit());
+      // Update the notebook metadata
+      await updateNotebookMetadata(notebook, ['jumpbackList'], updatedJumpbackList);
       vscode.window.showInformationMessage(`Removed jumpback for cell ${cellIndex}.`);
-      // Optionally update the context that controls the menu item.
+      // Update the context that controls the menu item
       vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false);
     } catch (error) {
-      vscode.window.showErrorMessage("Failed to update notebook metadata.");
+      const errorMsg = `Failed to update notebook metadata: ${error}`;
+      vscode.window.showErrorMessage(errorMsg);
+      console.error(errorMsg, error);
     }
   }));
 }
