@@ -368,6 +368,11 @@
 			"title": "🧭 Cell Navigation",
 			"icon": "$(arrow-both)",
 			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
+			"title": "🔍 Toggle Cell Metadata Display",
+			"category": "Jupyter Cell Tags"
 		}
 		],
 		"menus": {
@@ -406,11 +411,16 @@
 					"title": "🎛️Show All Notebook Tags View",
 					"category": "Jupyter Cell Tags"
 				},
-				{
-					"command": "jupyter-cell-tags.showCustomNotebookOutline",
-					"title": "Show Custom Notebook Outline",
-					"group": "Jupyter Cell Tags"
-				}
+			{
+				"command": "jupyter-cell-tags.showCustomNotebookOutline",
+				"title": "Show Custom Notebook Outline",
+				"group": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
+				"title": "🔍 Toggle Cell Metadata Display",
+				"group": "Jupyter Cell Tags"
+			}
 			],
 			"view/title": [
 				{

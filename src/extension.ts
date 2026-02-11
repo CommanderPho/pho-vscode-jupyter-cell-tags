@@ -21,6 +21,7 @@ import { activateOutlineSync } from './outlineSync/startup';
 import { registerCustomOutline } from './customOutline/startup';
 import { registerNavigationMenu } from './cellNavigation/navigationMenu';
 import { activateCellHistoryTracking } from './cellHistory/startup';
+import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -57,6 +58,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerCustomOutline(context);
     registerNavigationMenu(context);
     activateCellHistoryTracking(context);
+    registerCellMetadataDisplay(context);
     log('Extension activated.');
 }
 
