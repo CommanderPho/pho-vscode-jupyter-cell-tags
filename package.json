@@ -49,7 +49,10 @@
 		"onCommand:jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
 		"onCommand:jupyter-cell-tags.showCustomNotebookOutline",
 		"onCommand:jupyter-cell-tags.customOutline.filter",
-		"onCommand:jupyter-cell-tags.customOutline.clearFilter"
+		"onCommand:jupyter-cell-tags.customOutline.clearFilter",
+		"onCommand:jupyter-cell-tags.showNavigationMenu",
+		"onCommand:jupyter-cell-tags.navigateUpToPreviousErrorCell",
+		"onCommand:jupyter-cell-tags.navigateDownToNextErrorCell"
 	],
 	"repository": {
 		"type": "git",
@@ -359,6 +362,12 @@
 			"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
 			"title": "Execute Cell and Focus Container (with tracking)",
 			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.showNavigationMenu",
+			"title": "🧭 Cell Navigation",
+			"icon": "$(arrow-both)",
+			"category": "Jupyter Cell Tags"
 		}
 		],
 		"menus": {
@@ -549,28 +558,14 @@
 					"category": "navigation/execute@5",
 					"when": "config.jupyter-cell-tags.enableJumpbacks"
 				},
-				{
-					"command": "jupyter-cell-tags.executeRunGroup",
-					"group": "navigation/execute@6"
-				},
-				{
-					"command": "jupyter-cell-tags.navigateUpToPreviousErrorCell",
-					"group": "navigation/execute@7",
-					"when": "config.jupyter-cell-tags.enableErrorNavigation"
-				},
-				{
-					"command": "jupyter-cell-tags.navigateDownToNextErrorCell",
-					"group": "navigation/execute@8",
-					"when": "config.jupyter-cell-tags.enableErrorNavigation"
-				},
-				{
-					"command": "jupyter-cell-tags.navigateToPreviousExecutedCell",
-					"group": "navigation/execute@9"
-				},
-				{
-					"command": "jupyter-cell-tags.navigateToNextExecutedCell",
-					"group": "navigation/execute@10"
-				}
+			{
+				"command": "jupyter-cell-tags.executeRunGroup",
+				"group": "navigation/execute@6"
+			},
+			{
+				"command": "jupyter-cell-tags.showNavigationMenu",
+				"group": "navigation/execute@7"
+			}
 			],
 			"notebook/cellGutter": [
 				{

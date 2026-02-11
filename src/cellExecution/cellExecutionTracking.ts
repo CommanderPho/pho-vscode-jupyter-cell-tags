@@ -275,7 +275,7 @@ async function createAndAddTagToAllExecutedCells(context: vscode.ExtensionContex
 	}
 }
 
-async function navigateToPreviousExecutedCell(context: vscode.ExtensionContext) {
+export async function navigateToPreviousExecutedCell(context: vscode.ExtensionContext) {
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');
@@ -322,7 +322,7 @@ async function navigateToPreviousExecutedCell(context: vscode.ExtensionContext) 
 	log(`Navigated to previous executed cell at index ${previousExecutedIndex}`);
 }
 
-async function navigateToNextExecutedCell(context: vscode.ExtensionContext) {
+export async function navigateToNextExecutedCell(context: vscode.ExtensionContext) {
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');

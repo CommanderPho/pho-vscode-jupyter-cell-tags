@@ -19,6 +19,8 @@ import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { activateOutlineSync } from './outlineSync/startup';
 import { registerCustomOutline } from './customOutline/startup';
+import { registerNavigationMenu } from './cellNavigation/navigationMenu';
+import { activateCellHistoryTracking } from './cellHistory/startup';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -53,6 +55,8 @@ export function activate(context: vscode.ExtensionContext) {
     activateCellHeadings(context);
     activateOutlineSync(context);
     registerCustomOutline(context);
+    registerNavigationMenu(context);
+    activateCellHistoryTracking(context);
     log('Extension activated.');
 }
 
