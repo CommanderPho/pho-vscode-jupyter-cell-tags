@@ -22,6 +22,7 @@ import { registerCustomOutline } from './customOutline/startup';
 import { registerNavigationMenu } from './cellNavigation/navigationMenu';
 import { activateCellHistoryTracking } from './cellHistory/startup';
 import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
+import { activateRingMeJupyter } from './ringMeJupyter/startup';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -59,6 +60,7 @@ export function activate(context: vscode.ExtensionContext) {
     registerNavigationMenu(context);
     activateCellHistoryTracking(context);
     registerCellMetadataDisplay(context);
+    activateRingMeJupyter(context);
     log('Extension activated.');
 }
 

@@ -53,7 +53,8 @@
 		"onCommand:jupyter-cell-tags.showNavigationMenu",
 		"onCommand:jupyter-cell-tags.navigateUpToPreviousErrorCell",
 		"onCommand:jupyter-cell-tags.navigateDownToNextErrorCell",
-		"onCommand:jupyter-cell-tags.toggleCellMetadataDisplay"
+		"onCommand:jupyter-cell-tags.toggleCellMetadataDisplay",
+		"onCommand:jupyter-cell-tags.ringMeJupyter.toggleBell"
 	],
 	"repository": {
 		"type": "git",
@@ -134,6 +135,11 @@
 					"items": {
 						"type": "string"
 					}
+				},
+				"jupyter-cell-tags.ringMeJupyter.recipientEmail": {
+					"type": "string",
+					"default": "",
+					"description": "Enter your email address to receive Jupyter execution notifications."
 				}
 			}
 		},
@@ -374,6 +380,10 @@
 			"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
 			"title": "🔍 Toggle Cell Metadata Display",
 			"category": "Jupyter Cell Tags"
+		},
+		{
+			"command": "jupyter-cell-tags.ringMeJupyter.toggleBell",
+			"title": "Toggle Cell Bell"
 		}
 		],
 		"menus": {
