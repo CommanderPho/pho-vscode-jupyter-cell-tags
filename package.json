@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.4",
+	"version": "0.6.5",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -54,7 +54,14 @@
 		"onCommand:jupyter-cell-tags.navigateUpToPreviousErrorCell",
 		"onCommand:jupyter-cell-tags.navigateDownToNextErrorCell",
 		"onCommand:jupyter-cell-tags.toggleCellMetadataDisplay",
-		"onCommand:jupyter-cell-tags.ringMeJupyter.toggleBell"
+		"onCommand:jupyter-cell-tags.ringMeJupyter.toggleBell",
+		"onCommand:notebook.cell.executeCellAndBelow",
+		"onCommand:notebook.cell.executeCellsAbove",
+		"onCommand:notebook.cell.execute",
+		"onCommand:notebook.execute",
+		"onCommand:jupyter.runCellAndAllBelow",
+		"onCommand:jupyter.runPrecedentCells",
+		"onCommand:jupyter.runDependentCells"
 	],
 	"repository": {
 		"type": "git",
@@ -140,6 +147,148 @@
 					"type": "string",
 					"default": "",
 					"description": "Enter your email address to receive Jupyter execution notifications."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.layout.enableCompactView": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enables a tight layout: Verbose timing, Line numbers ON, Small output font, Consolidated Run Button, etc."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.kernel.optimizeStartup": {
+					"type": "boolean",
+					"default": true,
+					"description": "Disables 'python.terminal.activateEnvironment' to significantly speed up startup when using Conda on Windows. (Default: True)"
+				},
+				"jupyter-cell-tags.jupyterEnhancements.kernel.pythonPath": {
+					"type": "string",
+					"default": "t:/PYTHON/envs/jlab/python.exe",
+					"description": "Absolute path to the Python executable (e.g. C:/Anaconda3/python.exe). Forces this kernel on startup."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.layout.hideCellToolbar": {
+					"type": "boolean",
+					"default": false,
+					"description": "Hides the floating cell toolbar (Run/Delete/etc) when enabled. Shows it on the right when disabled."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.general.flashDuration": {
+					"type": "number",
+					"default": 300,
+					"description": "Duration of the flash effect in milliseconds."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.background.enable": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable persistent background colors (Green/Red) after execution."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.background.successColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#90EE9033",
+					"description": "Background color for successfully executed cells."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.background.errorColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FF000033",
+					"description": "Background color for failed cells."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.flash.enable": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable a brief flash effect upon successful execution."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.flash.color": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FFFF0066",
+					"description": "Color of the flash effect."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.innerBorder.enable": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable a border around the code text (Command Box) while running."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.innerBorder.persist": {
+					"type": "boolean",
+					"default": false,
+					"description": "Keep the inner border (Dark Green) visible after success."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.innerBorder.runningColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#0078FF",
+					"description": "Color of the inner border while running (Blue)."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.innerBorder.successColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#006400",
+					"description": "Color of the inner border after success."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.enable": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable a thick indicator bar on the left side of the cell while running."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.position": {
+					"type": "string",
+					"default": "left",
+					"enum": [
+						"left",
+						"right",
+						"top",
+						"bottom"
+					],
+					"description": "Side where the thick indicator bar appears."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.thickness": {
+					"type": "string",
+					"default": "10px",
+					"description": "Thickness of the outer indicator bar (e.g., '2px', '8px', '12px')."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.persist": {
+					"type": "boolean",
+					"default": true,
+					"description": "Keep the outer indicator (Dark Green) visible after success."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.runningColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#0078FF",
+					"description": "Color of the outer indicator while running (Blue)."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.outerBorder.successColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#006400",
+					"description": "Color of the outer indicator after success."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.scratchpad.borderColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#80808080",
+					"description": "Border color for Scratchpad cells. (Default: F11)"
+				},
+				"jupyter-cell-tags.jupyterEnhancements.scratchpad.borderStyle": {
+					"type": "string",
+					"default": "dashed",
+					"enum": [
+						"solid",
+						"dashed",
+						"dotted",
+						"double",
+						"groove"
+					],
+					"description": "Border style for Scratchpad cells."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.scratchpad.borderWidth": {
+					"type": "string",
+					"default": "2px",
+					"description": "Border width for Scratchpad cells."
+				},
+				"jupyter-cell-tags.jupyterEnhancements.scratchpad.backgroundColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FFFFFF0D",
+					"description": "Optional background color for Scratchpad cells."
 				}
 			}
 		},
@@ -381,10 +530,20 @@
 			"title": "🔍 Toggle Cell Metadata Display",
 			"category": "Jupyter Cell Tags"
 		},
-		{
-			"command": "jupyter-cell-tags.ringMeJupyter.toggleBell",
-			"title": "Toggle Cell Bell"
-		}
+			{
+				"command": "jupyter-cell-tags.ringMeJupyter.toggleBell",
+				"title": "Toggle Cell Bell"
+			},
+			{
+				"command": "jupyter-cell-tags.jupyterEnhancements.execute",
+				"title": "Run Current & Below",
+				"icon": "$(run-below)"
+			},
+			{
+				"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
+				"title": "Run Selection in Scratchpad",
+				"icon": "$(add)"
+			}
 		],
 		"menus": {
 			"commandPalette": [
@@ -586,6 +745,11 @@
 			{
 				"command": "jupyter-cell-tags.showNavigationMenu",
 				"group": "navigation/execute@7"
+			},
+			{
+				"command": "jupyter-cell-tags.jupyterEnhancements.execute",
+				"group": "navigation/execute",
+				"when": "notebookType == jupyter-notebook"
 			}
 			],
 			"notebook/cellGutter": [
@@ -649,6 +813,11 @@
 					"command": "jupyter-cell-tags.addJumpback",
 					"when": "notebookEditorFocused && jupyter-cell-tags.multipleCellsSelected || jupyter-cell-tags.singleCellSelected",
 					"group": "jupytercelltags_jumpbacks@1"
+				},
+				{
+					"command": "jupyter-cell-tags.jupyterEnhancements.execute",
+					"group": "inline/run",
+					"when": "notebookType == jupyter-notebook"
 				}
 			],
 			"notebook/cell/context": [
@@ -666,6 +835,23 @@
 					"command": "jupyter-cell-tags.addJumpback",
 					"when": "jupyter-cell-tags.singleCellSelected || jupyter-cell-tags.multipleCellsSelected",
 					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.jupyterEnhancements.execute",
+					"group": "1_execution",
+					"when": "notebookType == jupyter-notebook"
+				},
+				{
+					"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
+					"group": "1_execution",
+					"when": "notebookType == jupyter-notebook"
+				}
+			],
+			"editor/context": [
+				{
+					"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
+					"group": "navigation",
+					"when": "notebookEditorFocused"
 				}
 			]
 		},
@@ -769,6 +955,11 @@
 				"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
 				"key": "ctrl+enter",
 				"when": "notebookCellListFocused || editorTextFocus && inputFocus && notebookEditorFocused"
+			},
+			{
+				"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
+				"key": "f11",
+				"when": "editorTextFocus && notebookEditorFocused"
 			}
 		]
 	},
