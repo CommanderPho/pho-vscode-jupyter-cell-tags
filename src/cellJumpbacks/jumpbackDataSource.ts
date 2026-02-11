@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import { updateNotebookMetadata } from '../util/notebookMetadata';
 
 /**
  * A JumpbackEntry holds a reference to a specific cell in a notebook,
@@ -39,19 +40,9 @@ export class JumpbackDataSource {
 
     /**
      * Persists the jumpback list to the notebook metadata.
-     * This implementation uses a WorkspaceEdit to simulate an update;
-     * you will need to adjust with the appropriate API.
      */
     public async persist(notebook: vscode.NotebookDocument): Promise<void> {
-        const metadata = (notebook.metadata || {}) as { jumpbackList?: JumpbackEntry[] };
-        metadata.jumpbackList = this.jumpbacks;
-        // Create and apply a dummy WorkspaceEdit. In a real implementation,
-        // you would update the notebook metadata using the correct API.
-        const edit = new vscode.WorkspaceEdit();
-        // For example, if notebooks supported a metadata update API:
-        // edit.replaceNotebookMetadata(notebook.uri, metadata);
-        // For now, we assume that the above is sufficient.
-        await vscode.workspace.applyEdit(edit);
+        await updateNotebookMetadata(notebook, ['jumpbackList'], this.jumpbacks);
     }
 
     /**

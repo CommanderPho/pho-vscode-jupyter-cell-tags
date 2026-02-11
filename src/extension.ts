@@ -14,6 +14,7 @@ import { detect_conflicting_microsoft_extension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
+import { JumpbackDataSource } from './cellJumpbacks/jumpbackDataSource';
 import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
@@ -22,6 +23,8 @@ import { registerCustomOutline } from './customOutline/startup';
 import { registerNavigationMenu } from './cellNavigation/navigationMenu';
 import { activateCellHistoryTracking } from './cellHistory/startup';
 import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
+import { activateRingMeJupyter } from './ringMeJupyter/startup';
+import { activateJupyterEnhancementsModule } from './jupyterEnhancements/startup';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -59,6 +62,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerNavigationMenu(context);
     activateCellHistoryTracking(context);
     registerCellMetadataDisplay(context);
+    activateRingMeJupyter(context);
+    activateJupyterEnhancementsModule(context);
     log('Extension activated.');
 }
 
@@ -71,17 +76,20 @@ function updateContext() {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false);
         return;
     }
-    // TODO 2024-09-05 17:47: - [ ] Got num selected cells nearly working, it will always be correct to tell if 1 vs. many cells.
-    // Noticed error below, there were only 3 cells in the notebook but it returned 4 cells. I think the last index should be excluded but then it would give zero for single cell selections?
-    // Selection num ranges count: 1
-    // 	Selected cells: Start(0), End(4)
-    // Selection count: 4
     const selections: readonly vscode.NotebookRange[] = editor.selections;
     const selectedRangesCount = selections.length;
-    const total_num_selected_cells = countSelectedCells(selections);
+    const total_num_selected_cells = countSelectedCells(selections, editor.notebook);
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false); // todo - IMPLEMENT THIS LOGIC
+    
+    // Check if the currently selected cell has a jumpback
+    let hasJumpback = false;
+    if (selections.length > 0 && total_num_selected_cells === 1) {
+        const selectedCellIndex = selections[0].start;
+        const jumpbackDS = JumpbackDataSource.load(editor.notebook);
+        hasJumpback = jumpbackDS.hasJumpback(selectedCellIndex);
+    }
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', hasJumpback);
 }
 
 

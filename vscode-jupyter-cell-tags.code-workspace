@@ -4,12 +4,6 @@
             "path": "./"
         },
         {
-            "path": "../jupyter-enhancements"
-        },
-        {
-            "path": "../ring-me-jupyter"
-        },
-        {
             "path": "../group-bookmark"
         }
     ],

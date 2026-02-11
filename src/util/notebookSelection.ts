@@ -45,12 +45,19 @@ export function notebookRangesToIndices(ranges: readonly vscode.NotebookRange[])
 }
 
 
-export function countSelectedCells(selections: readonly vscode.NotebookRange[]): number {
+export function countSelectedCells(selections: readonly vscode.NotebookRange[], notebook?: vscode.NotebookDocument): number {
     let total_num_selected_cells = 0;
+    const maxCellCount = notebook ? notebook.cellCount : Number.MAX_SAFE_INTEGER;
+    
     selections.forEach(selection => {
         const range = selection as vscode.NotebookRange;
         if (!range.isEmpty) {
-            const num_selected_cells = range.end - range.start;
+            // Clamp the end to the actual cell count to prevent counting beyond bounds
+            const clampedEnd = Math.min(range.end, maxCellCount);
+            // Ensure start is not negative and end is greater than start
+            const validStart = Math.max(0, range.start);
+            const validEnd = Math.max(validStart, clampedEnd);
+            const num_selected_cells = validEnd - validStart;
             total_num_selected_cells += num_selected_cells;
         }
     });

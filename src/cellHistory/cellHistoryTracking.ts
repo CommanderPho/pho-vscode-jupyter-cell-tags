@@ -19,7 +19,9 @@ export function trackCellHistory(context: vscode.ExtensionContext) {
                         // Only set cellCreated if it doesn't already exist (preserve original creation time)
                         const existingCreated = getCellMetadata<string>(cell, ['custom', 'metadata', 'cellCreated'], '');
                         if (!existingCreated) {
-                            updateCellMetadata(cell, ['custom', 'metadata', 'cellCreated'], timestamp);
+                            updateCellMetadata(cell, ['custom', 'metadata', 'cellCreated'], timestamp).catch(err => {
+                                console.error(`Failed to update cellCreated metadata for cell ${cell.index}:`, err);
+                            });
                         }
                     });
                 }
@@ -31,7 +33,9 @@ export function trackCellHistory(context: vscode.ExtensionContext) {
                 if (change.document) {
                     const cell = change.cell;
                     // Always update cellEdited when content changes (overwrite with latest edit time)
-                    updateCellMetadata(cell, ['custom', 'metadata', 'cellEdited'], timestamp);
+                    updateCellMetadata(cell, ['custom', 'metadata', 'cellEdited'], timestamp).catch(err => {
+                        console.error(`Failed to update cellEdited metadata for cell ${cell.index}:`, err);
+                    });
                 }
             });
         })

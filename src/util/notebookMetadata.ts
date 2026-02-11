@@ -61,7 +61,7 @@ export function getNotebookMetadata<T>(notebook: vscode.NotebookDocument, metada
  * @param metadataPath Array representing the path to the metadata value
  * @param value New value to set at the specified path
  */
-export function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, metadataPath: string[], value: T): void {
+export async function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, metadataPath: string[], value: T): Promise<void> {
     // Clone the existing metadata
     const newMetadata = { ...(notebook.metadata || {}) };
     
@@ -83,7 +83,7 @@ export function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, met
     const wsEdit = new vscode.WorkspaceEdit();
     const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(newMetadata);
     wsEdit.set(notebook.uri, [notebookEdit]);
-    vscode.workspace.applyEdit(wsEdit);
+    await vscode.workspace.applyEdit(wsEdit);
 }
 
 
@@ -149,7 +149,7 @@ export function getCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: stri
  * @param metadataPath Array representing the path to the metadata value
  * @param value New value to set at the specified path
  */
-export function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: string[], value: T): void {
+export async function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: string[], value: T): Promise<void> {
     // Clone the existing metadata
     const newMetadata = { ...(cell.metadata || {}) };
     
@@ -171,6 +171,6 @@ export function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: s
     const wsEdit = new vscode.WorkspaceEdit();
     const notebookEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, newMetadata);
     wsEdit.set(cell.notebook.uri, [notebookEdit]);
-    vscode.workspace.applyEdit(wsEdit);
+    await vscode.workspace.applyEdit(wsEdit);
 }
 
