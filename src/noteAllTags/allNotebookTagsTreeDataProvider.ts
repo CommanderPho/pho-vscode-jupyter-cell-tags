@@ -11,6 +11,7 @@ import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
+import { ScrollbarDecoratorManager } from './scrollbarDecorators';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -283,6 +284,10 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+    // Create ScrollbarDecoratorManager for tag decorations
+    const scrollbarDecoratorManager = new ScrollbarDecoratorManager(context);
+    context.subscriptions.push(scrollbarDecoratorManager);
+
     // Expose the provider globally for debugging
     // if (!globalThis._debug) {
     //     globalThis._debug = {};
@@ -296,7 +301,29 @@ export function register(context: vscode.ExtensionContext) {
     // };
 
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
+    // Register TreeView (not just TreeDataProvider) to capture selection events
+    const treeView = vscode.window.createTreeView('all-notebook-tags-view', {
+        treeDataProvider: treeDataProvider,
+        showCollapseAll: true
+    });
+    context.subscriptions.push(treeView);
+
+    // Listen for tree view selection changes to emphasize scrollbar decorators
+    context.subscriptions.push(
+        treeView.onDidChangeSelection(e => {
+            if (e.selection.length > 0) {
+                const selected = e.selection[0];
+                // Check if the selected item is a tag (string), not a cell reference
+                if (typeof selected === 'string') {
+                    log(`Tag selected in tree view: ${selected}`);
+                    scrollbarDecoratorManager.emphasizeTag(selected);
+                }
+            } else {
+                scrollbarDecoratorManager.clearEmphasis();
+            }
+        })
+    );
+
     log('View registration started for all-notebook-tags-view');
     // Your view registration code
     log('View registration completed');

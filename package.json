@@ -289,6 +289,11 @@
 					"format": "color-hex",
 					"default": "#FFFFFF0D",
 					"description": "Optional background color for Scratchpad cells."
+				},
+				"jupyter-cell-tags.scrollbarDecorators.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable/disable scrollbar decorators showing tag locations in the notebook. When a tag is selected in the All Notebook Tags view, the decorators will be emphasized and flash."
 				}
 			}
 		},
