@@ -9,6 +9,9 @@ import { log } from '../util/logging';
  * selected tags with thicker decorations and flash effects.
  */
 export class ScrollbarDecoratorManager {
+    private static readonly FLASH_COUNT = 3;
+    private static readonly FLASH_DURATION_MS = 150;
+
     private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
     private emphasisDecorationType: vscode.TextEditorDecorationType | undefined;
     private currentNotebook: vscode.NotebookDocument | undefined;
@@ -45,6 +48,15 @@ export class ScrollbarDecoratorManager {
         this.disposables.push(
             vscode.workspace.onDidChangeNotebookDocument(e => {
                 if (this.currentNotebook && e.notebook.uri.toString() === this.currentNotebook.uri.toString()) {
+                    this.updateAllDecorations();
+                }
+            })
+        );
+
+        // Listen for visible text editors changing (important for applying decorations to newly visible cells)
+        this.disposables.push(
+            vscode.window.onDidChangeVisibleTextEditors(() => {
+                if (this.isEnabled) {
                     this.updateAllDecorations();
                 }
             })
@@ -123,8 +135,10 @@ export class ScrollbarDecoratorManager {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            hash = hash & hash; // Convert to 32bit integer
         }
+        
+        // Convert to 32-bit integer
+        hash |= 0;
 
         // Generate RGB values with good saturation and brightness
         const r = Math.abs((hash >> 0) & 0xFF);
@@ -137,7 +151,11 @@ export class ScrollbarDecoratorManager {
         hsl.l = Math.min(0.7, Math.max(0.4, hsl.l)); // Keep lightness between 40-70%
 
         const rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
-        return `#${rgb.r.toString(16).padStart(2, '0')}${rgb.g.toString(16).padStart(2, '0')}${rgb.b.toString(16).padStart(2, '0')}`;
+        return this.rgbToHex(rgb.r, rgb.g, rgb.b);
+    }
+
+    private rgbToHex(r: number, g: number, b: number): string {
+        return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
 
     private rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
@@ -343,10 +361,8 @@ export class ScrollbarDecoratorManager {
         }
 
         const notebook = this.currentNotebook;
-        const flashCount = 3;
-        const flashDuration = 150; // milliseconds
 
-        for (let i = 0; i < flashCount; i++) {
+        for (let i = 0; i < ScrollbarDecoratorManager.FLASH_COUNT; i++) {
             // Show emphasis
             cellIndices.forEach(cellIndex => {
                 const cell = notebook.cellAt(cellIndex);
@@ -361,7 +377,7 @@ export class ScrollbarDecoratorManager {
                 }
             });
 
-            await this.delay(flashDuration);
+            await this.delay(ScrollbarDecoratorManager.FLASH_DURATION_MS);
 
             // Hide emphasis
             cellIndices.forEach(cellIndex => {
@@ -376,7 +392,7 @@ export class ScrollbarDecoratorManager {
                 }
             });
 
-            await this.delay(flashDuration);
+            await this.delay(ScrollbarDecoratorManager.FLASH_DURATION_MS);
         }
     }
 
