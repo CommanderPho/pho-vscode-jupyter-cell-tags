@@ -136,9 +136,6 @@ export class ScrollbarDecoratorManager {
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
         }
-        
-        // Convert to 32-bit integer
-        hash |= 0;
 
         // Generate RGB values with good saturation and brightness
         const r = Math.abs((hash >> 0) & 0xFF);
@@ -350,6 +347,21 @@ export class ScrollbarDecoratorManager {
     }
 
     /**
+     * Gets the text editor for a specific cell by index.
+     */
+    private getTextEditorForCell(cellIndex: number): vscode.TextEditor | undefined {
+        if (!this.currentNotebook) {
+            return undefined;
+        }
+
+        const cell = this.currentNotebook.cellAt(cellIndex);
+        const cellUri = cell.document.uri.toString();
+        return vscode.window.visibleTextEditors.find(
+            e => e.document.uri.toString() === cellUri
+        );
+    }
+
+    /**
      * Applies a flash effect to decorations.
      */
     private async flashDecorations(
@@ -360,17 +372,10 @@ export class ScrollbarDecoratorManager {
             return;
         }
 
-        const notebook = this.currentNotebook;
-
         for (let i = 0; i < ScrollbarDecoratorManager.FLASH_COUNT; i++) {
             // Show emphasis
             cellIndices.forEach(cellIndex => {
-                const cell = notebook.cellAt(cellIndex);
-                const cellUri = cell.document.uri.toString();
-                const textEditor = vscode.window.visibleTextEditors.find(
-                    e => e.document.uri.toString() === cellUri
-                );
-
+                const textEditor = this.getTextEditorForCell(cellIndex);
                 if (textEditor) {
                     const fullRange = this.getCellFullRange(textEditor.document);
                     textEditor.setDecorations(decorationType, [fullRange]);
@@ -381,12 +386,7 @@ export class ScrollbarDecoratorManager {
 
             // Hide emphasis
             cellIndices.forEach(cellIndex => {
-                const cell = notebook.cellAt(cellIndex);
-                const cellUri = cell.document.uri.toString();
-                const textEditor = vscode.window.visibleTextEditors.find(
-                    e => e.document.uri.toString() === cellUri
-                );
-
+                const textEditor = this.getTextEditorForCell(cellIndex);
                 if (textEditor) {
                     textEditor.setDecorations(decorationType, []);
                 }
