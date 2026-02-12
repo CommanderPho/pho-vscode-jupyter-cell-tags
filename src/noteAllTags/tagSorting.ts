@@ -8,7 +8,7 @@ import { CellReference } from "./allNotebookTagsTreeDataProvider";
  * @param tagName - The tag name to parse for dates.
  * @returns A Date object if a valid date is found, null otherwise.
  */
-function extractDateFromTag(tagName: string): Date | null {
+export function extractDateFromTag(tagName: string): Date | null {
     // Common date patterns to match:
     // - ISO format: YYYY-MM-DD, YYYY/MM/DD
     // - Common formats: MM-DD-YYYY, DD-MM-YYYY, etc.
