@@ -5,6 +5,9 @@ import { CellReference } from "./allNotebookTagsTreeDataProvider";
  * Attempts to extract and parse a date from a tag name.
  * Supports various date formats including ISO dates (YYYY-MM-DD) and common variations.
  * 
+ * Note: When the format is ambiguous (e.g., "03-04-2024" could be March 4th or April 3rd),
+ * the function assumes MM-DD-YYYY format for patterns where the year has 4 digits and comes last.
+ * 
  * @param tagName - The tag name to parse for dates.
  * @returns A Date object if a valid date is found, null otherwise.
  */

@@ -79,6 +79,7 @@
 						"alphabetical",
 						"creation-date",
 						"modification-date",
+						"priority",
 						"detected-datetimes"
 					],
 					"default": "alphabetical",
