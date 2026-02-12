@@ -121,7 +121,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             { label: 'Alphabetical', value: TagSortOrder.Alphabetical },
             { label: 'Creation Date', value: TagSortOrder.CreationDate },
             { label: 'Modification Date', value: TagSortOrder.ModificationDate },
-            { label: 'Priority', value: TagSortOrder.Priority }
+            { label: 'Priority', value: TagSortOrder.Priority },
+            { label: 'Detected datetimes first', value: TagSortOrder.DetectedDatetimes }
         ];
 
         vscode.window.showQuickPick(options, {

@@ -78,7 +78,8 @@
 					"enum": [
 						"alphabetical",
 						"creation-date",
-						"modification-date"
+						"modification-date",
+						"detected-datetimes"
 					],
 					"default": "alphabetical",
 					"description": "Sort order for tags in the All Notebook Tags view"
