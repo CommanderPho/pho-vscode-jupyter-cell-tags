@@ -18,6 +18,7 @@ import { JumpbackDataSource } from './cellJumpbacks/jumpbackDataSource';
 import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
+import { exportExecutedCodeToPython } from './exportExecutedCode/exportExecutedCode';
 import { activateOutlineSync } from './outlineSync/startup';
 import { registerCustomOutline } from './customOutline/startup';
 import { registerNavigationMenu } from './cellNavigation/navigationMenu';
@@ -45,7 +46,8 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),
-        vscode.commands.registerCommand('jupyter-cell-tags.importTags', importTagsForNotebook)
+        vscode.commands.registerCommand('jupyter-cell-tags.importTags', importTagsForNotebook),
+        vscode.commands.registerCommand('jupyter-cell-tags.exportExecutedCodeToPython', exportExecutedCodeToPython)
     );
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
