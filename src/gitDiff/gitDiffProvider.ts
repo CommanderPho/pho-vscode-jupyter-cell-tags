@@ -51,8 +51,23 @@ function execGit(args: string[], cwd: string): Promise<string> {
 
 export async function getRepoRoot(filePath: string): Promise<string> {
 	const dir = path.dirname(filePath);
-	const root = (await execGit(['rev-parse', '--show-toplevel'], dir)).trim();
-	return root;
+	const raw = (await execGit(['rev-parse', '--show-toplevel'], dir)).trim();
+	// On Windows, git returns Unix-style paths like "/c/Users/...".
+	// Normalize to a native Windows path so path.relative() works correctly.
+	return path.resolve(raw);
+}
+
+/**
+ * Get the repo-relative path for a file.  Uses `git rev-parse --show-prefix`
+ * which correctly handles cross-drive junctions / symlinks on Windows
+ * (where path.relative() fails because the drives differ).
+ */
+export async function getRelativeGitPath(filePath: string): Promise<string> {
+	const dir = path.dirname(filePath);
+	const basename = path.basename(filePath);
+	const prefix = (await execGit(['rev-parse', '--show-prefix'], dir)).trim();
+	// prefix is like "examples/notebooks/" (with trailing slash) or "" for root
+	return prefix + basename;
 }
 
 export async function getGitCommits(filePath: string, limit: number = 30): Promise<GitCommitInfo[]> {
@@ -341,7 +356,7 @@ export class GitDiffCellHighlighter {
 
 		try {
 			const repoRoot = await getRepoRoot(filePath);
-			const relativePath = path.relative(repoRoot, filePath);
+			const relativePath = await getRelativeGitPath(filePath);
 			const oldContent = await getFileAtCommit(repoRoot, commitHash, relativePath);
 			const oldCells = parseNotebookCells(oldContent);
 
