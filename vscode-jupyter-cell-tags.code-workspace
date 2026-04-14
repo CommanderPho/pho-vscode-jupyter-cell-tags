@@ -1,13 +1,10 @@
 {
-	"folders": [
+    "folders": [
         {
             "path": "./"
-        },
-        {
-            "path": "../group-bookmark"
         }
     ],
-	"settings": {
+    "settings": {
         "workbench.colorCustomizations": {
             "editor.lineHighlightBackground": "#102dcf2d",
             "editor.lineHighlightBorder": "#9fbfd11f",

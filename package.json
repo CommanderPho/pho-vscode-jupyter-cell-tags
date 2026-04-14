@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.5",
+	"version": "0.6.6",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -61,7 +61,10 @@
 		"onCommand:notebook.execute",
 		"onCommand:jupyter.runCellAndAllBelow",
 		"onCommand:jupyter.runPrecedentCells",
-		"onCommand:jupyter.runDependentCells"
+		"onCommand:jupyter.runDependentCells",
+		"onCommand:jupyter-cell-tags.gitDiff.highlightChangedCells",
+		"onCommand:jupyter-cell-tags.gitDiff.clearHighlights",
+		"onCommand:jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead"
 	],
 	"repository": {
 		"type": "git",
@@ -289,6 +292,46 @@
 					"format": "color-hex",
 					"default": "#FFFFFF0D",
 					"description": "Optional background color for Scratchpad cells."
+				},
+				"jupyter-cell-tags.gitDiff.modifiedCellColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FFA500",
+					"description": "Left border color for cells modified since the selected git commit."
+				},
+				"jupyter-cell-tags.gitDiff.addedCellColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#4CAF50",
+					"description": "Left border color for cells added since the selected git commit."
+				},
+				"jupyter-cell-tags.gitDiff.borderWidth": {
+					"type": "string",
+					"default": "4px",
+					"description": "Width of the left border indicator on changed cells."
+				},
+				"jupyter-cell-tags.gitDiff.borderStyle": {
+					"type": "string",
+					"default": "solid",
+					"enum": [
+						"solid",
+						"dashed",
+						"dotted",
+						"double"
+					],
+					"description": "Style of the left border indicator on changed cells."
+				},
+				"jupyter-cell-tags.gitDiff.modifiedCellBackgroundColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FFA50015",
+					"description": "Subtle background tint for cells modified since the selected git commit."
+				},
+				"jupyter-cell-tags.gitDiff.addedCellBackgroundColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#4CAF5015",
+					"description": "Subtle background tint for cells added since the selected git commit."
 				}
 			}
 		},
@@ -492,44 +535,44 @@
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
 			},
-		{
-			"command": "jupyter-cell-tags.showCustomNotebookOutline",
-			"title": "Show Custom Notebook Outline",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.customOutline.filter",
-			"title": "Notebook Outline: Filter Items",
-			"icon": "$(search)",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.customOutline.clearFilter",
-			"title": "Notebook Outline: Clear Filter",
-			"icon": "$(close)",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
-			"title": "Execute Cell and Select Below (with tracking)",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
-			"title": "Execute Cell and Focus Container (with tracking)",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.showNavigationMenu",
-			"title": "🧭 Cell Navigation",
-			"icon": "$(arrow-both)",
-			"category": "Jupyter Cell Tags"
-		},
-		{
-			"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
-			"title": "🔍 Toggle Cell Metadata Display",
-			"category": "Jupyter Cell Tags"
-		},
+			{
+				"command": "jupyter-cell-tags.showCustomNotebookOutline",
+				"title": "Show Custom Notebook Outline",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.filter",
+				"title": "Notebook Outline: Filter Items",
+				"icon": "$(search)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.customOutline.clearFilter",
+				"title": "Notebook Outline: Clear Filter",
+				"icon": "$(close)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
+				"title": "Execute Cell and Select Below (with tracking)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
+				"title": "Execute Cell and Focus Container (with tracking)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.showNavigationMenu",
+				"title": "🧭 Cell Navigation",
+				"icon": "$(arrow-both)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
+				"title": "🔍 Toggle Cell Metadata Display",
+				"category": "Jupyter Cell Tags"
+			},
 			{
 				"command": "jupyter-cell-tags.ringMeJupyter.toggleBell",
 				"title": "Toggle Cell Bell"
@@ -543,6 +586,24 @@
 				"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
 				"title": "Run Selection in Scratchpad",
 				"icon": "$(add)"
+			},
+			{
+				"command": "jupyter-cell-tags.gitDiff.highlightChangedCells",
+				"title": "🔀 Highlight Cells Changed Since Commit…",
+				"icon": "$(git-compare)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.gitDiff.clearHighlights",
+				"title": "🔀✖ Clear Git Diff Highlights",
+				"icon": "$(close)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead",
+				"title": "🔀 Highlight Cells Changed vs HEAD",
+				"icon": "$(git-compare)",
+				"category": "Jupyter Cell Tags"
 			}
 		],
 		"menus": {
@@ -590,6 +651,18 @@
 					"command": "jupyter-cell-tags.toggleCellMetadataDisplay",
 					"title": "🔍 Toggle Cell Metadata Display",
 					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.highlightChangedCells",
+					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.clearHighlights",
+					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead",
+					"group": "Jupyter Cell Tags"
 				}
 			],
 			"view/title": [
@@ -634,23 +707,23 @@
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
-			{
-				"command": "jupyter-cell-tags.importTags",
-				"title": "Import tags for notebook..",
-				"when": "view == all-notebook-tags-view",
-				"group": "navigation"
-			},
-			{
-				"command": "jupyter-cell-tags.customOutline.filter",
-				"when": "view == custom-notebook-outline",
-				"group": "navigation"
-			},
-			{
-				"command": "jupyter-cell-tags.customOutline.clearFilter",
-				"when": "view == custom-notebook-outline",
-				"group": "navigation"
-			}
-		],
+				{
+					"command": "jupyter-cell-tags.importTags",
+					"title": "Import tags for notebook..",
+					"when": "view == all-notebook-tags-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.filter",
+					"when": "view == custom-notebook-outline",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.clearFilter",
+					"when": "view == custom-notebook-outline",
+					"group": "navigation"
+				}
+			],
 			"view/item/context": [
 				{
 					"command": "jupyter-cell-tags.removeTag",
@@ -707,26 +780,26 @@
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
 				},
-			{
-				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
-				"when": "view == custom-notebook-outline && viewItem == outlineItem",
-				"group": "navigation"
-			},
-			{
-				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
-				"when": "view == custom-notebook-outline && viewItem == outlineItem",
-				"group": "1_modification"
-			},
-			{
-				"command": "jupyter-cell-tags.customOutline.filter",
-				"when": "view == custom-notebook-outline",
-				"group": "navigation"
-			},
-			{
-				"command": "jupyter-cell-tags.customOutline.clearFilter",
-				"when": "view == custom-notebook-outline",
-				"group": "navigation"
-			}
+				{
+					"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
+					"when": "view == custom-notebook-outline && viewItem == outlineItem",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
+					"when": "view == custom-notebook-outline && viewItem == outlineItem",
+					"group": "1_modification"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.filter",
+					"when": "view == custom-notebook-outline",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.customOutline.clearFilter",
+					"when": "view == custom-notebook-outline",
+					"group": "navigation"
+				}
 			],
 			"notebook/toolbar": [
 				{
@@ -738,19 +811,24 @@
 					"category": "navigation/execute@5",
 					"when": "config.jupyter-cell-tags.enableJumpbacks"
 				},
-			{
-				"command": "jupyter-cell-tags.executeRunGroup",
-				"group": "navigation/execute@6"
-			},
-			{
-				"command": "jupyter-cell-tags.showNavigationMenu",
-				"group": "navigation/execute@7"
-			},
-			{
-				"command": "jupyter-cell-tags.jupyterEnhancements.execute",
-				"group": "navigation/execute",
-				"when": "notebookType == jupyter-notebook"
-			}
+				{
+					"command": "jupyter-cell-tags.executeRunGroup",
+					"group": "navigation/execute@6"
+				},
+				{
+					"command": "jupyter-cell-tags.showNavigationMenu",
+					"group": "navigation/execute@7"
+				},
+				{
+					"command": "jupyter-cell-tags.jupyterEnhancements.execute",
+					"group": "navigation/execute",
+					"when": "notebookType == jupyter-notebook"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.highlightChangedCells",
+					"group": "navigation/execute@8",
+					"when": "notebookType == jupyter-notebook"
+				}
 			],
 			"notebook/cellGutter": [
 				{
