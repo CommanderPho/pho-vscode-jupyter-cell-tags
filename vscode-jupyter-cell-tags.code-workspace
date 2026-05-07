@@ -26,6 +26,7 @@
         },
         "terminal.explorerKind": "external",
         "terminal.integrated.allowChords": false,
+        "specstory.cloudSync.enabled": "never",
         // "terminal.integrated.automationProfile.windows": {
         //     "env": {}
         // }

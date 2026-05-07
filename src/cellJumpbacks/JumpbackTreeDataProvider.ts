@@ -1,17 +1,24 @@
 import * as vscode from 'vscode';
-import { JumpbackEntry, JumpbackDataSource } from './jumpbackDataSource';
+import { JumpbackEntry, JumpbackDataSource, isNotebookJumpback, isTextJumpback } from './jumpbackDataSource';
 
 
 export class JumpbackTreeItem extends vscode.TreeItem {
-  constructor(
-    public readonly label: string,
-    public readonly jumpback: JumpbackEntry
-  ) {
+  constructor(public readonly label: string, public readonly jumpback: JumpbackEntry, public readonly targetUri: vscode.Uri) {
     super(label, vscode.TreeItemCollapsibleState.None);
-    this.tooltip = `Cell ${jumpback.cellIndex} – Added at: ${jumpback.addedAt}` + (jumpback.name ? `, ${jumpback.name}` : '');
-    // Optionally, add an icon with a codicon (e.g. bookmark)
+    if (isNotebookJumpback(jumpback)) {
+      this.tooltip = `Cell ${jumpback.cellIndex} – Added at: ${jumpback.addedAt}` + (jumpback.name ? `, ${jumpback.name}` : '');
+    } else {
+      const fileName = targetUri.path.split('/').pop() ?? 'file';
+      this.tooltip = `${fileName}:${jumpback.line + 1}:${jumpback.character + 1} – Added at: ${jumpback.addedAt}` + (jumpback.name ? `, ${jumpback.name}` : '');
+      this.description = `Line ${jumpback.line + 1}`;
+    }
     this.iconPath = new vscode.ThemeIcon('bookmark');
     this.contextValue = 'jumpbackItem';
+    this.command = {
+      command: 'jupyter-cell-tags.openJumpback',
+      title: 'Open Jumpback',
+      arguments: [{ entry: jumpback, targetUri }]
+    };
   }
 }
 
@@ -20,9 +27,11 @@ export class JumpbackTreeDataProvider implements vscode.TreeDataProvider<Jumpbac
   readonly onDidChangeTreeData: vscode.Event<JumpbackTreeItem | undefined | null> = this._onDidChangeTreeData.event;
 
   private jumpbacks: JumpbackEntry[] = [];
+  private targetUri: vscode.Uri | undefined;
 
-  refresh(jumpbacks: JumpbackEntry[]): void {
+  refresh(jumpbacks: JumpbackEntry[], targetUri?: vscode.Uri): void {
     this.jumpbacks = jumpbacks;
+    this.targetUri = targetUri;
     this._onDidChangeTreeData.fire(null);
   }
 
@@ -31,68 +40,62 @@ export class JumpbackTreeDataProvider implements vscode.TreeDataProvider<Jumpbac
   }
 
   getChildren(element?: JumpbackTreeItem): Thenable<JumpbackTreeItem[]> {
-    if (!vscode.window.activeNotebookEditor) {
+    if (!this.targetUri) {
       return Promise.resolve([]);
     }
     if (element) {
-      // jumpback items have no children
       return Promise.resolve([]);
-    } else {
-      const items = this.jumpbacks.map(jb =>
-        new JumpbackTreeItem(`Cell ${jb.cellIndex}` + (jb.name ? ` (${jb.name})` : ''), jb)
-      );
-      return Promise.resolve(items);
     }
+    const targetUri = this.targetUri;
+    const items = this.jumpbacks.map(jb => {
+      if (isNotebookJumpback(jb)) {
+        return new JumpbackTreeItem(`Cell ${jb.cellIndex}` + (jb.name ? ` (${jb.name})` : ''), jb, targetUri);
+      }
+      if (isTextJumpback(jb)) {
+        return new JumpbackTreeItem(`Line ${jb.line + 1}` + (jb.name ? ` (${jb.name})` : ''), jb, targetUri);
+      }
+      return new JumpbackTreeItem('Jumpback', jb, targetUri);
+    });
+    return Promise.resolve(items);
   }
 }
 
 
-
-
-
 export function register(context: vscode.ExtensionContext) {
-    // Register the Jumpback Tree view
     const jumpbackProvider = new JumpbackTreeDataProvider();
-    // vscode.window.registerTreeDataProvider('jumpbacks', jumpbackProvider);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('jumpbacks', jumpbackProvider));
 
-    // Update view when active notebook changes or jumpbacks change.
     const updateJumpbackView = () => {
-        const notebookEditor = vscode.window.activeNotebookEditor;
-        if (notebookEditor) {
-            const jumpbackDS = JumpbackDataSource.load(notebookEditor.notebook);
-            jumpbackProvider.refresh(jumpbackDS.getList());
-        } else {
+        const ds = JumpbackDataSource.loadFromActiveEditor();
+        if (!ds) {
             jumpbackProvider.refresh([]);
+            return;
         }
+        const notebook = ds.getNotebook();
+        const text = ds.getTextDocument();
+        const targetUri = notebook?.uri ?? text?.uri;
+        jumpbackProvider.refresh(ds.getList(), targetUri);
     };
 
-    vscode.window.onDidChangeActiveNotebookEditor(() => updateJumpbackView());
-    // You can add additional listeners if the notebook's metadata changes.
+    context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(() => updateJumpbackView()));
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateJumpbackView()));
+    context.subscriptions.push(vscode.workspace.onDidChangeNotebookDocument((e) => {
+        const active = vscode.window.activeNotebookEditor;
+        if (active && e.notebook.uri.toString() === active.notebook.uri.toString()) {
+            updateJumpbackView();
+        }
+    }));
 
-    // Initial update.
     updateJumpbackView();
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.showAllNotebookJumpbacks', () => {
-            // Show the view in the explorer
             vscode.commands.executeCommand('workbench.view.explorer');
-            // Focus/reveal the all-notebook-tags-view
             vscode.commands.executeCommand('jumpbacks.focus');
         })
     );
 
-    // #TODO 2025-02-12 02:38: - [ ]     // Register a command to jump to and highlight the jumpback's cell
-    // context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', (cellIndex: number) => {
-    //     const editor = vscode.window.activeNotebookEditor;
-    //     if (editor) {
-    //         const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
-    //         editor.revealRange(range, vscode.NotebookEditorRevealType.Default);
-    //         editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
-    //     }
-    // }));
-
+    context.subscriptions.push(
+        vscode.commands.registerCommand('jupyter-cell-tags.refreshJumpbacks', () => updateJumpbackView())
+    );
 }
-
-
-

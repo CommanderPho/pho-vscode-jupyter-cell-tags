@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.6",
+	"version": "0.6.7",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -42,6 +42,8 @@
 		"onView:jumpbacks",
 		"onCommand:jupyter-cell-tags.addJumpback",
 		"onCommand:jupyter-cell-tags.removeJumpback",
+		"onCommand:jupyter-cell-tags.openJumpback",
+		"onCommand:jupyter-cell-tags.refreshJumpbacks",
 		"onCommand:jupyter-cell-tags.showAllNotebookJumpbacks",
 		"onView:custom-notebook-outline",
 		"onCommand:jupyter-cell-tags.customOutline.selectCell",
@@ -524,6 +526,19 @@
 				"when": "config.jupyter-cell-tags.enableJumpbacks"
 			},
 			{
+				"command": "jupyter-cell-tags.openJumpback",
+				"title": "🔖↩️▶ Open Jumpback",
+				"category": "Jupyter",
+				"when": "config.jupyter-cell-tags.enableJumpbacks"
+			},
+			{
+				"command": "jupyter-cell-tags.refreshJumpbacks",
+				"title": "🔖↩️🗘 Refresh Jumpbacks",
+				"icon": "$(refresh)",
+				"category": "Jupyter",
+				"when": "config.jupyter-cell-tags.enableJumpbacks"
+			},
+			{
 				"command": "jupyter-cell-tags.exportTags",
 				"title": "Jupyter: Export tags for notebook..",
 				"icon": "$(file-code)",
@@ -930,6 +945,16 @@
 					"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
 					"group": "navigation",
 					"when": "notebookEditorFocused"
+				},
+				{
+					"command": "jupyter-cell-tags.addJumpback",
+					"group": "jupytercelltags_jumpbacks@1",
+					"when": "config.jupyter-cell-tags.enableJumpbacks && editorTextFocus && resourceScheme != vscode-notebook-cell"
+				},
+				{
+					"command": "jupyter-cell-tags.removeJumpback",
+					"group": "jupytercelltags_jumpbacks@2",
+					"when": "config.jupyter-cell-tags.enableJumpbacks && editorTextFocus && resourceScheme != vscode-notebook-cell && jupyter-cell-tags.hasJumpback"
 				}
 			]
 		},
@@ -954,14 +979,14 @@
 					"when": "jupyter:showAllTagsExplorer && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
 				},
-				{
-					"id": "jumpbacks",
-					"name": "Jumpbacks",
-					"contextualTitle": "Notebook Jumpbacks",
-					"type": "tree",
-					"icon": "$(bookmark)",
-					"when": "config.jupyter-cell-tags.enableJumpbacks && jupyter-cell-tags.notebookActive"
-				},
+			{
+				"id": "jumpbacks",
+				"name": "Jumpbacks",
+				"contextualTitle": "Notebook Jumpbacks",
+				"type": "tree",
+				"icon": "$(bookmark)",
+				"when": "config.jupyter-cell-tags.enableJumpbacks && jupyter-cell-tags.jumpbackTargetActive"
+			},
 				{
 					"id": "custom-notebook-outline",
 					"name": "★ Custom NB Outline",
