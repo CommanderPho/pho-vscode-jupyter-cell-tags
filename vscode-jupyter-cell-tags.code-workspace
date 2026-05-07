@@ -1,13 +1,10 @@
 {
-	"folders": [
+    "folders": [
         {
             "path": "./"
-        },
-        {
-            "path": "../group-bookmark"
         }
     ],
-	"settings": {
+    "settings": {
         "workbench.colorCustomizations": {
             "editor.lineHighlightBackground": "#102dcf2d",
             "editor.lineHighlightBorder": "#9fbfd11f",
@@ -29,6 +26,7 @@
         },
         "terminal.explorerKind": "external",
         "terminal.integrated.allowChords": false,
+        "specstory.cloudSync.enabled": "never",
         // "terminal.integrated.automationProfile.windows": {
         //     "env": {}
         // }

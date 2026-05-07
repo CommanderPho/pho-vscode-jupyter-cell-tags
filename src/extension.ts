@@ -12,9 +12,9 @@ import { activateCellHeadings } from './cellHeadings/startup';
 import { activateNotebookCellExecutionTracking } from './cellExecution/startup';
 import { detect_conflicting_microsoft_extension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
-import { registerJumpbackCommand, registerRemoveJumpbackCommand } from './cellJumpbacks/commands';
+import { registerJumpbackCommand, registerRemoveJumpbackCommand, registerOpenJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
-import { JumpbackDataSource } from './cellJumpbacks/jumpbackDataSource';
+import { JumpbackDataSource, setJumpbackExtensionContext } from './cellJumpbacks/jumpbackDataSource';
 import { CellSelectionsStatusBarItem } from './statusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
@@ -25,6 +25,7 @@ import { activateCellHistoryTracking } from './cellHistory/startup';
 import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
 import { activateRingMeJupyter } from './ringMeJupyter/startup';
 import { activateJupyterEnhancementsModule } from './jupyterEnhancements/startup';
+import { activateGitDiffHighlighting } from './gitDiff/startup';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -39,8 +40,10 @@ export function activate(context: vscode.ExtensionContext) {
 
 	registerCellTags(context);
     registerAllNotebookTagsView(context);
+    setJumpbackExtensionContext(context);
     registerJumpbackCommand(context);
     registerRemoveJumpbackCommand(context);
+    registerOpenJumpbackCommand(context);
     registerJumpbackTreeDataProvider(context);
 
     context.subscriptions.push(
@@ -50,6 +53,8 @@ export function activate(context: vscode.ExtensionContext) {
 	// Update context when the active editor or selection changes
 	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
 	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
+	vscode.window.onDidChangeActiveTextEditor(updateContext);
+	vscode.window.onDidChangeTextEditorSelection(updateContext);
 
 	updateContext();
     initializeCellHighlight();
@@ -64,16 +69,28 @@ export function activate(context: vscode.ExtensionContext) {
     registerCellMetadataDisplay(context);
     activateRingMeJupyter(context);
     activateJupyterEnhancementsModule(context);
+    activateGitDiffHighlighting(context);
     log('Extension activated.');
 }
 
 function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.notebookActive', !!editor);
+
+    const textEditor = vscode.window.activeTextEditor;
+    const isPlainTextEditor = !!textEditor && textEditor.document.uri.scheme !== 'vscode-notebook-cell';
+    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.jumpbackTargetActive', !!editor || isPlainTextEditor);
+
     if (!editor) {
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
         vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
-        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', false);
+
+        let hasJumpback = false;
+        if (isPlainTextEditor && textEditor) {
+            const ds = JumpbackDataSource.loadFromTextDocument(textEditor.document);
+            hasJumpback = ds.hasTextJumpbackOnLine(textEditor.selection.active.line);
+        }
+        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', hasJumpback);
         return;
     }
     const selections: readonly vscode.NotebookRange[] = editor.selections;
@@ -86,8 +103,8 @@ function updateContext() {
     let hasJumpback = false;
     if (selections.length > 0 && total_num_selected_cells === 1) {
         const selectedCellIndex = selections[0].start;
-        const jumpbackDS = JumpbackDataSource.load(editor.notebook);
-        hasJumpback = jumpbackDS.hasJumpback(selectedCellIndex);
+        const jumpbackDS = JumpbackDataSource.loadFromNotebook(editor.notebook);
+        hasJumpback = jumpbackDS.hasNotebookJumpback(selectedCellIndex);
     }
     vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', hasJumpback);
 }
