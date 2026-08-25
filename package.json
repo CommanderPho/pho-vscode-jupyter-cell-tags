@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.7",
+	"version": "0.6.8",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -67,6 +67,8 @@
 		"onCommand:jupyter-cell-tags.gitDiff.highlightChangedCells",
 		"onCommand:jupyter-cell-tags.gitDiff.clearHighlights",
 		"onCommand:jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead",
+		"onCommand:jupyter-cell-tags.gitDiff.refreshModifiedCells",
+		"onView:git-modified-cells-view",
 		"onCommand:jupyter-cell-tags.exportExecutedCodeToPython"
 	],
 	"repository": {
@@ -644,6 +646,17 @@
 				"title": "🔀 Highlight Cells Changed vs HEAD",
 				"icon": "$(git-compare)",
 				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.gitDiff.refreshModifiedCells",
+				"title": "Refresh Git Modified Cells",
+				"icon": "$(refresh)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
+				"title": "Select Git Modified Cell",
+				"category": "Jupyter Cell Tags"
 			}
 		],
 		"menus": {
@@ -703,6 +716,14 @@
 				{
 					"command": "jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead",
 					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.refreshModifiedCells",
+					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -761,6 +782,11 @@
 				{
 					"command": "jupyter-cell-tags.customOutline.clearFilter",
 					"when": "view == custom-notebook-outline",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.gitDiff.refreshModifiedCells",
+					"when": "view == git-modified-cells-view",
 					"group": "navigation"
 				}
 			],
@@ -1028,6 +1054,14 @@
 					"type": "tree",
 					"icon": "$(play)",
 					"when": "jupyter-cell-tags.notebookActive"
+				},
+				{
+					"id": "git-modified-cells-view",
+					"name": "Git Modified Cells",
+					"contextualTitle": "Git Modified Cells vs HEAD",
+					"type": "tree",
+					"icon": "$(git-compare)",
+					"when": "jupyter-cell-tags.notebookActive"
 				}
 			]
 		},
@@ -1051,6 +1085,31 @@
 			{
 				"view": "executed-cells-view",
 				"contents": "No cells have been executed in this session. Execute cells to see them listed here with their execution status."
+			},
+			{
+				"view": "git-modified-cells-view",
+				"contents": "No cells differ from git HEAD. Edit cells in this notebook to see changes listed here.\n\n[Refresh](command:jupyter-cell-tags.gitDiff.refreshModifiedCells)",
+				"when": "jupyter-cell-tags.gitModifiedCells.welcome == noChanges"
+			},
+			{
+				"view": "git-modified-cells-view",
+				"contents": "This notebook is not saved to disk, so it cannot be compared to git history.",
+				"when": "jupyter-cell-tags.gitModifiedCells.welcome == notFile"
+			},
+			{
+				"view": "git-modified-cells-view",
+				"contents": "This notebook is not in a git repository, or is not tracked at HEAD.\n\n[Refresh](command:jupyter-cell-tags.gitDiff.refreshModifiedCells)",
+				"when": "jupyter-cell-tags.gitModifiedCells.welcome == notGit"
+			},
+			{
+				"view": "git-modified-cells-view",
+				"contents": "Could not compare this notebook to git HEAD. Check the Output log for details.\n\n[Refresh](command:jupyter-cell-tags.gitDiff.refreshModifiedCells)",
+				"when": "jupyter-cell-tags.gitModifiedCells.welcome == gitError"
+			},
+			{
+				"view": "git-modified-cells-view",
+				"contents": "Open a Jupyter notebook to see cells changed vs git HEAD.",
+				"when": "jupyter-cell-tags.gitModifiedCells.welcome == noNotebook"
 			}
 		],
 		"keybindings": [

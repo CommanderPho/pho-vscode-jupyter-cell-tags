@@ -87,7 +87,8 @@
 		"jupyter-cell-tags.debugPrint": true,
 		"jupyter-cell-tags.enableErrorNavigation": true,
 		"jupyter-cell-tags.showDebugExecutionMessages": true,
-		"jupyter-cell-tags.tagSortOrder": "creation-date"
+		"jupyter-cell-tags.tagSortOrder": "creation-date",
+		"specstory.cloudSync.enabled": "never"
 	},
 	"extensions": {
 		"recommendations": [

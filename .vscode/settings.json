@@ -12,5 +12,6 @@
         "**/*.asv": true,
         "**/*desktop.ini": true,
         "**/.idea": true,
-    }
+    },
+    "specstory.cloudSync.enabled": "never"
 }

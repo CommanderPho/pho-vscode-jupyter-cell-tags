@@ -32,6 +32,28 @@ export interface CellDiffResult {
 	deletedCount: number;
 }
 
+export type NotebookDiffErrorReason =
+	| 'noNotebook'
+	| 'notFile'
+	| 'notGit'
+	| 'gitError';
+
+export interface NotebookCellDiffSuccess {
+	ok: true;
+	diff: CellDiffResult;
+	commitHash: string;
+	commitShortHash: string;
+	notebook: vscode.NotebookDocument;
+}
+
+export interface NotebookCellDiffFailure {
+	ok: false;
+	reason: NotebookDiffErrorReason;
+	message: string;
+}
+
+export type NotebookCellDiffOutcome = NotebookCellDiffSuccess | NotebookCellDiffFailure;
+
 // ────────────────────────────────────────────────────────
 // Git Helpers  (use child_process since the vscode.git
 //               API doesn't expose file-at-commit reads)
@@ -197,6 +219,78 @@ export function compareCells(oldCells: CellSource[], newCells: CellSource[]): Ce
 	return { modified, added, deletedCount };
 }
 
+/**
+ * Compare a notebook document against a git commit (or HEAD).
+ * Shared by the cell highlighter and the Git Modified Cells tree.
+ */
+export async function diffNotebookVsCommit(
+	notebook: vscode.NotebookDocument,
+	commitHash: string,
+	commitShortHash: string = commitHash
+): Promise<NotebookCellDiffOutcome> {
+	if (notebook.uri.scheme !== 'file') {
+		return {
+			ok: false,
+			reason: 'notFile',
+			message: 'Git diff only works on notebooks saved to disk.',
+		};
+	}
+
+	const filePath = notebook.uri.fsPath;
+
+	try {
+		const repoRoot = await getRepoRoot(filePath);
+		const relativePath = await getRelativeGitPath(filePath);
+		const oldContent = await getFileAtCommit(repoRoot, commitHash, relativePath);
+		const oldCells = parseNotebookCells(oldContent);
+
+		const currentCells: CellSource[] = notebook.getCells().map(cell => {
+			const source = cell.document.getText();
+			return {
+				source,
+				hash: simpleHash(source),
+				kind: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
+			};
+		});
+
+		const diff = compareCells(oldCells, currentCells);
+		return {
+			ok: true,
+			diff,
+			commitHash,
+			commitShortHash,
+			notebook,
+		};
+	} catch (err: any) {
+		const message = err?.message ?? String(err);
+		const lower = message.toLowerCase();
+		const reason: NotebookDiffErrorReason =
+			lower.includes('not a git repository') ||
+			lower.includes('outside repository') ||
+			lower.includes('does not exist') ||
+			lower.includes('exists on disk, but not in') ||
+			lower.includes('pathspec') ||
+			lower.includes('bad revision') ||
+			lower.includes('fatal: path')
+				? 'notGit'
+				: 'gitError';
+		return { ok: false, reason, message };
+	}
+}
+
+/** Compare the active notebook against HEAD. */
+export async function diffActiveNotebookVsHead(): Promise<NotebookCellDiffOutcome> {
+	const notebookEditor = vscode.window.activeNotebookEditor;
+	if (!notebookEditor) {
+		return {
+			ok: false,
+			reason: 'noNotebook',
+			message: 'No active notebook editor.',
+		};
+	}
+	return diffNotebookVsCommit(notebookEditor.notebook, 'HEAD', 'HEAD');
+}
+
 // ────────────────────────────────────────────────────────
 // Highlighter Class  (manages decorations & state)
 // ────────────────────────────────────────────────────────
@@ -343,73 +437,51 @@ export class GitDiffCellHighlighter {
 			return;
 		}
 
-		const notebook = notebookEditor.notebook;
-		const notebookUri = notebook.uri;
-
-		// Only file-system notebooks
-		if (notebookUri.scheme !== 'file') {
-			vscode.window.showWarningMessage('Git diff highlighting only works on notebooks saved to disk.');
+		const outcome = await diffNotebookVsCommit(notebookEditor.notebook, commitHash, commitShortHash);
+		if (!outcome.ok) {
+			if (outcome.reason === 'notFile') {
+				vscode.window.showWarningMessage(outcome.message);
+			} else {
+				log(`[GitDiff] Error: ${outcome.message}`);
+				vscode.window.showErrorMessage(`Git diff failed: ${outcome.message}`);
+			}
 			return;
 		}
 
-		const filePath = notebookUri.fsPath;
+		const { diff, notebook } = outcome;
 
-		try {
-			const repoRoot = await getRepoRoot(filePath);
-			const relativePath = await getRelativeGitPath(filePath);
-			const oldContent = await getFileAtCommit(repoRoot, commitHash, relativePath);
-			const oldCells = parseNotebookCells(oldContent);
+		// Clear previous state
+		this.cellStatusMap.clear();
 
-			// Build current cells from the live notebook document
-			const currentCells: CellSource[] = notebook.getCells().map(cell => {
-				const source = cell.document.getText();
-				return {
-					source,
-					hash: simpleHash(source),
-					kind: cell.kind === vscode.NotebookCellKind.Code ? 'code' : 'markdown',
-				};
-			});
-
-			const diff = compareCells(oldCells, currentCells);
-
-			// Clear previous state
-			this.cellStatusMap.clear();
-
-			// Populate status map using cell document URIs
-			for (let idx = 0; idx < notebook.cellCount; idx++) {
-				const cell = notebook.cellAt(idx);
-				const cellUri = cell.document.uri.toString();
-				if (diff.modified.has(idx)) {
-					this.cellStatusMap.set(cellUri, 'modified');
-				} else if (diff.added.has(idx)) {
-					this.cellStatusMap.set(cellUri, 'added');
-				}
+		// Populate status map using cell document URIs
+		for (let idx = 0; idx < notebook.cellCount; idx++) {
+			const cell = notebook.cellAt(idx);
+			const cellUri = cell.document.uri.toString();
+			if (diff.modified.has(idx)) {
+				this.cellStatusMap.set(cellUri, 'modified');
+			} else if (diff.added.has(idx)) {
+				this.cellStatusMap.set(cellUri, 'added');
 			}
-
-			this.activeCommitShort = commitShortHash;
-			this.restoreAllVisibleDecorations();
-
-			// Update status bar
-			const modCount = diff.modified.size;
-			const addCount = diff.added.size;
-			const delCount = diff.deletedCount;
-			const parts: string[] = [];
-			if (modCount > 0) { parts.push(`${modCount} modified`); }
-			if (addCount > 0) { parts.push(`${addCount} added`); }
-			if (delCount > 0) { parts.push(`${delCount} deleted`); }
-			const summary = parts.length > 0 ? parts.join(', ') : 'no changes';
-
-			this.statusBarItem.text = `$(git-compare) vs ${commitShortHash}: ${summary}`;
-			this.statusBarItem.show();
-
-			log(`[GitDiff] Compared with ${commitShortHash}: ${summary}`);
-			vscode.window.showInformationMessage(`Git Diff: ${summary} (vs ${commitShortHash})`);
-
-		} catch (err: any) {
-			const message = err?.message ?? String(err);
-			log(`[GitDiff] Error: ${message}`);
-			vscode.window.showErrorMessage(`Git diff failed: ${message}`);
 		}
+
+		this.activeCommitShort = commitShortHash;
+		this.restoreAllVisibleDecorations();
+
+		// Update status bar
+		const modCount = diff.modified.size;
+		const addCount = diff.added.size;
+		const delCount = diff.deletedCount;
+		const parts: string[] = [];
+		if (modCount > 0) { parts.push(`${modCount} modified`); }
+		if (addCount > 0) { parts.push(`${addCount} added`); }
+		if (delCount > 0) { parts.push(`${delCount} deleted`); }
+		const summary = parts.length > 0 ? parts.join(', ') : 'no changes';
+
+		this.statusBarItem.text = `$(git-compare) vs ${commitShortHash}: ${summary}`;
+		this.statusBarItem.show();
+
+		log(`[GitDiff] Compared with ${commitShortHash}: ${summary}`);
+		vscode.window.showInformationMessage(`Git Diff: ${summary} (vs ${commitShortHash})`);
 	}
 
 	clearHighlights(): void {
@@ -493,9 +565,4 @@ export async function highlightVsHead(highlighter: GitDiffCellHighlighter): Prom
 	}
 
 	await highlighter.compareWithCommit('HEAD', 'HEAD');
-}
-
-// Re-export simpleHash for internal use
-function _simpleHash(str: string): string {
-	return simpleHash(str);
 }
