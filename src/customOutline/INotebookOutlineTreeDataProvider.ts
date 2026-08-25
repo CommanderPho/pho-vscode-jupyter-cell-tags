@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import { OutlineItem } from './models';
+import { NotebookTreeItem, OutlineItem } from './models';
 
 /**
  * Interface for the custom notebook outline tree data provider
  */
-export interface INotebookOutlineTreeDataProvider extends vscode.TreeDataProvider<OutlineItem> {
+export interface INotebookOutlineTreeDataProvider extends vscode.TreeDataProvider<NotebookTreeItem> {
     /** Refresh the outline view for the current notebook */
     refresh(notebook?: vscode.NotebookDocument): void;
 

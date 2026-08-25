@@ -136,6 +136,17 @@
 					"default": false,
 					"description": "Show cell indices in custom outline item labels"
 				},
+				"jupyter-cell-tags.customOutline.showExecutedCells": {
+					"type": "boolean",
+					"default": false,
+					"description": "Show thin indicator lines in the outline for cells executed in this session."
+				},
+				"jupyter-cell-tags.customOutline.executedCellColor": {
+					"type": "string",
+					"format": "color-hex",
+					"default": "#FFFF0033",
+					"description": "Color for the executed cell indicator lines in the custom notebook outline."
+				},
 				"jupyter-cell-tags.customOutline.headingIcons": {
 					"type": "array",
 					"description": "Codicon icon ids to use for heading levels 1-6 in the custom outline view",

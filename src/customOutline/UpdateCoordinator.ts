@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { IUpdateCoordinator } from './IUpdateCoordinator';
 import { INotebookOutlineTreeDataProvider } from './INotebookOutlineTreeDataProvider';
-import { OutlineItem } from './models';
+import { NotebookTreeItem } from './models';
 import { log } from '../util/logging';
 
 /**
@@ -13,7 +13,7 @@ export class UpdateCoordinator implements IUpdateCoordinator {
     private pendingWhileHidden: boolean = false;
 
     constructor(
-        private readonly treeView: vscode.TreeView<OutlineItem>,
+        private readonly treeView: vscode.TreeView<NotebookTreeItem>,
         private readonly provider: INotebookOutlineTreeDataProvider,
         debounceDelayMs: number
     ) {

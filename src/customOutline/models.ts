@@ -126,6 +126,36 @@ export interface OutlineStructure {
 }
 
 /**
+ * A thin colored indicator line in the outline for a cell executed in this session.
+ */
+export class ExecutedCellLineItem extends vscode.TreeItem {
+    constructor(
+        public readonly cellIndex: number,
+        color: string
+    ) {
+        super('', vscode.TreeItemCollapsibleState.None);
+        this.description = `Cell ${cellIndex}`;
+        this.tooltip = `Executed cell ${cellIndex}`;
+        this.contextValue = 'executedCellLineItem';
+        this.iconPath = ExecutedCellLineItem.createLineIcon(color);
+        this.command = {
+            command: 'jupyter-cell-tags.customOutline.selectCell',
+            title: 'Select Cell',
+            arguments: [this]
+        };
+    }
+
+    private static createLineIcon(color: string): vscode.Uri {
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16">
+            <line x1="0" y1="8" x2="16" y2="8" stroke="${color}" stroke-width="2"/>
+        </svg>`;
+        return vscode.Uri.parse(`data:image/svg+xml,${encodeURIComponent(svg)}`);
+    }
+}
+
+export type NotebookTreeItem = OutlineItem | ExecutedCellLineItem;
+
+/**
  * Represents the current selection state in the outline view
  */
 export interface OutlineSelectionState {

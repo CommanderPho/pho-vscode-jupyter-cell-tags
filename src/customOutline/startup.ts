@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { HeadingParser } from './HeadingParser';
 import { NotebookOutlineTreeDataProvider } from './NotebookOutlineTreeDataProvider';
-import { OutlineItem } from './models';
+import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from './models';
 import { UpdateCoordinator } from './UpdateCoordinator';
 import { OutlineSelectionSync } from './OutlineSelectionSync';
 import { getSelectionDetector, getSyncManager } from '../outlineSync/startup';
@@ -23,9 +23,9 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
     log('Registering custom notebook outline view...');
 
     const headingParser = new HeadingParser();
-    const provider = new NotebookOutlineTreeDataProvider(headingParser);
+    const provider = new NotebookOutlineTreeDataProvider(headingParser, context);
 
-    const treeView = vscode.window.createTreeView<OutlineItem>('custom-notebook-outline', {
+    const treeView = vscode.window.createTreeView<NotebookTreeItem>('custom-notebook-outline', {
         treeDataProvider: provider,
         canSelectMany: true
     });
@@ -67,7 +67,7 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
                     updateCoordinator.scheduleUpdate();
                 }
 
-                // showCellIndices is respected by OutlineItem via configuration;
+                // showCellIndices and showExecutedCells are respected by the provider;
                 // a refresh will recreate tree items with new labels.
                 provider.refresh();
             }
@@ -134,12 +134,26 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Command: click on outline item selects its heading cell
+    // Command: click on outline item selects its heading cell;
+    // clicking an ExecutedCellLineItem navigates to that executed cell.
     context.subscriptions.push(
-        vscode.commands.registerCommand('jupyter-cell-tags.customOutline.selectCell', async (item: OutlineItem) => {
+        vscode.commands.registerCommand('jupyter-cell-tags.customOutline.selectCell', async (item: NotebookTreeItem) => {
             if (!item) {
                 return;
             }
+
+            if (item instanceof ExecutedCellLineItem) {
+                // Navigate to the executed cell
+                const editor = vscode.window.activeNotebookEditor;
+                if (editor) {
+                    const range = new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1);
+                    editor.selections = [range];
+                    editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
+                }
+                return;
+            }
+
+            // OutlineItem: select the heading cell
             await selectionSync.syncOutlineToEditor([item]);
             const editor = vscode.window.activeNotebookEditor;
             if (editor) {
