@@ -49,6 +49,23 @@ export async function addCellTag(cell: vscode.NotebookCell, tags: string[]) {
     }
 
     await updateCellTags(cell, oldTags);
+
+    // Stamp creation time only when a tag name is first introduced to this notebook
+    if (newTags.length) {
+        const notebook = cell.notebook;
+        for (const tag of newTags) {
+            const existsElsewhere = notebook.getCells().some(
+                (c) => c !== cell && getCellTags(c).includes(tag)
+            );
+            if (!existsElsewhere) {
+                try {
+                    await TagPropertiesManager.ensureCreatedAt(notebook, tag);
+                } catch (err) {
+                    log(`Failed to stamp createdAt for tag "${tag}":`, err);
+                }
+            }
+        }
+    }
 }
 
 export async function addTagsToMultipleCells(cells: vscode.NotebookCell[], tags: string[]) {

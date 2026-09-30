@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.8",
+	"version": "0.6.9",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -92,6 +92,12 @@
 					],
 					"default": "alphabetical",
 					"description": "Sort order for tags in the All Notebook Tags view"
+				},
+				"jupyter-cell-tags.tagHotColor.fadeDays": {
+					"type": "number",
+					"default": 30,
+					"minimum": 1,
+					"description": "Days until a newly created tag fades from hot red to the default icon in the All Notebook Tags view (only when no manual color is set)"
 				},
 				"jupyter-cell-tags.enableErrorNavigation": {
 					"type": "boolean",

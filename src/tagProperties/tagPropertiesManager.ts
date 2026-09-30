@@ -18,11 +18,31 @@ export class TagPropertiesManager {
         allProperties[tagName] = properties;
         return this.saveTagProperties(notebook, allProperties);
     }
+
+    /**
+     * Stamp createdAt on a tag if it does not already have one.
+     * Returns true if a stamp was written, false if already present or write failed.
+     */
+    public static async ensureCreatedAt(notebook: vscode.NotebookDocument, tagName: string): Promise<boolean> {
+        const existing = this.getTagProperties(notebook, tagName);
+        if (existing.createdAt) {
+            return false;
+        }
+        return this.setTagProperties(notebook, tagName, {
+            ...existing,
+            createdAt: new Date().toISOString()
+        });
+    }
     
-    // Get all tag properties from notebook metadata
+    // Get all tag properties from notebook metadata (cloned — never mutate live metadata)
     public static getAllTagProperties(notebook: vscode.NotebookDocument): Record<string, TagProperties> {
         const metadata = notebook.metadata || {};
-        return metadata[this.METADATA_KEY] || {};
+        const props = metadata[this.METADATA_KEY] || {};
+        const clone: Record<string, TagProperties> = {};
+        for (const key of Object.keys(props)) {
+            clone[key] = { ...props[key] };
+        }
+        return clone;
     }
     
     // // Save tag properties to notebook metadata

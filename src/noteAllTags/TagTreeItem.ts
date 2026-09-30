@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { TagProperties } from '../models/tagProperties';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
+import { getHotIconStyle } from './tagHotColor';
 
 export class TagTreeItem extends vscode.TreeItem {
     constructor(
@@ -28,18 +29,31 @@ export class TagTreeItem extends vscode.TreeItem {
                 descriptionParts.push(`Color: ${properties.color}`);
                 tooltipParts.push(`Color: ${properties.color}`);
             }
+
+            if (properties?.createdAt) {
+                const createdDate = new Date(properties.createdAt);
+                if (!Number.isNaN(createdDate.getTime())) {
+                    tooltipParts.push(`Created: ${createdDate.toLocaleString()}`);
+                }
+            }
             
             if (descriptionParts.length > 0) {
                 this.description = descriptionParts.join(' | ');
+            }
+            if (tooltipParts.length > 1) {
                 this.tooltip = tooltipParts.join('\n');
             }
             
-            // Set icon with custom color if available
+            // Manual color wins; otherwise age-based hot color; else default icon
             if (properties?.color) {
-                // Create a custom colored icon using SVG data URI
                 this.iconPath = this.createColoredIconUri(properties.color);
             } else {
-                this.iconPath = new vscode.ThemeIcon('tag');
+                const hot = getHotIconStyle(properties?.createdAt);
+                if (hot) {
+                    this.iconPath = this.createColoredIconUri(hot.color, hot.opacity);
+                } else {
+                    this.iconPath = new vscode.ThemeIcon('tag');
+                }
             }
         } else {
             this.iconPath = new vscode.ThemeIcon('tag');
@@ -55,10 +69,10 @@ export class TagTreeItem extends vscode.TreeItem {
         return TagPropertiesManager.getTagProperties(notebook, tagName);
     }
     
-    private createColoredIconUri(color: string): vscode.Uri {
-        // Create an SVG with a filled circle using the tag's color
-        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${color}"/></svg>`;
-        // Encode the SVG as a data URI
+    private createColoredIconUri(color: string, opacity: number = 1): vscode.Uri {
+        const safeOpacity = Math.max(0, Math.min(1, opacity));
+        // fill-opacity is more reliable than rgba() for tree-view SVG data URIs
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><circle cx="8" cy="8" r="6" fill="${color}" fill-opacity="${safeOpacity}"/></svg>`;
         const encodedSvg = encodeURIComponent(svg);
         return vscode.Uri.parse(`data:image/svg+xml;charset=utf-8,${encodedSvg}`);
     }

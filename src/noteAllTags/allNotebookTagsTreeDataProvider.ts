@@ -270,7 +270,7 @@ export function register(context: vscode.ExtensionContext) {
     const outlineSyncManager = new OutlineSyncManager(outlineSyncConfig);
     context.subscriptions.push(outlineSyncManager);
     
-    // Listen for configuration changes and update sync manager
+    // Listen for configuration changes and update sync manager / hot-color fade
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
             if (e.affectsConfiguration('jupyter-cell-tags.outlineSync')) {
@@ -281,6 +281,9 @@ export function register(context: vscode.ExtensionContext) {
                 };
                 outlineSyncManager.updateConfig(newConfig);
                 log('Outline sync configuration updated:', newConfig);
+            }
+            if (e.affectsConfiguration('jupyter-cell-tags.tagHotColor')) {
+                treeDataProvider.refresh();
             }
         })
     );
@@ -308,6 +311,13 @@ export function register(context: vscode.ExtensionContext) {
         showCollapseAll: true
     });
     context.subscriptions.push(treeView);
+
+    // Periodically refresh so hot-age icon colors cool without a notebook edit (~15 min)
+    const HOT_COLOR_REFRESH_MS = 15 * 60 * 1000;
+    const hotColorRefreshInterval = setInterval(() => {
+        treeDataProvider.refresh();
+    }, HOT_COLOR_REFRESH_MS);
+    context.subscriptions.push({ dispose: () => clearInterval(hotColorRefreshInterval) });
 
     // Listen for tree view selection changes to emphasize scrollbar decorators
     context.subscriptions.push(
