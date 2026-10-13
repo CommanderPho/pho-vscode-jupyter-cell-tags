@@ -69,7 +69,10 @@
 		"onCommand:jupyter-cell-tags.gitDiff.highlightChangedCellsVsHead",
 		"onCommand:jupyter-cell-tags.gitDiff.refreshModifiedCells",
 		"onView:git-modified-cells-view",
-		"onCommand:jupyter-cell-tags.exportExecutedCodeToPython"
+		"onCommand:jupyter-cell-tags.exportExecutedCodeToPython",
+		"onCommand:jupyter-cell-tags.dependencyChain.showDependentCells",
+		"onCommand:jupyter-cell-tags.dependencyChain.clearHighlights",
+		"onView:dependency-chain-view"
 	],
 	"repository": {
 		"type": "git",
@@ -663,6 +666,28 @@
 				"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
 				"title": "Select Git Modified Cell",
 				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
+				"title": "Dependency Chain: Show Dependant Cells",
+				"icon": "$(type-hierarchy)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.dependencyChain.clearHighlights",
+				"title": "Dependency Chain: Clear Highlights",
+				"icon": "$(close)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.dependencyChain.selectChain",
+				"title": "Dependency Chain: Select Chain",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.dependencyChain.revealCell",
+				"title": "Dependency Chain: Reveal Cell",
+				"category": "Jupyter Cell Tags"
 			}
 		],
 		"menus": {
@@ -730,6 +755,22 @@
 				{
 					"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
 					"when": "false"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
+					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.clearHighlights",
+					"group": "Jupyter Cell Tags"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.selectChain",
+					"when": "false"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.revealCell",
+					"when": "false"
 				}
 			],
 			"view/title": [
@@ -793,6 +834,11 @@
 				{
 					"command": "jupyter-cell-tags.gitDiff.refreshModifiedCells",
 					"when": "view == git-modified-cells-view",
+					"group": "navigation"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.clearHighlights",
+					"when": "view == dependency-chain-view",
 					"group": "navigation"
 				}
 			],
@@ -995,9 +1041,19 @@
 					"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
 					"group": "1_execution",
 					"when": "notebookType == jupyter-notebook"
+				},
+				{
+					"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
+					"when": "jupyter-cell-tags.singleCellSelected && notebookType == jupyter-notebook && notebookCellType == code",
+					"group": "navigation"
 				}
 			],
 			"editor/context": [
+				{
+					"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
+					"group": "jupytercelltags@1",
+					"when": "jupyter-cell-tags.singleCellSelected && notebookEditorFocused && resourceScheme == vscode-notebook-cell"
+				},
 				{
 					"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
 					"group": "navigation",
@@ -1068,6 +1124,14 @@
 					"type": "tree",
 					"icon": "$(git-compare)",
 					"when": "jupyter-cell-tags.notebookActive"
+				},
+				{
+					"id": "dependency-chain-view",
+					"name": "Dependency Chain",
+					"contextualTitle": "Dependency Chain",
+					"type": "tree",
+					"icon": "$(type-hierarchy)",
+					"when": "jupyter-cell-tags.notebookActive"
 				}
 			]
 		},
@@ -1116,6 +1180,10 @@
 				"view": "git-modified-cells-view",
 				"contents": "Open a Jupyter notebook to see cells changed vs git HEAD.",
 				"when": "jupyter-cell-tags.gitModifiedCells.welcome == noNotebook"
+			},
+			{
+				"view": "dependency-chain-view",
+				"contents": "No dependency chains yet. Right-click a Python code cell and choose Dependency Chain: Show Dependant Cells."
 			}
 		],
 		"keybindings": [
