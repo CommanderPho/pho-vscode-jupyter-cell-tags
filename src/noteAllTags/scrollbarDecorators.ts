@@ -26,10 +26,7 @@ export class ScrollbarDecoratorManager implements vscode.Disposable {
     constructor(_context: vscode.ExtensionContext) {
         this.configDisposables.push(
             vscode.workspace.onDidChangeConfiguration(e => {
-                if (
-                    e.affectsConfiguration('jupyter-cell-tags.scrollbarDecorators.enabled') ||
-                    e.affectsConfiguration('jupyter-cell-tags.features.scrollbarDecorators')
-                ) {
+                if (e.affectsConfiguration('jupyter-cell-tags.features.scrollbarDecorators')) {
                     this.syncEnabledState();
                 }
             })

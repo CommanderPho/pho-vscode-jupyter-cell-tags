@@ -84,8 +84,9 @@ export function isFeatureEnabled(feature: FeatureKey): boolean {
 }
 
 /**
- * One-shot migrate: if a deprecated enable key has a user/workspace value and the
- * corresponding Features key does not, copy it into the Features key.
+ * One-shot migrate: if a removed/legacy enable key still has a user/workspace value
+ * in settings.json, copy it into the Features key (when unset) and clear the old key.
+ * Legacy keys are no longer contributed, so they do not appear in the Settings UI.
  */
 export async function migrateDeprecatedFeatureSettings(): Promise<void> {
 	const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
@@ -95,7 +96,7 @@ export async function migrateDeprecatedFeatureSettings(): Promise<void> {
 		const oldInspect = config.inspect<boolean>(oldKey);
 		const newInspect = config.inspect<boolean>(newKey);
 
-		if (!oldInspect || hasExplicitValue(newInspect)) {
+		if (!oldInspect || !hasExplicitValue(oldInspect)) {
 			continue;
 		}
 
@@ -110,10 +111,24 @@ export async function migrateDeprecatedFeatureSettings(): Promise<void> {
 				continue;
 			}
 			try {
-				await config.update(newKey, value, target);
-				log(`Migrated ${oldKey}=${value} → ${newKey} (${vscode.ConfigurationTarget[target]})`);
+				// Only write Features key when that scope has no explicit value yet
+				const scopeHasNew =
+					(target === vscode.ConfigurationTarget.WorkspaceFolder &&
+						newInspect?.workspaceFolderValue !== undefined) ||
+					(target === vscode.ConfigurationTarget.Workspace &&
+						newInspect?.workspaceValue !== undefined) ||
+					(target === vscode.ConfigurationTarget.Global && newInspect?.globalValue !== undefined);
+
+				if (!scopeHasNew) {
+					await config.update(newKey, value, target);
+					log(`Migrated ${oldKey}=${value} → ${newKey} (${vscode.ConfigurationTarget[target]})`);
+				}
+
+				// Remove legacy key from settings.json so it no longer lingers
+				await config.update(oldKey, undefined, target);
+				log(`Cleared legacy setting ${oldKey} (${vscode.ConfigurationTarget[target]})`);
 			} catch (err) {
-				log(`Failed to migrate ${oldKey} → ${newKey}: ${err}`);
+				log(`Failed to migrate/clear ${oldKey} → ${newKey}: ${err}`);
 			}
 		}
 	}

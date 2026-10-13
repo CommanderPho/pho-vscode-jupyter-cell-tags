@@ -185,20 +185,6 @@
 						"minimum": 1,
 						"description": "Days until a newly created tag fades from hot red to the default icon in the All Notebook Tags view (only when no manual color is set)"
 					},
-					"jupyter-cell-tags.enableErrorNavigation": {
-						"type": "boolean",
-						"default": false,
-						"description": "Enable/disable the Previous/Next Error Cell navigation commands",
-						"deprecationMessage": "Deprecated: Use jupyter-cell-tags.features.errorNavigation instead.",
-						"markdownDeprecationMessage": "Deprecated: Use `#jupyter-cell-tags.features.errorNavigation#` instead."
-					},
-					"jupyter-cell-tags.enableJumpbacks": {
-						"type": "boolean",
-						"default": false,
-						"description": "Enable/disable the Jumpback functionality including commands and views",
-						"deprecationMessage": "Deprecated: Use jupyter-cell-tags.features.jumpbacks instead.",
-						"markdownDeprecationMessage": "Deprecated: Use `#jupyter-cell-tags.features.jumpbacks#` instead."
-					},
 					"jupyter-cell-tags.debugPrint": {
 						"type": "boolean",
 						"default": false,
@@ -209,24 +195,10 @@
 						"default": false,
 						"description": "Show debug message boxes for cell navigation and execution (e.g. 'Navigated to cell X', 'Executed cell X'). Useful for extension debugging; leave disabled for normal use."
 					},
-					"jupyter-cell-tags.outlineSync.enabled": {
-						"type": "boolean",
-						"default": true,
-						"description": "Enable automatic Outline pane synchronization with programmatic cell selections",
-						"deprecationMessage": "Deprecated: Use jupyter-cell-tags.features.outlineSync instead.",
-						"markdownDeprecationMessage": "Deprecated: Use `#jupyter-cell-tags.features.outlineSync#` instead."
-					},
 					"jupyter-cell-tags.outlineSync.debounceMs": {
 						"type": "number",
 						"default": 100,
 						"description": "Debounce delay in milliseconds for Outline synchronization"
-					},
-					"jupyter-cell-tags.customOutline.enabled": {
-						"type": "boolean",
-						"default": true,
-						"description": "Enable custom notebook outline view with multi-select support",
-						"deprecationMessage": "Deprecated: Use jupyter-cell-tags.features.customOutline instead.",
-						"markdownDeprecationMessage": "Deprecated: Use `#jupyter-cell-tags.features.customOutline#` instead."
 					},
 					"jupyter-cell-tags.customOutline.updateDebounceMs": {
 						"type": "number",
@@ -450,13 +422,6 @@
 						"format": "color-hex",
 						"default": "#4CAF5015",
 						"description": "Subtle background tint for cells added since the selected git commit."
-					},
-					"jupyter-cell-tags.scrollbarDecorators.enabled": {
-						"type": "boolean",
-						"default": true,
-						"description": "Enable/disable scrollbar decorators showing tag locations in the notebook. When a tag is selected in the All Notebook Tags view, the decorators will be emphasized and flash.",
-						"deprecationMessage": "Deprecated: Use jupyter-cell-tags.features.scrollbarDecorators instead.",
-						"markdownDeprecationMessage": "Deprecated: Use `#jupyter-cell-tags.features.scrollbarDecorators#` instead."
 					},
 					"jupyter-cell-tags.externalKernel.defaultPort": {
 						"type": "number",
