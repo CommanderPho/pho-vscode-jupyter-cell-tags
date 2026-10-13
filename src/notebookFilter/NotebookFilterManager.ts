@@ -37,9 +37,30 @@ export class NotebookFilterManager {
 	}
 
 	dispose(): void {
-		this.decorators.dispose();
-		this.statusBar.dispose();
-		this.states.clear();
+		void this.clearAll().finally(() => {
+			this.decorators.dispose();
+			this.statusBar.dispose();
+		});
+	}
+
+	/**
+	 * Expand filter-collapsed cells for every tracked notebook that is still open,
+	 * then drop any leftover state. Used on extension/module teardown.
+	 */
+	async clearAll(): Promise<void> {
+		const openByKey = new Map(
+			vscode.workspace.notebookDocuments.map(n => [n.uri.toString(), n] as const)
+		);
+		const keys = [...this.states.keys()];
+		for (const key of keys) {
+			const notebook = openByKey.get(key);
+			if (notebook) {
+				await this.clear(notebook);
+			} else {
+				this.states.delete(key);
+			}
+		}
+		this.decorators.clear();
 	}
 
 	getCriteria(notebook: vscode.NotebookDocument): NotebookFilterCriteria | undefined {
@@ -124,7 +145,7 @@ export class NotebookFilterManager {
 		}
 	}
 
-	/** Drop filter state without expanding (e.g. notebook closed). */
+	/** Drop filter state without expanding when expand is impossible or after clear. */
 	forget(notebook: vscode.NotebookDocument): void {
 		this.states.delete(notebook.uri.toString());
 		const active = vscode.window.activeNotebookEditor?.notebook;

@@ -77,9 +77,10 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 			webviewProvider.postState(editor?.notebook);
 		}),
 		vscode.workspace.onDidCloseNotebookDocument(notebook => {
-			manager.forget(notebook);
-			void manager.syncUi();
-			webviewProvider.postState();
+			void (async () => {
+				await manager.clear(notebook);
+				webviewProvider.postState();
+			})();
 		}),
 		{
 			dispose: () => {
