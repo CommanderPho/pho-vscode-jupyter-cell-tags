@@ -1,28 +1,28 @@
 ---
 name: Kernel stability review
-overview: "Code review of performance and kernel-stability risks, plus a hard invariant that disabled features.* settings must impose zero hot-path cost. Highest impact bugs remain JE sequential-run race, always-on cellHistory writes, filter reapply, and durable-kernel edge cases."
+overview: Code review of performance and kernel-stability risks, plus a hard invariant that disabled features.* settings must impose zero hot-path cost. Highest impact bugs remain JE sequential-run race, always-on cellHistory writes, filter reapply, and durable-kernel edge cases.
 todos:
   - id: enforce-disabled-zero-cost
     content: "Invariant: features.* false ⇒ no listeners/intervals/hijacks/applyEdit for that feature; fix scrollbar early-return leak; gate cellHistory/cellExecution behind settings"
-    status: pending
+    status: completed
   - id: fix-je-wait
     content: Fix executeCellAndWaitNative to wait on new execution state/order; stop overriding jupyter.runPrecedent/DependentCells; serialize hijack execute
-    status: pending
+    status: completed
   - id: fix-cell-history
     content: Debounce cellHistory metadata writes when enabled; deep-clone in updateCellMetadata; do not activate when feature off
-    status: pending
+    status: completed
   - id: fix-filter-reapply
     content: Guard notebookFilter reapply against output/self-induced collapse loops (only when feature on)
-    status: pending
+    status: completed
   - id: fix-hot-listeners
     content: Debounce tags tree + scrollbar decorations; skip output-only; remove JE 200ms poll; coalesce git/executed-cells refresh
-    status: pending
+    status: completed
   - id: fix-durable-kernel
     content: Port-retries/PID validation; multi-failure health before clearing managed server
-    status: pending
+    status: completed
   - id: fix-hygiene
     content: Remove/gate Cell finished toasts; dispose leaks; stop stacking hijack subscriptions; quieter selection logging
-    status: pending
+    status: completed
 isProject: false
 ---
 

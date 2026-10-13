@@ -13,7 +13,9 @@ export type FeatureKey =
 	| 'dependencyChain'
 	| 'notebookFilter'
 	| 'ringMeJupyter'
-	| 'durableKernel';
+	| 'durableKernel'
+	| 'cellHistory'
+	| 'cellExecutionTracking';
 
 const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	jumpbacks: false,
@@ -27,6 +29,8 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	notebookFilter: true,
 	ringMeJupyter: true,
 	durableKernel: true,
+	cellHistory: false,
+	cellExecutionTracking: false,
 };
 
 /** Deprecated setting key → Features key (relative to `jupyter-cell-tags`). */
@@ -50,6 +54,8 @@ const RELOAD_REQUIRED_FEATURES: ReadonlySet<FeatureKey> = new Set([
 	'notebookFilter',
 	'ringMeJupyter',
 	'durableKernel',
+	'cellHistory',
+	'cellExecutionTracking',
 ]);
 
 function featuresConfigKey(feature: FeatureKey): string {

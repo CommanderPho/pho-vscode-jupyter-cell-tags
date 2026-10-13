@@ -8,14 +8,17 @@ let myChannel: vscode.OutputChannel;
 
 // Function for logging
 export function log(...args: any[]) {
+    if (!myChannel) {
+        return;
+    }
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
     const debugPrintEnabled = config.get<boolean>('debugPrint', false);
-    
+    const line = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
+
     if (debugPrintEnabled) {
         console.log(...args);
     }
-    myChannel.appendLine(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '));
-    // showTimedInformationMessage(args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' '), 1000);
+    myChannel.appendLine(line);
 }
 
 export async function showTimedInformationMessage(message: string, timeout: number) {

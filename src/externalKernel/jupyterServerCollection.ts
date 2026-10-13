@@ -11,6 +11,8 @@ const CMD_CONNECT = 'Connect to Existing Server URL…';
 export class DurableJupyterServerCollection implements vscode.Disposable {
 	private collection: { dispose(): void; commandProvider?: unknown; label: string; documentation?: vscode.Uri } | undefined;
 	private registered = false;
+	private changeEmitter: vscode.EventEmitter<void> | undefined;
+	private serversSub: vscode.Disposable | undefined;
 
 	constructor(private readonly manager: DurableServerManager) {}
 
@@ -36,11 +38,11 @@ export class DurableJupyterServerCollection implements vscode.Disposable {
 			throw new Error('Jupyter extension does not expose createJupyterServerCollection');
 		}
 
-		const changeEmitter = new vscode.EventEmitter<void>();
-		this.manager.onDidChangeServers(() => changeEmitter.fire());
+		this.changeEmitter = new vscode.EventEmitter<void>();
+		this.serversSub = this.manager.onDidChangeServers(() => this.changeEmitter?.fire());
 
 		const collection = jupyter.createJupyterServerCollection(COLLECTION_ID, COLLECTION_LABEL, {
-			onDidChangeServers: changeEmitter.event,
+			onDidChangeServers: this.changeEmitter.event,
 			provideJupyterServers: async () => this.toJupyterServers(),
 			resolveJupyterServer: async (server: JupyterServer) => server,
 		});
@@ -77,7 +79,11 @@ export class DurableJupyterServerCollection implements vscode.Disposable {
 							},
 							async (_progress, progressToken) => {
 								const linked = linkCancellation(token, progressToken);
-								return this.manager.startManaged(linked);
+								try {
+									return await this.manager.startManaged(linked.token);
+								} finally {
+									linked.dispose();
+								}
 							}
 						);
 						return this.toJupyterServer(record);
@@ -119,6 +125,10 @@ export class DurableJupyterServerCollection implements vscode.Disposable {
 	}
 
 	dispose(): void {
+		this.serversSub?.dispose();
+		this.serversSub = undefined;
+		this.changeEmitter?.dispose();
+		this.changeEmitter = undefined;
 		this.collection?.dispose();
 		this.collection = undefined;
 		this.registered = false;
@@ -213,13 +223,20 @@ async function promptAndConnect(
 function linkCancellation(
 	a: vscode.CancellationToken,
 	b: vscode.CancellationToken
-): vscode.CancellationToken {
+): { token: vscode.CancellationToken; dispose: () => void } {
 	const source = new vscode.CancellationTokenSource();
-	const forward = () => source.cancel();
-	a.onCancellationRequested(forward);
-	b.onCancellationRequested(forward);
+	const subs = [
+		a.onCancellationRequested(() => source.cancel()),
+		b.onCancellationRequested(() => source.cancel()),
+	];
 	if (a.isCancellationRequested || b.isCancellationRequested) {
 		source.cancel();
 	}
-	return source.token;
+	return {
+		token: source.token,
+		dispose: () => {
+			subs.forEach(s => s.dispose());
+			source.dispose();
+		},
+	};
 }

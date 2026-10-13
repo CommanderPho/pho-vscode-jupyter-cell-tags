@@ -8,6 +8,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	private pollTimer: ReturnType<typeof setInterval> | undefined;
 	private kernelStatusSub: vscode.Disposable | undefined;
 	private lastKernelStatus = '';
+	private attachedKernel: Kernel | undefined;
 
 	constructor(private readonly manager: DurableServerManager) {
 		this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 95);
@@ -100,10 +101,12 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	}
 
 	private attachKernelListener(kernel: Kernel): void {
-		if (this.lastKernelStatus === kernel.status && this.kernelStatusSub) {
+		if (this.attachedKernel === kernel && this.kernelStatusSub) {
+			this.lastKernelStatus = kernel.status;
 			return;
 		}
 		this.detachKernelListener();
+		this.attachedKernel = kernel;
 		this.lastKernelStatus = kernel.status;
 		this.kernelStatusSub = kernel.onDidChangeStatus(() => {
 			this.lastKernelStatus = kernel.status;
@@ -114,6 +117,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	private detachKernelListener(): void {
 		this.kernelStatusSub?.dispose();
 		this.kernelStatusSub = undefined;
+		this.attachedKernel = undefined;
 		this.lastKernelStatus = '';
 	}
 

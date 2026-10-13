@@ -89,9 +89,11 @@
 		"jupyter-cell-tags.showDebugExecutionMessages": true,
 		"jupyter-cell-tags.tagSortOrder": "creation-date",
 		"specstory.cloudSync.enabled": "never",
-		"jupyter-cell-tags.features.jumpbacks": true,
+		"jupyter-cell-tags.features.jumpbacks": false,
 		"jupyter-cell-tags.features.errorNavigation": true,
-		"jupyter-cell-tags.features.customOutline": true
+		"jupyter-cell-tags.features.customOutline": true,
+		"jupyter-cell-tags.features.gitDiff": false,
+		"jupyter-cell-tags.features.ringMeJupyter": false
 	},
 	"extensions": {
 		"recommendations": [

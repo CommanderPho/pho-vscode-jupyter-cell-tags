@@ -56,6 +56,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
+    private _updateTagsTimer: ReturnType<typeof setTimeout> | undefined;
+    private static readonly UPDATE_TAGS_DEBOUNCE_MS = 250;
     // private _sortMode: TagSortMode = TagSortMode.Alphabetical;
     // // Add a setter for the sort mode
     // public set sortMode(mode: TagSortMode) {
@@ -112,10 +114,34 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         await vscode.commands.executeCommand('setContext', 'jupyter:showAllTagsExplorer', true);
         log('Context set');
 
-        this._editorDisposables.push(vscode.workspace.onDidChangeNotebookDocument(e => {
-            this.updateTags(editor);
-        }));
+        this._editorDisposables.push(
+            vscode.workspace.onDidChangeNotebookDocument(e => {
+                if (e.notebook !== editor.notebook) {
+                    return;
+                }
+                if (!notebookChangeMayAffectTags(e)) {
+                    return;
+                }
+                this.scheduleUpdateTags(editor);
+            }),
+            { dispose: () => {
+                if (this._updateTagsTimer) {
+                    clearTimeout(this._updateTagsTimer);
+                    this._updateTagsTimer = undefined;
+                }
+            } }
+        );
         this.updateTags(editor);
+    }
+
+    private scheduleUpdateTags(editor: vscode.NotebookEditor): void {
+        if (this._updateTagsTimer) {
+            clearTimeout(this._updateTagsTimer);
+        }
+        this._updateTagsTimer = setTimeout(() => {
+            this._updateTagsTimer = undefined;
+            void this.updateTags(editor);
+        }, AllTagsTreeDataProvider.UPDATE_TAGS_DEBOUNCE_MS);
     }
 
     public changeSortOrder() {
@@ -924,4 +950,17 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+}
+
+/** True when a notebook change could alter the tags tree (skip output/execution-only noise). */
+function notebookChangeMayAffectTags(e: vscode.NotebookDocumentChangeEvent): boolean {
+    if (e.contentChanges.length > 0) {
+        return true;
+    }
+    for (const change of e.cellChanges) {
+        if (change.document || change.metadata) {
+            return true;
+        }
+    }
+    return false;
 }

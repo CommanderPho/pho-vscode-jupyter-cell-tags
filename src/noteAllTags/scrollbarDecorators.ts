@@ -6,104 +6,125 @@ import { log } from '../util/logging';
 
 /**
  * Manages scrollbar decorations for notebook cells based on their tags.
- * Shows colored markers in the scrollbar for cells with tags, and emphasizes
- * selected tags with thicker decorations and flash effects.
+ * Hot-path listeners are registered only while the feature is enabled.
  */
-export class ScrollbarDecoratorManager {
+export class ScrollbarDecoratorManager implements vscode.Disposable {
     private static readonly FLASH_COUNT = 3;
     private static readonly FLASH_DURATION_MS = 150;
+    private static readonly UPDATE_DEBOUNCE_MS = 200;
 
     private decorationTypes: Map<string, vscode.TextEditorDecorationType> = new Map();
     private emphasisDecorationType: vscode.TextEditorDecorationType | undefined;
     private currentNotebook: vscode.NotebookDocument | undefined;
-    private isEnabled: boolean = true;
+    private isEnabled: boolean = false;
     private selectedTag: string | undefined;
-    private disposables: vscode.Disposable[] = [];
+    private readonly configDisposables: vscode.Disposable[] = [];
+    private hotDisposables: vscode.Disposable[] = [];
+    private updateTimer: ReturnType<typeof setTimeout> | undefined;
+    private disposed = false;
 
-    constructor(context: vscode.ExtensionContext) {
-        // Read configuration
-        this.updateConfiguration();
-
-        // Listen for configuration changes
-        this.disposables.push(
+    constructor(_context: vscode.ExtensionContext) {
+        this.configDisposables.push(
             vscode.workspace.onDidChangeConfiguration(e => {
                 if (
                     e.affectsConfiguration('jupyter-cell-tags.scrollbarDecorators.enabled') ||
                     e.affectsConfiguration('jupyter-cell-tags.features.scrollbarDecorators')
                 ) {
-                    this.updateConfiguration();
+                    this.syncEnabledState();
                 }
             })
         );
+        this.syncEnabledState();
+    }
 
-        // Listen for notebook changes
-        this.disposables.push(
+    private syncEnabledState(): void {
+        if (this.disposed) {
+            return;
+        }
+        const wantEnabled = isFeatureEnabled('scrollbarDecorators');
+        if (wantEnabled === this.isEnabled && (wantEnabled ? this.hotDisposables.length > 0 : this.hotDisposables.length === 0)) {
+            return;
+        }
+
+        if (wantEnabled) {
+            this.isEnabled = true;
+            this.attachHotListeners();
+            if (vscode.window.activeNotebookEditor?.notebook.notebookType === 'jupyter-notebook') {
+                this.currentNotebook = vscode.window.activeNotebookEditor.notebook;
+            }
+            this.scheduleUpdateAllDecorations();
+            log('Scrollbar decorators enabled');
+        } else {
+            this.isEnabled = false;
+            this.detachHotListeners();
+            this.clearAllDecorations();
+            this.currentNotebook = undefined;
+            log('Scrollbar decorators disabled (hot listeners disposed)');
+        }
+    }
+
+    private attachHotListeners(): void {
+        this.detachHotListeners();
+        this.hotDisposables.push(
             vscode.window.onDidChangeActiveNotebookEditor(editor => {
                 if (editor && editor.notebook.notebookType === 'jupyter-notebook') {
                     this.currentNotebook = editor.notebook;
-                    this.updateAllDecorations();
+                    this.scheduleUpdateAllDecorations();
                 } else {
                     this.currentNotebook = undefined;
                     this.clearAllDecorations();
                 }
-            })
-        );
-
-        this.disposables.push(
+            }),
             vscode.workspace.onDidChangeNotebookDocument(e => {
-                if (this.currentNotebook && e.notebook.uri.toString() === this.currentNotebook.uri.toString()) {
-                    this.updateAllDecorations();
+                if (!this.currentNotebook || e.notebook.uri.toString() !== this.currentNotebook.uri.toString()) {
+                    return;
                 }
-            })
-        );
-
-        // Listen for visible text editors changing (important for applying decorations to newly visible cells)
-        this.disposables.push(
+                // Skip output/execution-only noise when tags cannot have changed
+                if (!notebookChangeMayAffectTags(e)) {
+                    return;
+                }
+                this.scheduleUpdateAllDecorations();
+            }),
             vscode.window.onDidChangeVisibleTextEditors(() => {
-                if (this.isEnabled) {
-                    this.updateAllDecorations();
-                }
+                this.scheduleUpdateAllDecorations();
             })
         );
-
-        // Initialize with current notebook if available
-        if (vscode.window.activeNotebookEditor?.notebook.notebookType === 'jupyter-notebook') {
-            this.currentNotebook = vscode.window.activeNotebookEditor.notebook;
-            this.updateAllDecorations();
-        }
     }
 
-    private updateConfiguration(): void {
-        const wasEnabled = this.isEnabled;
-        this.isEnabled = isFeatureEnabled('scrollbarDecorators');
-
-        if (wasEnabled && !this.isEnabled) {
-            // Feature was disabled, clear decorations
-            this.clearAllDecorations();
-        } else if (!wasEnabled && this.isEnabled) {
-            // Feature was enabled, update decorations
-            this.updateAllDecorations();
+    private detachHotListeners(): void {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = undefined;
         }
+        this.hotDisposables.forEach(d => d.dispose());
+        this.hotDisposables = [];
     }
 
-    /**
-     * Gets or creates a decoration type for a tag with the specified color.
-     */
+    private scheduleUpdateAllDecorations(): void {
+        if (!this.isEnabled) {
+            return;
+        }
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+        }
+        this.updateTimer = setTimeout(() => {
+            this.updateTimer = undefined;
+            this.updateAllDecorations();
+        }, ScrollbarDecoratorManager.UPDATE_DEBOUNCE_MS);
+    }
+
     private getOrCreateDecorationType(tag: string, color: string, isEmphasis: boolean = false): vscode.TextEditorDecorationType {
         if (isEmphasis) {
-            // Create temporary emphasis decoration (thicker)
             return vscode.window.createTextEditorDecorationType({
                 overviewRulerColor: color,
                 overviewRulerLane: vscode.OverviewRulerLane.Full,
             });
         }
 
-        // Return existing decoration if available
         if (this.decorationTypes.has(tag)) {
             return this.decorationTypes.get(tag)!;
         }
 
-        // Create new decoration type
         const decorationType = vscode.window.createTextEditorDecorationType({
             overviewRulerColor: color,
             overviewRulerLane: vscode.OverviewRulerLane.Center,
@@ -113,42 +134,32 @@ export class ScrollbarDecoratorManager {
         return decorationType;
     }
 
-    /**
-     * Generates a color for a tag based on its properties or a hash of its name.
-     */
     private getColorForTag(tag: string): string {
         if (!this.currentNotebook) {
             return this.hashStringToColor(tag);
         }
 
-        // Try to get color from tag properties
         const properties = TagPropertiesManager.getTagProperties(this.currentNotebook, tag);
         if (properties?.color) {
             return properties.color;
         }
 
-        // Fall back to hash-based color
         return this.hashStringToColor(tag);
     }
 
-    /**
-     * Generates a color from a string using a simple hash function.
-     */
     private hashStringToColor(str: string): string {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
             hash = str.charCodeAt(i) + ((hash << 5) - hash);
         }
 
-        // Generate RGB values with good saturation and brightness
         const r = Math.abs((hash >> 0) & 0xFF);
         const g = Math.abs((hash >> 8) & 0xFF);
         const b = Math.abs((hash >> 16) & 0xFF);
 
-        // Ensure colors are vibrant (adjust saturation and brightness)
         const hsl = this.rgbToHsl(r, g, b);
-        hsl.s = Math.max(0.5, hsl.s); // Minimum 50% saturation
-        hsl.l = Math.min(0.7, Math.max(0.4, hsl.l)); // Keep lightness between 40-70%
+        hsl.s = Math.max(0.5, hsl.s);
+        hsl.l = Math.min(0.7, Math.max(0.4, hsl.l));
 
         const rgb = this.hslToRgb(hsl.h, hsl.s, hsl.l);
         return this.rgbToHex(rgb.r, rgb.g, rgb.b);
@@ -188,17 +199,17 @@ export class ScrollbarDecoratorManager {
             const hue2rgb = (p: number, q: number, t: number) => {
                 if (t < 0) t += 1;
                 if (t > 1) t -= 1;
-                if (t < 1/6) return p + (q - p) * 6 * t;
-                if (t < 1/2) return q;
-                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                if (t < 1 / 6) return p + (q - p) * 6 * t;
+                if (t < 1 / 2) return q;
+                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
                 return p;
             };
 
             const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
             const p = 2 * l - q;
-            r = hue2rgb(p, q, h + 1/3);
+            r = hue2rgb(p, q, h + 1 / 3);
             g = hue2rgb(p, q, h);
-            b = hue2rgb(p, q, h - 1/3);
+            b = hue2rgb(p, q, h - 1 / 3);
         }
 
         return {
@@ -208,9 +219,6 @@ export class ScrollbarDecoratorManager {
         };
     }
 
-    /**
-     * Updates all decorations for the current notebook.
-     */
     private updateAllDecorations(): void {
         if (!this.isEnabled || !this.currentNotebook) {
             return;
@@ -219,11 +227,10 @@ export class ScrollbarDecoratorManager {
         const notebook = this.currentNotebook;
         const tagToCells: Map<string, number[]> = new Map();
 
-        // Collect all tags and their cell indices
         for (let i = 0; i < notebook.cellCount; i++) {
             const cell = notebook.cellAt(i);
             const tags = getCellTags(cell);
-            
+
             tags.forEach(tag => {
                 if (!tagToCells.has(tag)) {
                     tagToCells.set(tag, []);
@@ -232,12 +239,10 @@ export class ScrollbarDecoratorManager {
             });
         }
 
-        // Apply decorations for each tag
         tagToCells.forEach((cellIndices, tag) => {
             this.updateDecorationsForTag(tag, cellIndices);
         });
 
-        // Remove decorations for tags that no longer exist
         const currentTags = Array.from(tagToCells.keys());
         this.decorationTypes.forEach((_, tag) => {
             if (!currentTags.includes(tag)) {
@@ -246,9 +251,6 @@ export class ScrollbarDecoratorManager {
         });
     }
 
-    /**
-     * Updates decorations for a specific tag.
-     */
     private updateDecorationsForTag(tag: string, cellIndices: number[]): void {
         if (!this.currentNotebook) {
             return;
@@ -256,17 +258,15 @@ export class ScrollbarDecoratorManager {
 
         const color = this.getColorForTag(tag);
         const decorationType = this.getOrCreateDecorationType(tag, color);
-        
-        // Apply decorations to all text editors for cells with this tag
+
         const notebook = this.currentNotebook;
+        const uriToEditor = new Map(
+            vscode.window.visibleTextEditors.map(e => [e.document.uri.toString(), e] as const)
+        );
+
         cellIndices.forEach(cellIndex => {
             const cell = notebook.cellAt(cellIndex);
-            const cellUri = cell.document.uri.toString();
-            
-            // Find the text editor for this cell
-            const textEditor = vscode.window.visibleTextEditors.find(
-                e => e.document.uri.toString() === cellUri
-            );
+            const textEditor = uriToEditor.get(cell.document.uri.toString());
 
             if (textEditor) {
                 const fullRange = this.getCellFullRange(textEditor.document);
@@ -275,9 +275,6 @@ export class ScrollbarDecoratorManager {
         });
     }
 
-    /**
-     * Clears decorations for a specific tag.
-     */
     private clearDecorationsForTag(tag: string): void {
         const decorationType = this.decorationTypes.get(tag);
         if (decorationType) {
@@ -286,9 +283,6 @@ export class ScrollbarDecoratorManager {
         }
     }
 
-    /**
-     * Clears all decorations.
-     */
     private clearAllDecorations(): void {
         this.decorationTypes.forEach(decorationType => {
             decorationType.dispose();
@@ -301,9 +295,6 @@ export class ScrollbarDecoratorManager {
         }
     }
 
-    /**
-     * Emphasizes decorations for a selected tag with thicker markers and flash effect.
-     */
     public async emphasizeTag(tag: string): Promise<void> {
         if (!this.isEnabled || !this.currentNotebook) {
             return;
@@ -313,7 +304,6 @@ export class ScrollbarDecoratorManager {
         const notebook = this.currentNotebook;
         const cellIndices: number[] = [];
 
-        // Find all cells with this tag
         for (let i = 0; i < notebook.cellCount; i++) {
             const cell = notebook.cellAt(i);
             const tags = getCellTags(cell);
@@ -327,20 +317,11 @@ export class ScrollbarDecoratorManager {
         }
 
         const color = this.getColorForTag(tag);
-
-        // Create emphasis decoration (thicker)
         const emphasisDecoType = this.getOrCreateDecorationType(tag, color, true);
-
-        // Apply flash effect
         await this.flashDecorations(cellIndices, emphasisDecoType);
-
-        // Dispose emphasis decoration after flash
         emphasisDecoType.dispose();
     }
 
-    /**
-     * Clears emphasis on the currently selected tag.
-     */
     public clearEmphasis(): void {
         if (this.emphasisDecorationType) {
             this.emphasisDecorationType.dispose();
@@ -349,9 +330,6 @@ export class ScrollbarDecoratorManager {
         this.selectedTag = undefined;
     }
 
-    /**
-     * Gets the text editor for a specific cell by index.
-     */
     private getTextEditorForCell(cellIndex: number): vscode.TextEditor | undefined {
         if (!this.currentNotebook) {
             return undefined;
@@ -364,9 +342,6 @@ export class ScrollbarDecoratorManager {
         );
     }
 
-    /**
-     * Applies a flash effect to decorations.
-     */
     private async flashDecorations(
         cellIndices: number[],
         decorationType: vscode.TextEditorDecorationType
@@ -376,7 +351,6 @@ export class ScrollbarDecoratorManager {
         }
 
         for (let i = 0; i < ScrollbarDecoratorManager.FLASH_COUNT; i++) {
-            // Show emphasis
             cellIndices.forEach(cellIndex => {
                 const textEditor = this.getTextEditorForCell(cellIndex);
                 if (textEditor) {
@@ -387,7 +361,6 @@ export class ScrollbarDecoratorManager {
 
             await this.delay(ScrollbarDecoratorManager.FLASH_DURATION_MS);
 
-            // Hide emphasis
             cellIndices.forEach(cellIndex => {
                 const textEditor = this.getTextEditorForCell(cellIndex);
                 if (textEditor) {
@@ -412,7 +385,22 @@ export class ScrollbarDecoratorManager {
     }
 
     public dispose(): void {
+        this.disposed = true;
+        this.detachHotListeners();
         this.clearAllDecorations();
-        this.disposables.forEach(d => d.dispose());
+        this.configDisposables.forEach(d => d.dispose());
     }
+}
+
+/** True when notebook change could alter cell tags or structure used by scrollbar markers. */
+function notebookChangeMayAffectTags(e: vscode.NotebookDocumentChangeEvent): boolean {
+    if (e.contentChanges.length > 0) {
+        return true;
+    }
+    for (const change of e.cellChanges) {
+        if (change.document || change.metadata) {
+            return true;
+        }
+    }
+    return false;
 }

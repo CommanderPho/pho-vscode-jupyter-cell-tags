@@ -35,6 +35,9 @@ export class DurableServerManager implements vscode.Disposable {
 	private managed: DurableServerRecord | undefined;
 	private connected: DurableServerRecord[] = [];
 	private lastHealth = new Map<string, ServerHealth>();
+	/** Consecutive failed probes per server id (cleared on success). */
+	private consecutiveProbeFailures = new Map<string, number>();
+	private static readonly PROBE_FAILURES_BEFORE_CLEAR = 3;
 	private starting: Promise<DurableServerRecord> | undefined;
 	private output: vscode.OutputChannel;
 
@@ -256,6 +259,7 @@ export class DurableServerManager implements vscode.Disposable {
 				'jupyter_server',
 				'--no-browser',
 				`--port=${port}`,
+				'--port-retries=0',
 				`--ServerApp.token=${token}`,
 				'--ServerApp.open_browser=False',
 			],
@@ -268,6 +272,7 @@ export class DurableServerManager implements vscode.Disposable {
 				'notebook',
 				'--no-browser',
 				`--port=${port}`,
+				'--port-retries=0',
 				`--ServerApp.token=${token}`,
 				'--ServerApp.open_browser=False',
 			],
@@ -464,10 +469,24 @@ export class DurableServerManager implements vscode.Disposable {
 				changed = true;
 				this.append(`Health ${s.label}: ${next}`);
 			}
-			if (!ok && s.managed && this.managed?.id === s.id) {
-				this.managed = undefined;
-				await this.context.globalState.update(GLOBAL_STATE_KEY, undefined);
-				changed = true;
+			if (ok) {
+				this.consecutiveProbeFailures.set(s.id, 0);
+			} else {
+				const failures = (this.consecutiveProbeFailures.get(s.id) ?? 0) + 1;
+				this.consecutiveProbeFailures.set(s.id, failures);
+				if (
+					s.managed &&
+					this.managed?.id === s.id &&
+					failures >= DurableServerManager.PROBE_FAILURES_BEFORE_CLEAR
+				) {
+					this.append(
+						`Managed server ${s.label} failed ${failures} consecutive health probes; clearing registration (process may still be alive)`
+					);
+					this.managed = undefined;
+					this.consecutiveProbeFailures.delete(s.id);
+					await this.context.globalState.update(GLOBAL_STATE_KEY, undefined);
+					changed = true;
+				}
 			}
 		}
 		if (changed) {
@@ -505,8 +524,21 @@ export class DurableServerManager implements vscode.Disposable {
 	}
 }
 
+function processExists(pid: number): boolean {
+	try {
+		// Signal 0 tests existence without killing (works on Windows in modern Node).
+		process.kill(pid, 0);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 function tryKill(pid: number): void {
 	try {
+		if (!processExists(pid)) {
+			return;
+		}
 		if (process.platform === 'win32') {
 			spawn('taskkill', ['/PID', String(pid), '/T', '/F'], {
 				detached: true,

@@ -18,14 +18,26 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 	let reapplyTimer: ReturnType<typeof setTimeout> | undefined;
 	let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
-	const scheduleReapply = (notebook: vscode.NotebookDocument) => {
+	const scheduleReapply = (notebook: vscode.NotebookDocument, e?: vscode.NotebookDocumentChangeEvent) => {
 		if (!manager.isActive(notebook)) {
+			return;
+		}
+		if (manager.isApplying()) {
+			return;
+		}
+		if (manager.isSettling()) {
+			return;
+		}
+		if (e && !notebookChangeMayAffectFilter(e)) {
 			return;
 		}
 		if (reapplyTimer) {
 			clearTimeout(reapplyTimer);
 		}
 		reapplyTimer = setTimeout(() => {
+			if (manager.isApplying() || manager.isSettling()) {
+				return;
+			}
 			void manager.reapply(notebook).then(() => {
 				webviewProvider.postState(notebook);
 			});
@@ -67,7 +79,7 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument(e => {
-			scheduleReapply(e.notebook);
+			scheduleReapply(e.notebook, e);
 			if (vscode.window.activeNotebookEditor?.notebook === e.notebook) {
 				scheduleWebviewRefresh(e.notebook);
 			}
@@ -97,4 +109,15 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 	void manager.syncUi();
 	log('Notebook filter module activated.');
 	return manager;
+}
+
+/**
+ * Changes that can alter filter matches. Collapse self-churn is absorbed by
+ * NotebookFilterManager settle/applying gates rather than ignoring all metadata.
+ */
+function notebookChangeMayAffectFilter(e: vscode.NotebookDocumentChangeEvent): boolean {
+	if (e.contentChanges.length > 0) {
+		return true;
+	}
+	return e.cellChanges.length > 0;
 }

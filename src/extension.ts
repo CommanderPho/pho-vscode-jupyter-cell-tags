@@ -26,6 +26,7 @@ import { activateCellHistoryTracking } from './cellHistory/startup';
 import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
 import { activateRingMeJupyter } from './ringMeJupyter/startup';
 import { activateJupyterEnhancementsModule } from './jupyterEnhancements/startup';
+import { deactivateJupyterEnhancements } from './jupyterEnhancements/extension';
 import { activateGitDiffHighlighting } from './gitDiff/startup';
 import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
@@ -68,15 +69,19 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('jupyter-cell-tags.exportExecutedCodeToPython', exportExecutedCodeToPython)
     );
 	// Update context when the active editor or selection changes
-	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
-	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
-	vscode.window.onDidChangeActiveTextEditor(updateContext);
-	vscode.window.onDidChangeTextEditorSelection(updateContext);
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveNotebookEditor(updateContext),
+		vscode.window.onDidChangeNotebookEditorSelection(updateContext),
+		vscode.window.onDidChangeActiveTextEditor(updateContext),
+		vscode.window.onDidChangeTextEditorSelection(updateContext),
+	);
 
 	updateContext();
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
-    activateNotebookCellExecutionTracking(context);
+    if (isFeatureEnabled('cellExecutionTracking')) {
+        activateNotebookCellExecutionTracking(context);
+    }
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
     if (isFeatureEnabled('outlineSync')) {
@@ -86,7 +91,9 @@ export async function activate(context: vscode.ExtensionContext) {
         registerCustomOutline(context);
     }
     registerNavigationMenu(context);
-    activateCellHistoryTracking(context);
+    if (isFeatureEnabled('cellHistory')) {
+        activateCellHistoryTracking(context);
+    }
     registerCellMetadataDisplay(context);
     if (isFeatureEnabled('ringMeJupyter')) {
         activateRingMeJupyter(context);
@@ -156,4 +163,9 @@ function updateContext() {
 
 export function deactivate() {
     disposeCellHighlight();
+    try {
+        deactivateJupyterEnhancements();
+    } catch {
+        // Feature may not have been activated
+    }
 }

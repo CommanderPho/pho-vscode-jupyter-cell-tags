@@ -30,6 +30,21 @@ export class NotebookFilterManager {
 	private readonly statusBar: vscode.StatusBarItem;
 	private readonly decorators = new FilterScrollbarDecorators();
 	private applying = false;
+	/** Ignore reapply triggers briefly after apply/clear to absorb collapse metadata events. */
+	private settleUntil = 0;
+	private static readonly SETTLE_MS = 400;
+
+	isApplying(): boolean {
+		return this.applying;
+	}
+
+	isSettling(): boolean {
+		return Date.now() < this.settleUntil;
+	}
+
+	private beginSettle(): void {
+		this.settleUntil = Date.now() + NotebookFilterManager.SETTLE_MS;
+	}
 
 	constructor() {
 		this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 90);
@@ -142,6 +157,7 @@ export class NotebookFilterManager {
 			return { matchCount: state.matchCount, totalCount: state.totalCount };
 		} finally {
 			this.applying = false;
+			this.beginSettle();
 		}
 	}
 
@@ -178,11 +194,12 @@ export class NotebookFilterManager {
 			log('Notebook filter cleared');
 		} finally {
 			this.applying = false;
+			this.beginSettle();
 		}
 	}
 
 	async reapply(notebook: vscode.NotebookDocument): Promise<void> {
-		if (this.applying) {
+		if (this.applying || this.isSettling()) {
 			return;
 		}
 		const criteria = this.getCriteria(notebook);
