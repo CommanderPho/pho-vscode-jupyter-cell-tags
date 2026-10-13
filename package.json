@@ -74,7 +74,8 @@
 		"onCommand:jupyter-cell-tags.dependencyChain.clearHighlights",
 		"onView:dependency-chain-view",
 		"onCommand:jupyter-cell-tags.notebookFilter.set",
-		"onCommand:jupyter-cell-tags.notebookFilter.clear"
+		"onCommand:jupyter-cell-tags.notebookFilter.clear",
+		"onView:notebook-cell-filter-view"
 	],
 	"repository": {
 		"type": "git",
@@ -1165,6 +1166,14 @@
 					"contextualTitle": "Dependency Chain",
 					"type": "tree",
 					"icon": "$(type-hierarchy)",
+					"when": "jupyter-cell-tags.notebookActive"
+				},
+				{
+					"id": "notebook-cell-filter-view",
+					"name": "Notebook Cell Filter",
+					"contextualTitle": "Notebook Cell Filter",
+					"type": "webview",
+					"icon": "$(filter)",
 					"when": "jupyter-cell-tags.notebookActive"
 				}
 			]

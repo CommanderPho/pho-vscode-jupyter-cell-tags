@@ -1,13 +1,23 @@
 import * as vscode from 'vscode';
 import { log } from '../util/logging';
 import { NotebookFilterManager } from './NotebookFilterManager';
-import { promptForFilterCriteria } from './filterQuickPick';
+import {
+	NOTEBOOK_CELL_FILTER_VIEW_ID,
+	NotebookFilterWebviewProvider
+} from './filterWebviewProvider';
 
 export function activateNotebookFilter(context: vscode.ExtensionContext): NotebookFilterManager {
 	const manager = new NotebookFilterManager();
+	const webviewProvider = new NotebookFilterWebviewProvider(manager);
 	context.subscriptions.push({ dispose: () => manager.dispose() });
 
+	context.subscriptions.push(
+		vscode.window.registerWebviewViewProvider(NOTEBOOK_CELL_FILTER_VIEW_ID, webviewProvider)
+	);
+
 	let reapplyTimer: ReturnType<typeof setTimeout> | undefined;
+	let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+
 	const scheduleReapply = (notebook: vscode.NotebookDocument) => {
 		if (!manager.isActive(notebook)) {
 			return;
@@ -16,7 +26,18 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 			clearTimeout(reapplyTimer);
 		}
 		reapplyTimer = setTimeout(() => {
-			void manager.reapply(notebook);
+			void manager.reapply(notebook).then(() => {
+				webviewProvider.postState(notebook);
+			});
+		}, 150);
+	};
+
+	const scheduleWebviewRefresh = (notebook?: vscode.NotebookDocument) => {
+		if (refreshTimer) {
+			clearTimeout(refreshTimer);
+		}
+		refreshTimer = setTimeout(() => {
+			webviewProvider.postState(notebook);
 		}, 150);
 	};
 
@@ -27,12 +48,7 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 				vscode.window.showWarningMessage('Open a Jupyter notebook to filter cells.');
 				return;
 			}
-			const criteria = await promptForFilterCriteria();
-			if (!criteria) {
-				return;
-			}
-			const { matchCount, totalCount } = await manager.apply(editor.notebook, criteria);
-			vscode.window.setStatusBarMessage(`Showing ${matchCount}/${totalCount} cells`, 3000);
+			await vscode.commands.executeCommand(`${NOTEBOOK_CELL_FILTER_VIEW_ID}.focus`);
 		})
 	);
 
@@ -45,21 +61,36 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 			}
 			await manager.clear(editor.notebook);
 			vscode.window.setStatusBarMessage('Notebook cell filter cleared', 2000);
+			webviewProvider.postState(editor.notebook);
 		})
 	);
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument(e => {
 			scheduleReapply(e.notebook);
+			if (vscode.window.activeNotebookEditor?.notebook === e.notebook) {
+				scheduleWebviewRefresh(e.notebook);
+			}
 		}),
 		vscode.window.onDidChangeActiveNotebookEditor(async editor => {
 			await manager.syncUi(editor?.notebook);
+			webviewProvider.postState(editor?.notebook);
 		}),
 		vscode.workspace.onDidCloseNotebookDocument(notebook => {
 			manager.forget(notebook);
 			void manager.syncUi();
+			webviewProvider.postState();
 		}),
-		{ dispose: () => { if (reapplyTimer) { clearTimeout(reapplyTimer); } } }
+		{
+			dispose: () => {
+				if (reapplyTimer) {
+					clearTimeout(reapplyTimer);
+				}
+				if (refreshTimer) {
+					clearTimeout(refreshTimer);
+				}
+			}
+		}
 	);
 
 	void manager.syncUi();

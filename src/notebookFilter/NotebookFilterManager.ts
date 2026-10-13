@@ -45,6 +45,24 @@ export class NotebookFilterManager {
 		return isFilterActive(this.getCriteria(notebook));
 	}
 
+	/** Snapshot for sidebar webview sync. */
+	getUiSnapshot(notebook?: vscode.NotebookDocument): {
+		criteria: NotebookFilterCriteria;
+		matchCount?: number;
+		totalCount?: number;
+		filterActive: boolean;
+	} {
+		const active = notebook ?? vscode.window.activeNotebookEditor?.notebook;
+		const state = active ? this.states.get(active.uri.toString()) : undefined;
+		const criteria = state?.criteria ?? {};
+		return {
+			criteria,
+			matchCount: state?.matchCount,
+			totalCount: state?.totalCount,
+			filterActive: !!state && isFilterActive(state.criteria)
+		};
+	}
+
 	async apply(notebook: vscode.NotebookDocument, criteria: NotebookFilterCriteria): Promise<{ matchCount: number; totalCount: number }> {
 		if (!isFilterActive(criteria)) {
 			await this.clear(notebook);
