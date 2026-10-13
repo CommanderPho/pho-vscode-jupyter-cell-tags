@@ -5,6 +5,7 @@ import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from './models';
 import { UpdateCoordinator } from './UpdateCoordinator';
 import { OutlineSelectionSync } from './OutlineSelectionSync';
 import { getSelectionDetector, getSyncManager } from '../outlineSync/startup';
+import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 /**
@@ -12,7 +13,7 @@ import { log } from '../util/logging';
  */
 export function registerCustomOutline(context: vscode.ExtensionContext): void {
     const customOutlineConfig = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
-    const enabled = customOutlineConfig.get<boolean>('enabled', true);
+    const enabled = isFeatureEnabled('customOutline');
     const debounceMs = customOutlineConfig.get<number>('updateDebounceMs', 200);
 
     if (!enabled) {
@@ -52,12 +53,15 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Configuration change handling for customOutline.*
+    // Configuration change handling for customOutline.* / features.customOutline
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('jupyter-cell-tags.customOutline')) {
+            if (
+                e.affectsConfiguration('jupyter-cell-tags.customOutline') ||
+                e.affectsConfiguration('jupyter-cell-tags.features.customOutline')
+            ) {
                 const cfg = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
-                const newEnabled = cfg.get<boolean>('enabled', true);
+                const newEnabled = isFeatureEnabled('customOutline');
                 const newDebounce = cfg.get<number>('updateDebounceMs', debounceMs);
 
                 if (!newEnabled) {

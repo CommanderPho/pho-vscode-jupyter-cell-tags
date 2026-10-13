@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getCellTags } from '../helper';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
+import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 /**
@@ -26,7 +27,10 @@ export class ScrollbarDecoratorManager {
         // Listen for configuration changes
         this.disposables.push(
             vscode.workspace.onDidChangeConfiguration(e => {
-                if (e.affectsConfiguration('jupyter-cell-tags.scrollbarDecorators.enabled')) {
+                if (
+                    e.affectsConfiguration('jupyter-cell-tags.scrollbarDecorators.enabled') ||
+                    e.affectsConfiguration('jupyter-cell-tags.features.scrollbarDecorators')
+                ) {
                     this.updateConfiguration();
                 }
             })
@@ -70,9 +74,8 @@ export class ScrollbarDecoratorManager {
     }
 
     private updateConfiguration(): void {
-        const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
         const wasEnabled = this.isEnabled;
-        this.isEnabled = config.get<boolean>('scrollbarDecorators.enabled', true);
+        this.isEnabled = isFeatureEnabled('scrollbarDecorators');
 
         if (wasEnabled && !this.isEnabled) {
             // Feature was disabled, clear decorations

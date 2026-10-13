@@ -13,11 +13,14 @@ import {
 	expandCellInputs,
 	expandCellOutputs
 } from './collapseCommands';
+import { FilterScrollbarDecorators } from './filterDecorators';
 
 type NotebookFilterState = {
 	criteria: NotebookFilterCriteria;
 	/** Indices we collapsed as part of the current filter application. */
 	collapsedByFilter: Set<number>;
+	/** Indices that matched the filter (for scrollbar decorations). */
+	matchedByFilter: Set<number>;
 	matchCount: number;
 	totalCount: number;
 };
@@ -25,6 +28,7 @@ type NotebookFilterState = {
 export class NotebookFilterManager {
 	private readonly states = new Map<string, NotebookFilterState>();
 	private readonly statusBar: vscode.StatusBarItem;
+	private readonly decorators = new FilterScrollbarDecorators();
 	private applying = false;
 
 	constructor() {
@@ -33,6 +37,7 @@ export class NotebookFilterManager {
 	}
 
 	dispose(): void {
+		this.decorators.dispose();
 		this.statusBar.dispose();
 		this.states.clear();
 	}
@@ -43,6 +48,11 @@ export class NotebookFilterManager {
 
 	isActive(notebook: vscode.NotebookDocument): boolean {
 		return isFilterActive(this.getCriteria(notebook));
+	}
+
+	getMatchedIndices(notebook: vscode.NotebookDocument): number[] {
+		const state = this.states.get(notebook.uri.toString());
+		return state ? [...state.matchedByFilter].sort((a, b) => a - b) : [];
 	}
 
 	/** Snapshot for sidebar webview sync. */
@@ -101,6 +111,7 @@ export class NotebookFilterManager {
 			const state: NotebookFilterState = {
 				criteria,
 				collapsedByFilter: new Set(collapseIndices),
+				matchedByFilter: new Set(matchIndices),
 				matchCount: matchIndices.length,
 				totalCount: cells.length
 			};
@@ -116,6 +127,10 @@ export class NotebookFilterManager {
 	/** Drop filter state without expanding (e.g. notebook closed). */
 	forget(notebook: vscode.NotebookDocument): void {
 		this.states.delete(notebook.uri.toString());
+		const active = vscode.window.activeNotebookEditor?.notebook;
+		if (!active || active.uri.toString() === notebook.uri.toString()) {
+			this.decorators.clear();
+		}
 	}
 
 	async clear(notebook: vscode.NotebookDocument): Promise<void> {
@@ -163,12 +178,14 @@ export class NotebookFilterManager {
 
 		await vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.notebookFilter.active', isActive);
 
-		if (isActive && activeState) {
+		if (isActive && activeState && active) {
 			this.statusBar.text = `$(filter) ${activeState.matchCount}/${activeState.totalCount}`;
 			this.statusBar.tooltip = `Notebook filter active — ${summarizeCriteria(activeState.criteria)}\nClick to clear`;
 			this.statusBar.show();
+			this.decorators.update(active, [...activeState.matchedByFilter]);
 		} else {
 			this.statusBar.hide();
+			this.decorators.clear();
 		}
 	}
 }

@@ -12,6 +12,7 @@ import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { ScrollbarDecoratorManager } from './scrollbarDecorators';
+import { isFeatureEnabled } from '../util/featureFlags';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -259,10 +260,10 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     
-    // Read outline sync configuration from VS Code settings
+    // Read outline sync configuration from VS Code settings (features.outlineSync is the master switch)
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
     const outlineSyncConfig = {
-        enabled: config.get<boolean>('outlineSync.enabled', true),
+        enabled: isFeatureEnabled('outlineSync'),
         debounceMs: config.get<number>('outlineSync.debounceMs', 100)
     };
     
@@ -273,10 +274,13 @@ export function register(context: vscode.ExtensionContext) {
     // Listen for configuration changes and update sync manager / hot-color fade
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('jupyter-cell-tags.outlineSync')) {
+            if (
+                e.affectsConfiguration('jupyter-cell-tags.outlineSync') ||
+                e.affectsConfiguration('jupyter-cell-tags.features.outlineSync')
+            ) {
                 const updatedConfig = vscode.workspace.getConfiguration('jupyter-cell-tags');
                 const newConfig = {
-                    enabled: updatedConfig.get<boolean>('outlineSync.enabled', true),
+                    enabled: isFeatureEnabled('outlineSync'),
                     debounceMs: updatedConfig.get<number>('outlineSync.debounceMs', 100)
                 };
                 outlineSyncManager.updateConfig(newConfig);

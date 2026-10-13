@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { getAllTagsFromActiveNotebook } from '../util/notebookSelection';
 import { isFilterActive, NotebookFilterCriteria } from './filterCriteria';
+import { FILTER_ACCENT_CSS } from './filterDecorators';
 import { NotebookFilterManager } from './NotebookFilterManager';
 
 export const NOTEBOOK_CELL_FILTER_VIEW_ID = 'notebook-cell-filter-view';
@@ -111,6 +112,10 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Notebook Cell Filter</title>
 	<style>
+		:root {
+			--filter-accent: ${FILTER_ACCENT_CSS};
+			--filter-accent-hover: #ffb733;
+		}
 		body {
 			font-family: var(--vscode-font-family);
 			font-size: var(--vscode-font-size);
@@ -118,6 +123,10 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 			background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
 			padding: 12px;
 			margin: 0;
+			border-left: 3px solid transparent;
+		}
+		body.filter-active {
+			border-left-color: var(--filter-accent);
 		}
 		h2 {
 			font-size: 11px;
@@ -156,8 +165,10 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		}
 		.radios {
 			display: flex;
-			flex-direction: column;
-			gap: 4px;
+			flex-direction: row;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 10px 14px;
 		}
 		.actions {
 			display: flex;
@@ -174,11 +185,13 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 			cursor: pointer;
 		}
 		button.primary {
-			background: var(--vscode-button-background);
-			color: var(--vscode-button-foreground);
+			background: var(--filter-accent);
+			color: #1a1a1a;
+			border-color: var(--filter-accent);
 		}
 		button.primary:hover {
-			background: var(--vscode-button-hoverBackground);
+			background: var(--filter-accent-hover);
+			border-color: var(--filter-accent-hover);
 		}
 		button.secondary {
 			background: var(--vscode-button-secondaryBackground);
@@ -197,8 +210,12 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 			font-size: 12px;
 			min-height: 1.2em;
 		}
+		.status.active {
+			color: var(--filter-accent);
+			font-weight: 600;
+		}
 		input[type="checkbox"], input[type="radio"] {
-			accent-color: var(--vscode-focusBorder);
+			accent-color: var(--filter-accent);
 		}
 	</style>
 </head>
@@ -307,6 +324,8 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 			else if (c.executed === false) { setRadio('executed', 'no'); }
 			else { setRadio('executed', 'any'); }
 			clearBtn.disabled = !msg.filterActive;
+			document.body.classList.toggle('filter-active', !!msg.filterActive);
+			statusEl.classList.toggle('active', !!msg.filterActive);
 			if (msg.filterActive && msg.matchCount != null && msg.totalCount != null) {
 				statusEl.textContent = 'Showing ' + msg.matchCount + '/' + msg.totalCount + ' cells';
 			} else {
