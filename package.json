@@ -1092,14 +1092,14 @@
 					"when": "jupyter:showAllTagsExplorer && jupyter-cell-tags.notebookActive",
 					"visibility": "collapsed"
 				},
-			{
-				"id": "jumpbacks",
-				"name": "Jumpbacks",
-				"contextualTitle": "Notebook Jumpbacks",
-				"type": "tree",
-				"icon": "$(bookmark)",
-				"when": "config.jupyter-cell-tags.enableJumpbacks && jupyter-cell-tags.jumpbackTargetActive"
-			},
+				{
+					"id": "jumpbacks",
+					"name": "Jumpbacks",
+					"contextualTitle": "Notebook Jumpbacks",
+					"type": "tree",
+					"icon": "$(bookmark)",
+					"when": "config.jupyter-cell-tags.enableJumpbacks && jupyter-cell-tags.jumpbackTargetActive"
+				},
 				{
 					"id": "custom-notebook-outline",
 					"name": "★ Custom NB Outline",
@@ -1247,5 +1247,9 @@
 	},
 	"extensionDependencies": [
 		"ms-toolsai.jupyter"
-	]
+	],
+	"allowScripts": {
+		"keytar@7.9.0": true,
+		"@vscode/vsce-sign@2.1.0": true
+	}
 }
