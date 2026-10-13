@@ -16,7 +16,7 @@ todos:
     status: completed
   - id: wire-package
     content: Register commands, context keys, toolbar entries, activation in startup.ts + package.json + extension.ts
-    status: in_progress
+    status: completed
 isProject: false
 ---
 

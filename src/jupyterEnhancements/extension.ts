@@ -59,18 +59,24 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	const pollInterval = setInterval(checkForFinishedCells, 200);
 	context.subscriptions.push({ dispose: () => clearInterval(pollInterval) });
 
-	// 4. Global Event Listener
-	// Type definition for notebook execution state change event
-	interface NotebookCellExecutionStateChangeEvent {
-		cell: vscode.NotebookCell;
-		state: number; // 1 = idle, 3 = executing
-	}
-	
-	const notebooksAny = vscode.notebooks as any;
-	if (notebooksAny && typeof notebooksAny.onDidChangeNotebookCellExecutionState === 'function') {
-		context.subscriptions.push(notebooksAny.onDidChangeNotebookCellExecutionState((e: NotebookCellExecutionStateChangeEvent) => {
-			handleExecutionStateChange(e);
-		}));
+	// 4. Optional proposed-API listener (notebookCellExecutionState).
+	// Accessing the property throws if the proposal is not enabled — must be try/caught
+	// so the rest of the extension (and other modules) can still activate. The poller above covers the same cases.
+	try {
+		interface NotebookCellExecutionStateChangeEvent {
+			cell: vscode.NotebookCell;
+			state: number; // 1 = idle, 3 = executing
+		}
+		const notebooksAny = vscode.notebooks as any;
+		const onStateChange = notebooksAny?.onDidChangeNotebookCellExecutionState;
+		if (typeof onStateChange === 'function') {
+			context.subscriptions.push(onStateChange.call(notebooksAny, (e: NotebookCellExecutionStateChangeEvent) => {
+				handleExecutionStateChange(e);
+			}));
+			output.appendLine('[INFO] Using notebookCellExecutionState proposed API.');
+		}
+	} catch (err) {
+		output.appendLine(`[INFO] notebookCellExecutionState unavailable (using poller only): ${err}`);
 	}
 
 	// 5. Register Hijacks

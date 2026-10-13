@@ -72,10 +72,14 @@ export function activate(context: vscode.ExtensionContext) {
     activateCellHistoryTracking(context);
     registerCellMetadataDisplay(context);
     activateRingMeJupyter(context);
-    activateJupyterEnhancementsModule(context);
+    activateNotebookFilter(context);
+    try {
+        activateJupyterEnhancementsModule(context);
+    } catch (err) {
+        log(`Jupyter enhancements failed to activate (continuing): ${err}`);
+    }
     activateGitDiffHighlighting(context);
     activateDependencyChain(context);
-    activateNotebookFilter(context);
     log('Extension activated.');
 }
 
