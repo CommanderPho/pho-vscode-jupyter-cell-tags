@@ -28,6 +28,7 @@ import { activateRingMeJupyter } from './ringMeJupyter/startup';
 import { activateJupyterEnhancementsModule } from './jupyterEnhancements/startup';
 import { activateGitDiffHighlighting } from './gitDiff/startup';
 import { activateDependencyChain } from './dependencyChain/startup';
+import { activateNotebookFilter } from './notebookFilter/startup';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -74,6 +75,7 @@ export function activate(context: vscode.ExtensionContext) {
     activateJupyterEnhancementsModule(context);
     activateGitDiffHighlighting(context);
     activateDependencyChain(context);
+    activateNotebookFilter(context);
     log('Extension activated.');
 }
 

@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.6.9",
+	"version": "0.7.0",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -72,7 +72,9 @@
 		"onCommand:jupyter-cell-tags.exportExecutedCodeToPython",
 		"onCommand:jupyter-cell-tags.dependencyChain.showDependentCells",
 		"onCommand:jupyter-cell-tags.dependencyChain.clearHighlights",
-		"onView:dependency-chain-view"
+		"onView:dependency-chain-view",
+		"onCommand:jupyter-cell-tags.notebookFilter.set",
+		"onCommand:jupyter-cell-tags.notebookFilter.clear"
 	],
 	"repository": {
 		"type": "git",
@@ -668,6 +670,18 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.notebookFilter.set",
+				"title": "Filter Notebook Cells…",
+				"icon": "$(filter)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
+				"command": "jupyter-cell-tags.notebookFilter.clear",
+				"title": "Clear Notebook Cell Filter",
+				"icon": "$(filter-filled)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
 				"title": "Dependency Chain: Show Dependant Cells",
 				"icon": "$(type-hierarchy)",
@@ -755,6 +769,16 @@
 				{
 					"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
 					"when": "false"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.set",
+					"group": "Jupyter Cell Tags",
+					"when": "notebookType == jupyter-notebook"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.clear",
+					"group": "Jupyter Cell Tags",
+					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active"
 				},
 				{
 					"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
@@ -946,6 +970,16 @@
 					"command": "jupyter-cell-tags.gitDiff.highlightChangedCells",
 					"group": "navigation/execute@8",
 					"when": "notebookType == jupyter-notebook"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.set",
+					"group": "navigation/execute@9",
+					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.clear",
+					"group": "navigation/execute@9",
+					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active"
 				}
 			],
 			"notebook/cellGutter": [
