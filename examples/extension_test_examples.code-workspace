@@ -30,7 +30,6 @@
             "reloadButton": "↻",
             "loadNpmCommands": true
 		},
-		"jupyter-cell-tags.enableJumpbacks": true,
 		"workbench.tree.indent": 8,
 		"window.titleBarStyle": "custom",
 		"workbench.colorCustomizations": {
@@ -77,7 +76,6 @@
 			// "editorGutter.addedBackground": "#4caf50",
 			// "editorGutter.deletedBackground": "#ef5350"
 		},
-		"jupyter-cell-tags.customOutline.enabled": true,
 		"editor.fontSize": 11,
 		"files.exclude": {
 			"**/.specstory": true,
@@ -85,15 +83,16 @@
 		},
 		"jupyter-cell-tags.customOutline.showCellIndices": true,
 		"jupyter-cell-tags.debugPrint": true,
-		"jupyter-cell-tags.enableErrorNavigation": true,
-		"jupyter-cell-tags.showDebugExecutionMessages": true,
+		"jupyter-cell-tags.showDebugExecutionMessages": false,
 		"jupyter-cell-tags.tagSortOrder": "creation-date",
 		"specstory.cloudSync.enabled": "never",
 		"jupyter-cell-tags.features.jumpbacks": false,
 		"jupyter-cell-tags.features.errorNavigation": true,
 		"jupyter-cell-tags.features.customOutline": true,
 		"jupyter-cell-tags.features.gitDiff": false,
-		"jupyter-cell-tags.features.ringMeJupyter": false
+		"jupyter-cell-tags.features.ringMeJupyter": false,
+		"jupyter-cell-tags.customOutline.showExecutedCells": true,
+		"jupyter-cell-tags.features.durableKernel": true
 	},
 	"extensions": {
 		"recommendations": [
