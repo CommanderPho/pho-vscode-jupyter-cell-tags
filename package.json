@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -1146,12 +1146,12 @@
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
 					"group": "status@10",
-					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && (!jupyter-cell-tags.externalKernel.notebookHasKernel || !jupyter-cell-tags.externalKernel.running)"
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && !jupyter-cell-tags.externalKernel.healthy"
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.statusMenu",
 					"group": "status@10",
-					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && jupyter-cell-tags.externalKernel.notebookHasKernel && jupyter-cell-tags.externalKernel.running"
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && jupyter-cell-tags.externalKernel.healthy"
 				}
 			],
 			"notebook/cellGutter": [

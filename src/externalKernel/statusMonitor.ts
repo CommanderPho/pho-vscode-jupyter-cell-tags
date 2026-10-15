@@ -46,6 +46,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 
 		const servers = this.manager.getServers();
 		if (servers.length === 0) {
+			await this.syncHealthyContext(false);
 			this.statusBar.color = undefined;
 			this.statusBar.backgroundColor = undefined;
 			this.statusBar.hide();
@@ -54,14 +55,16 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 
 		const primary = this.manager.managedServer ?? servers[0];
 		const health = this.manager.getHealth(primary.id);
+		const healthy = health === 'up';
+		await this.syncHealthyContext(healthy);
 
 		const portPart = `:${primary.port}`;
 		const healthIcon =
-			health === 'up' ? '$(server-environment)' : health === 'down' ? '$(error)' : '$(question)';
-		const suffix = kernelLabel ? ` ${kernelLabel}` : health === 'up' ? '' : ` ${health}`;
+			healthy ? '$(server-environment)' : health === 'down' ? '$(error)' : '$(question)';
+		const suffix = kernelLabel ? ` ${kernelLabel}` : healthy ? '' : ` ${health}`;
 
 		this.statusBar.text = `${healthIcon} Durable ${portPart}${suffix}`;
-		if (health === 'up') {
+		if (healthy) {
 			this.statusBar.color = new vscode.ThemeColor('charts.green');
 			this.statusBar.backgroundColor = undefined;
 		} else {
@@ -88,6 +91,15 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 			'setContext',
 			'jupyter-cell-tags.externalKernel.notebookHasKernel',
 			hasKernel
+		);
+	}
+
+	/** Drives toolbar Select (red) ↔ Durable (green); matches status-bar health coloring. */
+	private async syncHealthyContext(healthy: boolean): Promise<void> {
+		await vscode.commands.executeCommand(
+			'setContext',
+			'jupyter-cell-tags.externalKernel.healthy',
+			healthy
 		);
 	}
 
