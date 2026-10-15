@@ -41,16 +41,17 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 
 	async refresh(): Promise<void> {
 		this.ensurePolling();
+		const kernelLabel = await this.resolveKernelStatusLabel();
+		await this.syncNotebookHasKernelContext(!!this.attachedKernel);
+
 		const servers = this.manager.getServers();
 		if (servers.length === 0) {
 			this.statusBar.hide();
-			this.detachKernelListener();
 			return;
 		}
 
 		const primary = this.manager.managedServer ?? servers[0];
 		const health = this.manager.getHealth(primary.id);
-		const kernelLabel = await this.resolveKernelStatusLabel();
 
 		const portPart = `:${primary.port}`;
 		const healthIcon =
@@ -73,6 +74,14 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 		this.statusBar.show();
 	}
 
+	private async syncNotebookHasKernelContext(hasKernel: boolean): Promise<void> {
+		await vscode.commands.executeCommand(
+			'setContext',
+			'jupyter-cell-tags.externalKernel.notebookHasKernel',
+			hasKernel
+		);
+	}
+
 	private async resolveKernelStatusLabel(): Promise<string> {
 		const editor = vscode.window.activeNotebookEditor;
 		if (!editor) {
@@ -83,6 +92,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 		try {
 			const ext = vscode.extensions.getExtension<Jupyter>('ms-toolsai.jupyter');
 			if (!ext) {
+				this.detachKernelListener();
 				return '';
 			}
 			if (!ext.isActive) {
@@ -96,6 +106,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 			this.attachKernelListener(kernel);
 			return kernel.status;
 		} catch {
+			this.detachKernelListener();
 			return '';
 		}
 	}

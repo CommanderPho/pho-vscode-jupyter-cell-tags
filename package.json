@@ -808,7 +808,9 @@
 			},
 			{
 				"command": "jupyter-cell-tags.externalKernel.statusMenu",
-				"title": "Durable Jupyter Status Menu",
+				"title": "Durable",
+				"shortTitle": "Durable",
+				"icon": "$(server-environment)",
 				"category": "Durable Jupyter"
 			}
 		],
@@ -1137,8 +1139,13 @@
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
-					"group": "navigation/execute@10",
-					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel"
+					"group": "status@-9",
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && !jupyter-cell-tags.externalKernel.notebookHasKernel"
+				},
+				{
+					"command": "jupyter-cell-tags.externalKernel.statusMenu",
+					"group": "status@-9",
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && jupyter-cell-tags.externalKernel.notebookHasKernel && jupyter-cell-tags.externalKernel.running"
 				}
 			],
 			"notebook/cellGutter": [
