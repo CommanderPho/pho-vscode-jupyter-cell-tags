@@ -105,10 +105,7 @@ export function executeNotebookCell(notebookCell: vscode.NotebookCell) {
 
     const cellRange = { start: notebookCell.index, end: notebookCell.index + 1 };
 
-    // Optionally log some details of the cell.
-    log(`Executing cell at index ${notebookCell.index}`);
-    log(`Cell kind: ${notebookCell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
-    log(`Cell content: ${notebookCell.document.getText()}`);
+    log(`Executing cell at index ${notebookCell.index} (${notebookCell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'})`);
 
     // Execute the single cell.
     void vscode.commands.executeCommand('notebook.cell.execute', {
@@ -132,17 +129,14 @@ export async function executeGroup(targetRunTag: string, notebookCell?: vscode.N
     const targetCells = doc
         .getCells()
         .filter((notebookCell) => cellInGroup(notebookCell, targetRunTag))
-        .map((cell) => {
-            log(`Cell at index ${cell.index}:`);
-            log(`Cell kind: ${cell.kind === vscode.NotebookCellKind.Code ? 'Code' : 'Markdown'}`);
-            log(`Cell content: ${cell.document.getText()}`);
-            return { start: cell.index, end: cell.index + 1 };
-        });
+        .map((cell) => ({ start: cell.index, end: cell.index + 1 }));
 
     if (targetCells.length === 0) {
         log(`No cells found with tag: ${targetRunTag}`);
         return;
     }
+
+    log(`Executing ${targetCells.length} cell(s) with tag "${targetRunTag}" at indexes: ${targetCells.map((r) => r.start).join(', ')}`);
 
     await vscode.commands.executeCommand('notebook.cell.execute', {
         ranges: targetCells,

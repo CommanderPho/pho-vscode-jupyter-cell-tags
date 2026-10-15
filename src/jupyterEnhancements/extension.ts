@@ -311,7 +311,20 @@ function cellIndexesFromRanges(ranges: Array<{ start: number; end: number }>, ce
 	return indexes;
 }
 
-const executeOneEnhancedCell = async (cell: vscode.NotebookCell, stopOnErrorMessage: boolean): Promise<boolean> => {
+/** True when args is a NotebookCell (not `{ ranges, document: Uri }`). */
+function isNotebookCellArg(args: any): args is vscode.NotebookCell {
+	return !!args
+		&& typeof args.index === 'number'
+		&& !!args.document
+		&& typeof args.document.getText === 'function'
+		&& !args.ranges;
+}
+
+const executeOneEnhancedCell = async (
+	cell: vscode.NotebookCell,
+	stopOnErrorMessage: boolean,
+	alreadyUnwrapped = false
+): Promise<boolean> => {
 	output.appendLine(`[Single] Executing Cell Index: ${cell.index}`);
 	cellStatusMap.delete(cell.document.uri.toString());
 	restoreDecorationForCell(cell);
@@ -319,7 +332,8 @@ const executeOneEnhancedCell = async (cell: vscode.NotebookCell, stopOnErrorMess
 	const stopAnim = startAnimationLoopForCell(cell);
 	let success = false;
 	try {
-		success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
+		const run = () => executeCellAndWaitNative(cell);
+		success = alreadyUnwrapped ? await run() : await withNativeCellExecute(run);
 	} catch (e) {
 		const errorMsg = stopOnErrorMessage
 			? `Failed to execute cell ${cell.index}. Execution stopped.`
@@ -341,15 +355,15 @@ const runSingleHandler = async (args?: any) => {
 	const notebook = editor.notebook;
 	let cells: vscode.NotebookCell[] = [];
 
-	// 1. Check if args is the Cell object (standard VS Code behavior)
-	if (args && args.document) {
-		cells = [args];
-	}
-	// 2. Check if args contains ranges (Scratchpad, Execute Tag Run Group, etc.)
-	else if (args && args.ranges && args.ranges.length > 0) {
+	// Prefer ranges first: native / our helpers pass `{ ranges, document: Uri }` which also has `.document`
+	if (args?.ranges?.length > 0) {
 		cells = cellIndexesFromRanges(args.ranges, notebook.cellCount).map((i) => notebook.cellAt(i));
 	}
-	// 3. Fallback: Use current selection(s) — native execute runs all selected cells
+	// Toolbar "run cell" passes the NotebookCell object
+	else if (isNotebookCellArg(args)) {
+		cells = [args];
+	}
+	// Fallback: all current selections (native multi-select execute)
 	else if (editor.selections.length > 0) {
 		cells = cellIndexesFromRanges(
 			editor.selections.map((s) => ({ start: s.start, end: s.end })),
@@ -367,23 +381,27 @@ const runSingleHandler = async (args?: any) => {
 		return;
 	}
 
-	// Multiple ranges (e.g. Execute Tag Run Group): run code cells in order, stop on failure
-	output.appendLine(`[Single] Executing ${cells.length} cells from ranges`);
-	for (const cell of cells) {
-		if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) {
-			continue;
-		}
-
-		const range = new vscode.NotebookRange(cell.index, cell.index + 1);
-		editor.selections = [range];
-		editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
-		await new Promise((r) => setTimeout(r, 100));
-
-		const success = await executeOneEnhancedCell(cell, true);
-		if (!success) {
-			break;
-		}
+	// Multiple cells: unwrap hijack once for the whole batch (avoid N dispose/re-register)
+	const codeCells = cells.filter(
+		(cell) => cell.kind === vscode.NotebookCellKind.Code && !!cell.document.getText().trim()
+	);
+	output.appendLine(`[Single] Executing ${codeCells.length} code cells from ranges`);
+	if (codeCells.length === 0) {
+		return;
 	}
+
+	await withNativeCellExecute(async () => {
+		for (const cell of codeCells) {
+			const range = new vscode.NotebookRange(cell.index, cell.index + 1);
+			editor.selections = [range];
+			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+
+			const success = await executeOneEnhancedCell(cell, true, true);
+			if (!success) {
+				break;
+			}
+		}
+	});
 };
 
 // --- RUN SEQUENCE HANDLER ---
@@ -426,35 +444,40 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 		}
 	}
 
-	for (let i = loopStart; i < loopEnd; i++) {
-		const cell = notebook.cellAt(i);
-		if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) continue;
+	// Unwrap once for the whole sequence (avoid per-cell command dispose/re-register)
+	await withNativeCellExecute(async () => {
+		for (let i = loopStart; i < loopEnd; i++) {
+			const cell = notebook.cellAt(i);
+			if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) {
+				continue;
+			}
 
-		cellStatusMap.delete(cell.document.uri.toString());
-		restoreDecorationForCell(cell);
+			cellStatusMap.delete(cell.document.uri.toString());
+			restoreDecorationForCell(cell);
 
-		const range = new vscode.NotebookRange(i, i + 1);
-		editor.selections = [range];
-		editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+			const range = new vscode.NotebookRange(i, i + 1);
+			editor.selections = [range];
+			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
 
-		await new Promise(r => setTimeout(r, 100));
+			const stopAnim = startAnimationLoopForCell(cell);
+			let success = false;
+			try {
+				success = await executeCellAndWaitNative(cell);
+			} catch (error) {
+				output.appendLine(`[ERROR] Cell ${cell.index} execution failed: ${error}`);
+				vscode.window.showErrorMessage(`Failed to execute cell ${cell.index}. Execution stopped.`);
+				success = false;
+			} finally {
+				stopAnim();
+			}
 
-		const stopAnim = startAnimationLoopForCell(cell);
-		let success = false;
-		try {
-			success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
-		} catch (error) {
-			output.appendLine(`[ERROR] Cell ${cell.index} execution failed: ${error}`);
-			vscode.window.showErrorMessage(`Failed to execute cell ${cell.index}. Execution stopped.`);
-			success = false;
-		} finally {
-			stopAnim();
+			handleCellFinished(cell, success);
+
+			if (!success) {
+				break;
+			}
 		}
-
-		handleCellFinished(cell, success);
-
-		if (!success) break;
-	}
+	});
 };
 
 // --- CORE HELPERS ---
@@ -514,12 +537,9 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 				summary.executionOrder !== undefined && summary.executionOrder !== priorOrder;
 			const endChanged =
 				summary.timing?.endTime !== undefined && summary.timing.endTime !== priorEnd;
+			// Require endTime change so a prior run's success is not treated as completion
 			if (endChanged) {
 				return summary.success ?? false;
-			}
-			// Some kernels set success/order without timing; accept after we've seen a start
-			if (sawStarted && orderChanged && summary.success !== undefined) {
-				return summary.success;
 			}
 			// New order without end yet → still running
 			if (orderChanged) {
