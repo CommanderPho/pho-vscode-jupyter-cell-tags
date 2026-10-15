@@ -181,6 +181,16 @@ function updateLayoutSettings() {
 }
 
 // --- HIJACK SETUP ---
+/** Re-register only the notebook.cell.execute hijack (leave notebook.execute alone). */
+function registerSingleHijack() {
+	singleHijack?.dispose();
+	singleHijack = undefined;
+	singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
+		output.appendLine("[DEBUG] >> Hijack: Run Single");
+		await runSingleHandler(args);
+	});
+}
+
 function registerHijacks() {
 	// Prevent concurrent hijack operations
 	if (isHijacking) {
@@ -190,15 +200,10 @@ function registerHijacks() {
 	
 	isHijacking = true;
 	try {
-		singleHijack?.dispose();
 		allHijack?.dispose();
-		singleHijack = undefined;
 		allHijack = undefined;
 
-		singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
-			output.appendLine("[DEBUG] >> Hijack: Run Single");
-			await runSingleHandler(args);
-		});
+		registerSingleHijack();
 
 		allHijack = vscode.commands.registerCommand('notebook.execute', async (args) => {
 			output.appendLine("[DEBUG] >> Hijack: Run All");
@@ -222,7 +227,12 @@ async function withNativeCellExecute<T>(fn: () => Promise<T>): Promise<T> {
 	try {
 		return await fn();
 	} finally {
-		registerHijacks();
+		try {
+			registerSingleHijack();
+		} catch (e) {
+			output.appendLine(`[ERROR] Failed to re-register notebook.cell.execute hijack: ${e}`);
+			registerHijacks();
+		}
 		release();
 	}
 }
@@ -339,9 +349,12 @@ const runSingleHandler = async (args?: any) => {
 	else if (args && args.ranges && args.ranges.length > 0) {
 		cells = cellIndexesFromRanges(args.ranges, notebook.cellCount).map((i) => notebook.cellAt(i));
 	}
-	// 3. Fallback: Use current selection
+	// 3. Fallback: Use current selection(s) — native execute runs all selected cells
 	else if (editor.selections.length > 0) {
-		cells = [notebook.cellAt(editor.selections[0].start)];
+		cells = cellIndexesFromRanges(
+			editor.selections.map((s) => ({ start: s.start, end: s.end })),
+			notebook.cellCount
+		).map((i) => notebook.cellAt(i));
 	}
 
 	if (cells.length === 0) {
@@ -384,7 +397,16 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 	let loopEnd = notebook.cellCount;
 	let anchorIndex = editor.selections[0]?.start ?? 0;
 
-	if (args && args.document) anchorIndex = args.index;
+	if (args && typeof args.index === 'number') {
+		anchorIndex = args.index;
+	} else if (args?.ranges?.length > 0) {
+		if (mode === 'above') {
+			const last = args.ranges[args.ranges.length - 1];
+			anchorIndex = Math.max(0, last.end - 1);
+		} else {
+			anchorIndex = args.ranges[0].start;
+		}
+	}
 
 	if (mode === 'all') {
 		loopStart = 0; loopEnd = notebook.cellCount;
@@ -404,38 +426,34 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 		}
 	}
 
-	try {
-		for (let i = loopStart; i < loopEnd; i++) {
-			const cell = notebook.cellAt(i);
-			if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) continue;
+	for (let i = loopStart; i < loopEnd; i++) {
+		const cell = notebook.cellAt(i);
+		if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) continue;
 
-			cellStatusMap.delete(cell.document.uri.toString());
-			restoreDecorationForCell(cell);
+		cellStatusMap.delete(cell.document.uri.toString());
+		restoreDecorationForCell(cell);
 
-			const range = new vscode.NotebookRange(i, i + 1);
-			editor.selections = [range];
-			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+		const range = new vscode.NotebookRange(i, i + 1);
+		editor.selections = [range];
+		editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
 
-			await new Promise(r => setTimeout(r, 100));
+		await new Promise(r => setTimeout(r, 100));
 
-			const stopAnim = startAnimationLoopForCell(cell);
-			let success = false;
-			try {
-				success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
-			} catch (error) {
-				output.appendLine(`[ERROR] Cell ${cell.index} execution failed: ${error}`);
-				vscode.window.showErrorMessage(`Failed to execute cell ${cell.index}. Execution stopped.`);
-				success = false;
-			} finally {
-				stopAnim();
-			}
-			
-			handleCellFinished(cell, success);
-
-			if (!success) break;
+		const stopAnim = startAnimationLoopForCell(cell);
+		let success = false;
+		try {
+			success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
+		} catch (error) {
+			output.appendLine(`[ERROR] Cell ${cell.index} execution failed: ${error}`);
+			vscode.window.showErrorMessage(`Failed to execute cell ${cell.index}. Execution stopped.`);
+			success = false;
+		} finally {
+			stopAnim();
 		}
-	} finally {
-		registerHijacks();
+
+		handleCellFinished(cell, success);
+
+		if (!success) break;
 	}
 };
 
@@ -496,8 +514,12 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 				summary.executionOrder !== undefined && summary.executionOrder !== priorOrder;
 			const endChanged =
 				summary.timing?.endTime !== undefined && summary.timing.endTime !== priorEnd;
-			if (endChanged || (orderChanged && summary.timing?.endTime !== undefined && summary.timing.endTime !== priorEnd)) {
+			if (endChanged) {
 				return summary.success ?? false;
+			}
+			// Some kernels set success/order without timing; accept after we've seen a start
+			if (sawStarted && orderChanged && summary.success !== undefined) {
+				return summary.success;
 			}
 			// New order without end yet → still running
 			if (orderChanged) {

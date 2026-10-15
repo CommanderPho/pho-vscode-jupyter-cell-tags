@@ -111,7 +111,10 @@ export function executeNotebookCell(notebookCell: vscode.NotebookCell) {
     log(`Cell content: ${notebookCell.document.getText()}`);
 
     // Execute the single cell.
-    vscode.commands.executeCommand('notebook.cell.execute', { ranges: [cellRange] });
+    void vscode.commands.executeCommand('notebook.cell.execute', {
+        ranges: [cellRange],
+        document: notebook.uri,
+    });
     log('Done executing cell');
 }
 
@@ -119,17 +122,15 @@ export function executeNotebookCell(notebookCell: vscode.NotebookCell) {
 
 
 // Execute the given target run group. If a cell is specified use that document, if not find the active doc
-export function executeGroup(targetRunTag: string, notebookCell?: vscode.NotebookCell) {
-    let doc = notebookCell?.notebook; // get the document from the context cell
-    // If we didn't get a cell passed in, just take the active documents
+export async function executeGroup(targetRunTag: string, notebookCell?: vscode.NotebookCell) {
+    const doc = notebookCell?.notebook ?? vscode.window.activeNotebookEditor?.notebook;
     if (!doc) {
-        doc = vscode.window.activeNotebookEditor?.notebook;
-        doc || log('Execute group called without a valid document to execute');
+        log('Execute group called without a valid document to execute');
+        return;
     }
 
-    // Collect our cell indexes
     const targetCells = doc
-        ?.getCells()
+        .getCells()
         .filter((notebookCell) => cellInGroup(notebookCell, targetRunTag))
         .map((cell) => {
             log(`Cell at index ${cell.index}:`);
@@ -138,11 +139,16 @@ export function executeGroup(targetRunTag: string, notebookCell?: vscode.Noteboo
             return { start: cell.index, end: cell.index + 1 };
         });
 
-    // log(targetCells);
-    // Execute the cells
-    vscode.commands.executeCommand('notebook.cell.execute', { ranges: targetCells });
-    log('done executing');
+    if (targetCells.length === 0) {
+        log(`No cells found with tag: ${targetRunTag}`);
+        return;
+    }
 
+    await vscode.commands.executeCommand('notebook.cell.execute', {
+        ranges: targetCells,
+        document: doc.uri,
+    });
+    log('done executing');
 }
 
 // Determine if a cell is in a given run group

@@ -569,18 +569,9 @@ export function register(context: vscode.ExtensionContext) {
             return;
         }
 
-        for (const cellRef of cellRefs) {
-            const cell = editor.notebook.cellAt(cellRef.index);
-            if (cell) {
-                // Execute the cell
-                // await editor.notebook.executeCell(cell.index);
-                // await editor.executeCell(cell.index);
-                executeGroup(tag, cell);    // Execute the group of cells
-            }
-        }
+        // executeGroup already filters and runs every cell with this tag once
+        await executeGroup(tag);
 
-        // vscode.window.showInformationMessage(`Executed ${cellRefs.length} cells with tag: ${tag}`);
-        // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
         showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
     }));

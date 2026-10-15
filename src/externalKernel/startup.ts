@@ -19,6 +19,13 @@ export function activateExternalKernel(context: vscode.ExtensionContext): Durabl
 
 	context.subscriptions.push(manager, collection, monitor, manager.outputChannel);
 
+	// Ensure Select toolbar item is visible until we detect an attached kernel.
+	void vscode.commands.executeCommand(
+		'setContext',
+		'jupyter-cell-tags.externalKernel.notebookHasKernel',
+		false
+	);
+
 	void manager.initialize().then(() => monitor.refresh());
 
 	const autoRegister = () =>
