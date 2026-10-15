@@ -284,42 +284,92 @@ const runScratchpadHandler = async () => {
 };
 
 // --- RUN SINGLE HANDLER ---
+/** Expand notebook execute ranges into unique cell indexes (start inclusive, end exclusive). */
+function cellIndexesFromRanges(ranges: Array<{ start: number; end: number }>, cellCount: number): number[] {
+	const indexes: number[] = [];
+	const seen = new Set<number>();
+	for (const range of ranges) {
+		const start = Math.max(0, range.start);
+		const end = Math.min(cellCount, range.end);
+		for (let i = start; i < end; i++) {
+			if (!seen.has(i)) {
+				seen.add(i);
+				indexes.push(i);
+			}
+		}
+	}
+	return indexes;
+}
+
+const executeOneEnhancedCell = async (cell: vscode.NotebookCell, stopOnErrorMessage: boolean): Promise<boolean> => {
+	output.appendLine(`[Single] Executing Cell Index: ${cell.index}`);
+	cellStatusMap.delete(cell.document.uri.toString());
+	restoreDecorationForCell(cell);
+
+	const stopAnim = startAnimationLoopForCell(cell);
+	let success = false;
+	try {
+		success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
+	} catch (e) {
+		const errorMsg = stopOnErrorMessage
+			? `Failed to execute cell ${cell.index}. Execution stopped.`
+			: `Failed to execute cell ${cell.index}: ${e}`;
+		output.appendLine(`[ERROR] ${errorMsg}`);
+		vscode.window.showErrorMessage(errorMsg);
+		success = false;
+	} finally {
+		stopAnim();
+	}
+	handleCellFinished(cell, success);
+	return success;
+};
+
 const runSingleHandler = async (args?: any) => {
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) return;
 
-	let cell: vscode.NotebookCell | undefined;
-	
+	const notebook = editor.notebook;
+	let cells: vscode.NotebookCell[] = [];
+
 	// 1. Check if args is the Cell object (standard VS Code behavior)
 	if (args && args.document) {
-		cell = args; 
-	} 
-	// 2. Check if args contains ranges (how our Scratchpad calls it)
+		cells = [args];
+	}
+	// 2. Check if args contains ranges (Scratchpad, Execute Tag Run Group, etc.)
 	else if (args && args.ranges && args.ranges.length > 0) {
-		cell = editor.notebook.cellAt(args.ranges[0].start);
+		cells = cellIndexesFromRanges(args.ranges, notebook.cellCount).map((i) => notebook.cellAt(i));
 	}
 	// 3. Fallback: Use current selection
 	else if (editor.selections.length > 0) {
-		cell = editor.notebook.cellAt(editor.selections[0].start);
+		cells = [notebook.cellAt(editor.selections[0].start)];
 	}
 
-	if (cell) {
-		output.appendLine(`[Single] Executing Cell Index: ${cell.index}`);
-		cellStatusMap.delete(cell.document.uri.toString());
-		restoreDecorationForCell(cell);
+	if (cells.length === 0) {
+		return;
+	}
 
-		const stopAnim = startAnimationLoopForCell(cell);
-		let success = false;
-		try {
-			success = await withNativeCellExecute(() => executeCellAndWaitNative(cell));
-		} catch (e) {
-			const errorMsg = `Failed to execute cell ${cell.index}: ${e}`;
-			output.appendLine(`[ERROR] ${errorMsg}`);
-			vscode.window.showErrorMessage(errorMsg);
-		} finally {
-			stopAnim();
+	// Single cell: preserve prior toolbar / scratchpad behavior (run even if markdown/empty)
+	if (cells.length === 1) {
+		await executeOneEnhancedCell(cells[0], false);
+		return;
+	}
+
+	// Multiple ranges (e.g. Execute Tag Run Group): run code cells in order, stop on failure
+	output.appendLine(`[Single] Executing ${cells.length} cells from ranges`);
+	for (const cell of cells) {
+		if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) {
+			continue;
 		}
-		handleCellFinished(cell, success);
+
+		const range = new vscode.NotebookRange(cell.index, cell.index + 1);
+		editor.selections = [range];
+		editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+		await new Promise((r) => setTimeout(r, 100));
+
+		const success = await executeOneEnhancedCell(cell, true);
+		if (!success) {
+			break;
+		}
 	}
 };
 
