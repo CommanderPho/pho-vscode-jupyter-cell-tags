@@ -803,14 +803,20 @@
 			{
 				"command": "jupyter-cell-tags.externalKernel.selectKernel",
 				"title": "Select Durable Kernel…",
-				"icon": "$(vm)",
+				"icon": {
+					"light": "media/durable-kernel-inactive.svg",
+					"dark": "media/durable-kernel-inactive.svg"
+				},
 				"category": "Durable Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.externalKernel.statusMenu",
 				"title": "Durable",
 				"shortTitle": "Durable",
-				"icon": "$(server-environment)",
+				"icon": {
+					"light": "media/durable-kernel-active.svg",
+					"dark": "media/durable-kernel-active.svg"
+				},
 				"category": "Durable Jupyter"
 			}
 		],
@@ -1139,12 +1145,12 @@
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
-					"group": "status@-9",
-					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && !jupyter-cell-tags.externalKernel.notebookHasKernel"
+					"group": "status@10",
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && (!jupyter-cell-tags.externalKernel.notebookHasKernel || !jupyter-cell-tags.externalKernel.running)"
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.statusMenu",
-					"group": "status@-9",
+					"group": "status@10",
 					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.durableKernel && jupyter-cell-tags.externalKernel.notebookHasKernel && jupyter-cell-tags.externalKernel.running"
 				}
 			],

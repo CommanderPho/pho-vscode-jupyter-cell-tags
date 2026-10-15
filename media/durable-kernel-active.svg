@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <!-- Green frame: durable kernel in use -->
+  <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" fill="#16a34a" fill-opacity="0.2" stroke="#16a34a" stroke-width="1.5"/>
+  <!-- Server/vm glyph -->
+  <rect x="4" y="4.5" width="8" height="2.5" rx="0.5" fill="#16a34a"/>
+  <rect x="4" y="8" width="8" height="2.5" rx="0.5" fill="#16a34a"/>
+  <circle cx="5.5" cy="5.75" r="0.6" fill="#ffffff"/>
+  <circle cx="5.5" cy="9.25" r="0.6" fill="#ffffff"/>
+  <!-- Status badge -->
+  <circle cx="12.5" cy="3.5" r="2" fill="#16a34a"/>
+  <circle cx="12.5" cy="3.5" r="0.9" fill="#ffffff"/>
+</svg>

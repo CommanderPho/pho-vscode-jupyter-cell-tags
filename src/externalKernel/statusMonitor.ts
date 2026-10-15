@@ -46,6 +46,8 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 
 		const servers = this.manager.getServers();
 		if (servers.length === 0) {
+			this.statusBar.color = undefined;
+			this.statusBar.backgroundColor = undefined;
 			this.statusBar.hide();
 			return;
 		}
@@ -59,6 +61,13 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 		const suffix = kernelLabel ? ` ${kernelLabel}` : health === 'up' ? '' : ` ${health}`;
 
 		this.statusBar.text = `${healthIcon} Durable ${portPart}${suffix}`;
+		if (health === 'up') {
+			this.statusBar.color = new vscode.ThemeColor('charts.green');
+			this.statusBar.backgroundColor = undefined;
+		} else {
+			this.statusBar.color = new vscode.ThemeColor('errorForeground');
+			this.statusBar.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
+		}
 		const lines = [
 			`${primary.label} — ${primary.baseUrl}`,
 			primary.managed
