@@ -194,7 +194,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     getTreeItem(element: string | CellReference): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (typeof element === 'string') {
             // Tag node
-            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element); // .contextValue = 'tagItem'
+            const notebook = vscode.window.activeNotebookEditor?.notebook;
+            const allProps = notebook ? TagPropertiesManager.getAllTagProperties(notebook) : {};
+            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element, allProps[element]); // .contextValue = 'tagItem'
             return tagItem;
         } else {
             // Cell reference node -- the leaf nodes that say "Cell 65" or similar
@@ -256,6 +258,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     }
 
     dispose() {
+        clearTimeout(this._updateTagsTimer);
+        this._updateTagsTimer = undefined;
         this._editorDisposables.forEach(d => d.dispose());
         this._disposables.forEach(d => d.dispose());
     }
@@ -285,6 +289,7 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
+    context.subscriptions.push(treeDataProvider);
     
     // Read outline sync configuration from VS Code settings (features.outlineSync is the master switch)
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');

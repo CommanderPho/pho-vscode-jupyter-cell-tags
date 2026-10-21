@@ -4,11 +4,12 @@ import * as vscode from 'vscode';
  * This should handle getting/setting/updating cell and notebook level metadata
  */
 
-export function useCustomMetadata() {
-    if (vscode.extensions.getExtension('vscode.ipynb')?.exports.dropCustomMetadata) {
-        return false;
+let _useCustomMetadata: boolean | undefined;
+export function useCustomMetadata(): boolean {
+    if (_useCustomMetadata === undefined) {
+        _useCustomMetadata = !vscode.extensions.getExtension('vscode.ipynb')?.exports.dropCustomMetadata;
     }
-    return true;
+    return _useCustomMetadata;
 }
 
 /**

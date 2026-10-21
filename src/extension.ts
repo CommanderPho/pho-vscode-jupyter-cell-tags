@@ -70,10 +70,10 @@ export async function activate(context: vscode.ExtensionContext) {
     );
 	// Update context when the active editor or selection changes
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveNotebookEditor(updateContext),
-		vscode.window.onDidChangeNotebookEditorSelection(updateContext),
-		vscode.window.onDidChangeActiveTextEditor(updateContext),
-		vscode.window.onDidChangeTextEditorSelection(updateContext),
+		vscode.window.onDidChangeActiveNotebookEditor(() => updateContext()),
+		vscode.window.onDidChangeNotebookEditorSelection(() => updateContext()),
+		vscode.window.onDidChangeActiveTextEditor(() => updateContext()),
+		vscode.window.onDidChangeTextEditorSelection(() => _scheduleUpdateContext()),
 	);
 
 	updateContext();
@@ -124,32 +124,58 @@ export async function activate(context: vscode.ExtensionContext) {
     log('Extension activated.');
 }
 
+let _updateContextTimer: ReturnType<typeof setTimeout> | undefined;
+const _contextCache: {
+    notebookActive?: boolean;
+    jumpbackTargetActive?: boolean;
+    singleCellSelected?: boolean;
+    multipleCellsSelected?: boolean;
+    hasJumpback?: boolean;
+} = {};
+
+function _setContextIfChanged(key: string, value: boolean): void {
+    if ((_contextCache as Record<string, boolean | undefined>)[key] !== value) {
+        (_contextCache as Record<string, boolean | undefined>)[key] = value;
+        vscode.commands.executeCommand('setContext', key, value);
+    }
+}
+
+function _scheduleUpdateContext(): void {
+    if (_updateContextTimer) {
+        clearTimeout(_updateContextTimer);
+    }
+    _updateContextTimer = setTimeout(() => {
+        _updateContextTimer = undefined;
+        updateContext();
+    }, 100);
+}
+
 function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.notebookActive', !!editor);
+    _setContextIfChanged('jupyter-cell-tags.notebookActive', !!editor);
 
     const textEditor = vscode.window.activeTextEditor;
     const isPlainTextEditor = !!textEditor && textEditor.document.uri.scheme !== 'vscode-notebook-cell';
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.jumpbackTargetActive', !!editor || isPlainTextEditor);
+    _setContextIfChanged('jupyter-cell-tags.jumpbackTargetActive', !!editor || isPlainTextEditor);
 
     if (!editor) {
-        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', false);
-        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', false);
+        _setContextIfChanged('jupyter-cell-tags.singleCellSelected', false);
+        _setContextIfChanged('jupyter-cell-tags.multipleCellsSelected', false);
 
         let hasJumpback = false;
         if (isPlainTextEditor && textEditor) {
             const ds = JumpbackDataSource.loadFromTextDocument(textEditor.document);
             hasJumpback = ds.hasTextJumpbackOnLine(textEditor.selection.active.line);
         }
-        vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', hasJumpback);
+        _setContextIfChanged('jupyter-cell-tags.hasJumpback', hasJumpback);
         return;
     }
     const selections: readonly vscode.NotebookRange[] = editor.selections;
     const selectedRangesCount = selections.length;
     const total_num_selected_cells = countSelectedCells(selections, editor.notebook);
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
-    
+    _setContextIfChanged('jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
+    _setContextIfChanged('jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
+
     // Check if the currently selected cell has a jumpback
     let hasJumpback = false;
     if (selections.length > 0 && total_num_selected_cells === 1) {
@@ -157,7 +183,7 @@ function updateContext() {
         const jumpbackDS = JumpbackDataSource.loadFromNotebook(editor.notebook);
         hasJumpback = jumpbackDS.hasNotebookJumpback(selectedCellIndex);
     }
-    vscode.commands.executeCommand('setContext', 'jupyter-cell-tags.hasJumpback', hasJumpback);
+    _setContextIfChanged('jupyter-cell-tags.hasJumpback', hasJumpback);
 }
 
 

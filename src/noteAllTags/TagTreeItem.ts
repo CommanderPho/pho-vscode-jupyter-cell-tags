@@ -7,14 +7,15 @@ export class TagTreeItem extends vscode.TreeItem {
     constructor(
         public readonly label: string,
         public readonly collapsibleState: vscode.TreeItemCollapsibleState,
-        public readonly tagName: string
+        public readonly tagName: string,
+        tagProperties?: TagProperties
     ) {
         super(label, collapsibleState);
         this.contextValue = 'tagItem';
         
         // Get tag properties from the active notebook
         if (vscode.window.activeNotebookEditor) {
-            const properties = this.getTagProperties(tagName);
+            const properties = tagProperties ?? this.getTagProperties(tagName);
             
             // Build description parts
             const descriptionParts: string[] = [];
