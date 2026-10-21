@@ -126,6 +126,7 @@ export function register(context: vscode.ExtensionContext) {
 			dispose: () => {
 				if (refreshTimer) {
 					clearTimeout(refreshTimer);
+					refreshTimer = undefined;
 				}
 			}
 		}

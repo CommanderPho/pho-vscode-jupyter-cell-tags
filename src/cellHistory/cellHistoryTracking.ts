@@ -46,7 +46,7 @@ export function trackCellHistory(context: vscode.ExtensionContext) {
                     return;
                 }
                 const cell = change.cell;
-                const key = `${cell.notebook.uri.toString()}#${cell.index}`;
+                const key = cell.document.uri.toString();
                 const existing = pendingEdits.get(key);
                 if (existing) {
                     clearTimeout(existing.timer);

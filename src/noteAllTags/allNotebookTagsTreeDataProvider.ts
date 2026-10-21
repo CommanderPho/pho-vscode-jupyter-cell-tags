@@ -785,10 +785,12 @@ export function register(context: vscode.ExtensionContext) {
                         const an_nbEdit = await updateCellTags(cell, newTags, true);
                         if (an_nbEdit) {
                             nbEditList.push(an_nbEdit);
-                            edit.set(cell.notebook.uri, nbEditList);
                         }
                     }
                 }
+            }
+            if (nbEditList.length > 0) {
+                edit.set(editor.notebook.uri, nbEditList);
             }
 
             // Update tag properties if they exist
@@ -914,19 +916,16 @@ export function register(context: vscode.ExtensionContext) {
                         if (cell) {
                             const tags = getCellTags(cell).filter(tag => tag !== tagName);
 
-                            // // Update the cell's metadata
-                            // const metadata = { ...(cell.metadata || {}) };
-                            // metadata.tags = tags;
-
                             // Add the edit to our workspace edit
                             const an_nbEdit = await updateCellTags(cell, tags, true);
                             if (an_nbEdit) {
                                 nbEditList.push(an_nbEdit);
-                                edit.set(cell.notebook.uri, nbEditList);
-                                // edit.set(cell.notebook.uri, [an_nbEdit]);
                             }
                         }
                     }
+                }
+                if (nbEditList.length > 0) {
+                    edit.set(editor.notebook.uri, nbEditList);
                 }
 
                 // Apply all edits at once
