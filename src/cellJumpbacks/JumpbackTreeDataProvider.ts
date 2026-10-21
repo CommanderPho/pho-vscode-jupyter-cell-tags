@@ -91,8 +91,8 @@ export function register(context: vscode.ExtensionContext) {
 
     context.subscriptions.push({ dispose: () => { clearTimeout(updateJumpbackTimer); } });
 
-    context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(() => updateJumpbackView()));
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateJumpbackView()));
+    context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(() => doUpdateJumpbackView()));
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => doUpdateJumpbackView()));
     context.subscriptions.push(vscode.workspace.onDidChangeNotebookDocument((e) => {
         // Only notebook-level metadata changes can affect the jumpback list
         if (e.metadata === undefined) {

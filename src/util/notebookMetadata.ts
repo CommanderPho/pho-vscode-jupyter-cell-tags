@@ -7,7 +7,14 @@ import * as vscode from 'vscode';
 let _useCustomMetadata: boolean | undefined;
 export function useCustomMetadata(): boolean {
     if (_useCustomMetadata === undefined) {
-        _useCustomMetadata = !vscode.extensions.getExtension('vscode.ipynb')?.exports.dropCustomMetadata;
+        const ext = vscode.extensions.getExtension('vscode.ipynb');
+        if (ext !== undefined) {
+            // Only cache when the extension is present; if it hasn't activated yet,
+            // return the safe default (true) without caching so we retry next call.
+            _useCustomMetadata = !ext.exports.dropCustomMetadata;
+        } else {
+            return true;
+        }
     }
     return _useCustomMetadata;
 }
