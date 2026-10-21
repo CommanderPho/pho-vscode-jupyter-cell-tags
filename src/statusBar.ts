@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { activateCustomLogging, log } from './util/logging';
-import { notebookRangeToIndices, notebookRangesToIndices } from './util/notebookSelection';
+import { notebookRangesToIndices } from './util/notebookSelection';
 
 
 export class CellSelectionsStatusBarItem {
@@ -60,7 +59,6 @@ export class CellSelectionsStatusBarItem {
 
 
     private update() {
-        log('CellSelectionsStatusBarItem.update()');
         const activeNotebookEditor = vscode.window.activeNotebookEditor;
         if (!activeNotebookEditor) {
             this.statusBarItem.hide();

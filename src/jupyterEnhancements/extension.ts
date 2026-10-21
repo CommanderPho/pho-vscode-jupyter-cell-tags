@@ -20,17 +20,16 @@ const scratchpadCells = new Set<string>();
 const sourceToScratchpadMap = new Map<string, string>(); 
 
 let output: vscode.OutputChannel;
-let extensionContext: vscode.ExtensionContext;
 
 // --- HIJACK DISPOSABLES ---
 let singleHijack: vscode.Disposable | undefined;
 let allHijack: vscode.Disposable | undefined;
 let isHijacking = false; // Flag to prevent concurrent hijack operations
+let executeGate: Promise<void> = Promise.resolve(); // Serialize native execute unwraps
+let hasExecutionStateApi = false;
 
 export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
-	extensionContext = context;
 	output = vscode.window.createOutputChannel("Jupyter Enhancements");
-	output.show(true);
 	output.appendLine("[INFO] Jupyter Enhancements Activated.");
 
 	reloadDecorations();
@@ -55,28 +54,56 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 		}, 100); // Wait 100ms for the user to stop dragging/scrolling
 	}));
 
-	// 3. Poller
-	const pollInterval = setInterval(checkForFinishedCells, 200);
-	context.subscriptions.push({ dispose: () => clearInterval(pollInterval) });
-
-	// 4. Global Event Listener
-	// Type definition for notebook execution state change event
-	interface NotebookCellExecutionStateChangeEvent {
-		cell: vscode.NotebookCell;
-		state: number; // 1 = idle, 3 = executing
+	// 3. Execution-state API for finished-cell visuals (no forever poll).
+	// Fallback: notebook document changes that update executionSummary timing.
+	try {
+		interface NotebookCellExecutionStateChangeEvent {
+			cell: vscode.NotebookCell;
+			state: number; // 1 = idle, 2 = pending, 3 = executing
+		}
+		const notebooksAny = vscode.notebooks as any;
+		const onStateChange = notebooksAny?.onDidChangeNotebookCellExecutionState;
+		if (typeof onStateChange === 'function') {
+			hasExecutionStateApi = true;
+			context.subscriptions.push(onStateChange.call(notebooksAny, (e: NotebookCellExecutionStateChangeEvent) => {
+				handleExecutionStateChange(e);
+			}));
+			output.appendLine('[INFO] Using notebookCellExecutionState proposed API.');
+		}
+	} catch (err) {
+		output.appendLine(`[INFO] notebookCellExecutionState unavailable: ${err}`);
 	}
-	
-	const notebooksAny = vscode.notebooks as any;
-	if (notebooksAny && typeof notebooksAny.onDidChangeNotebookCellExecutionState === 'function') {
-		context.subscriptions.push(notebooksAny.onDidChangeNotebookCellExecutionState((e: NotebookCellExecutionStateChangeEvent) => {
-			handleExecutionStateChange(e);
-		}));
+
+	if (!hasExecutionStateApi) {
+		context.subscriptions.push(
+			vscode.workspace.onDidChangeNotebookDocument(e => {
+				for (const change of e.cellChanges) {
+					const endTime = change.executionSummary?.timing?.endTime;
+					if (endTime === undefined) {
+						continue;
+					}
+					const uri = change.cell.document.uri.toString();
+					const lastTime = lastExecutionTimes.get(uri) ?? 0;
+					if (endTime > lastTime) {
+						handleCellFinished(change.cell, change.executionSummary?.success ?? false);
+					}
+				}
+			})
+		);
 	}
 
-	// 5. Register Hijacks
+	// 4. Register Hijacks (single disposable refs; not stacked on context.subscriptions)
 	registerHijacks();
+	context.subscriptions.push({
+		dispose: () => {
+			singleHijack?.dispose();
+			allHijack?.dispose();
+			singleHijack = undefined;
+			allHijack = undefined;
+		}
+	});
 
-	// 6. Register Permanent Commands
+	// 5. Register Permanent Commands
 	const register = (id: string, handler: (args: any) => any) => {
 		context.subscriptions.push(vscode.commands.registerCommand(id, handler));
 		output.appendLine(`[DEBUG] Registered Permanent: ${id}`);
@@ -88,17 +115,19 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	// Scratchpad Command
 	register('jupyter-cell-tags.jupyterEnhancements.runInScratchpad', runScratchpadHandler);
 
-	// Native & Jupyter Hijacks
+	// Native multi-cell run (index-based). Do NOT override jupyter.runPrecedent/DependentCells.
 	register('notebook.cell.executeCellAndBelow', (args) => runSequenceHandler('below', args));
 	register('notebook.cell.executeCellsAbove', (args) => runSequenceHandler('above', args));
 	register('jupyter.runCellAndAllBelow', (args) => runSequenceHandler('below', args));
-	register('jupyter.runPrecedentCells', (args) => runSequenceHandler('above', args));
-	register('jupyter.runDependentCells', (args) => runSequenceHandler('below', args));
 }
 
 export function deactivateJupyterEnhancements() {
 	disposeAllDecorations();
 	activeAnimations.forEach(stop => stop());
+	singleHijack?.dispose();
+	allHijack?.dispose();
+	singleHijack = undefined;
+	allHijack = undefined;
 }
 
 // --- LAYOUT SETTINGS HANDLER ---
@@ -152,6 +181,16 @@ function updateLayoutSettings() {
 }
 
 // --- HIJACK SETUP ---
+/** Re-register only the notebook.cell.execute hijack (leave notebook.execute alone). */
+function registerSingleHijack() {
+	singleHijack?.dispose();
+	singleHijack = undefined;
+	singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
+		output.appendLine("[DEBUG] >> Hijack: Run Single");
+		await runSingleHandler(args);
+	});
+}
+
 function registerHijacks() {
 	// Prevent concurrent hijack operations
 	if (isHijacking) {
@@ -161,22 +200,40 @@ function registerHijacks() {
 	
 	isHijacking = true;
 	try {
-		singleHijack?.dispose();
 		allHijack?.dispose();
+		allHijack = undefined;
 
-		singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
-			output.appendLine("[DEBUG] >> Hijack: Run Single");
-			await runSingleHandler(args);
-		});
-		extensionContext.subscriptions.push(singleHijack);
+		registerSingleHijack();
 
 		allHijack = vscode.commands.registerCommand('notebook.execute', async (args) => {
 			output.appendLine("[DEBUG] >> Hijack: Run All");
 			await runSequenceHandler('all', args);
 		});
-		extensionContext.subscriptions.push(allHijack);
 	} finally {
 		isHijacking = false;
+	}
+}
+
+/** Run native notebook.cell.execute with hijack temporarily removed; serialized. */
+async function withNativeCellExecute<T>(fn: () => Promise<T>): Promise<T> {
+	const previous = executeGate;
+	let release!: () => void;
+	executeGate = new Promise<void>(resolve => {
+		release = resolve;
+	});
+	await previous;
+	singleHijack?.dispose();
+	singleHijack = undefined;
+	try {
+		return await fn();
+	} finally {
+		try {
+			registerSingleHijack();
+		} catch (e) {
+			output.appendLine(`[ERROR] Failed to re-register notebook.cell.execute hijack: ${e}`);
+			registerHijacks();
+		}
+		release();
 	}
 }
 
@@ -237,50 +294,114 @@ const runScratchpadHandler = async () => {
 };
 
 // --- RUN SINGLE HANDLER ---
+/** Expand notebook execute ranges into unique cell indexes (start inclusive, end exclusive). */
+function cellIndexesFromRanges(ranges: Array<{ start: number; end: number }>, cellCount: number): number[] {
+	const indexes: number[] = [];
+	const seen = new Set<number>();
+	for (const range of ranges) {
+		const start = Math.max(0, range.start);
+		const end = Math.min(cellCount, range.end);
+		for (let i = start; i < end; i++) {
+			if (!seen.has(i)) {
+				seen.add(i);
+				indexes.push(i);
+			}
+		}
+	}
+	return indexes;
+}
+
+/** True when args is a NotebookCell (not `{ ranges, document: Uri }`). */
+function isNotebookCellArg(args: any): args is vscode.NotebookCell {
+	return !!args
+		&& typeof args.index === 'number'
+		&& !!args.document
+		&& typeof args.document.getText === 'function'
+		&& !args.ranges;
+}
+
+const executeOneEnhancedCell = async (
+	cell: vscode.NotebookCell,
+	stopOnErrorMessage: boolean,
+	alreadyUnwrapped = false
+): Promise<boolean> => {
+	output.appendLine(`[Single] Executing Cell Index: ${cell.index}`);
+	cellStatusMap.delete(cell.document.uri.toString());
+	restoreDecorationForCell(cell);
+
+	const stopAnim = startAnimationLoopForCell(cell);
+	let success = false;
+	try {
+		const run = () => executeCellAndWaitNative(cell);
+		success = alreadyUnwrapped ? await run() : await withNativeCellExecute(run);
+	} catch (e) {
+		const errorMsg = stopOnErrorMessage
+			? `Failed to execute cell ${cell.index}. Execution stopped.`
+			: `Failed to execute cell ${cell.index}: ${e}`;
+		output.appendLine(`[ERROR] ${errorMsg}`);
+		vscode.window.showErrorMessage(errorMsg);
+		success = false;
+	} finally {
+		stopAnim();
+	}
+	handleCellFinished(cell, success);
+	return success;
+};
+
 const runSingleHandler = async (args?: any) => {
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) return;
 
-	let cell: vscode.NotebookCell | undefined;
-	
-	// 1. Check if args is the Cell object (standard VS Code behavior)
-	if (args && args.document) {
-		cell = args; 
-	} 
-	// 2. Check if args contains ranges (how our Scratchpad calls it)
-	else if (args && args.ranges && args.ranges.length > 0) {
-		cell = editor.notebook.cellAt(args.ranges[0].start);
+	const notebook = editor.notebook;
+	let cells: vscode.NotebookCell[] = [];
+
+	// Prefer ranges first: native / our helpers pass `{ ranges, document: Uri }` which also has `.document`
+	if (args?.ranges?.length > 0) {
+		cells = cellIndexesFromRanges(args.ranges, notebook.cellCount).map((i) => notebook.cellAt(i));
 	}
-	// 3. Fallback: Use current selection
+	// Toolbar "run cell" passes the NotebookCell object
+	else if (isNotebookCellArg(args)) {
+		cells = [args];
+	}
+	// Fallback: all current selections (native multi-select execute)
 	else if (editor.selections.length > 0) {
-		cell = editor.notebook.cellAt(editor.selections[0].start);
+		cells = cellIndexesFromRanges(
+			editor.selections.map((s) => ({ start: s.start, end: s.end })),
+			notebook.cellCount
+		).map((i) => notebook.cellAt(i));
 	}
 
-	if (cell) {
-		output.appendLine(`[Single] Executing Cell Index: ${cell.index}`);
-		cellStatusMap.delete(cell.document.uri.toString());
-		restoreDecorationForCell(cell);
+	if (cells.length === 0) {
+		return;
+	}
 
-		const stopAnim = startAnimationLoopForCell(cell);
-		singleHijack?.dispose(); 
+	// Single cell: preserve prior toolbar / scratchpad behavior (run even if markdown/empty)
+	if (cells.length === 1) {
+		await executeOneEnhancedCell(cells[0], false);
+		return;
+	}
 
-		try {
-			await vscode.commands.executeCommand('notebook.cell.execute', { 
-				ranges: [{ start: cell.index, end: cell.index + 1 }], 
-				notebookUri: cell.notebook.uri 
-			});
-		} catch (e) {
-			const errorMsg = `Failed to execute cell ${cell.index}: ${e}`;
-			output.appendLine(`[ERROR] ${errorMsg}`);
-			vscode.window.showErrorMessage(errorMsg);
-		} finally {
-			registerHijacks(); 
+	// Multiple cells: unwrap hijack once for the whole batch (avoid N dispose/re-register)
+	const codeCells = cells.filter(
+		(cell) => cell.kind === vscode.NotebookCellKind.Code && !!cell.document.getText().trim()
+	);
+	output.appendLine(`[Single] Executing ${codeCells.length} code cells from ranges`);
+	if (codeCells.length === 0) {
+		return;
+	}
+
+	await withNativeCellExecute(async () => {
+		for (const cell of codeCells) {
+			const range = new vscode.NotebookRange(cell.index, cell.index + 1);
+			editor.selections = [range];
+			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+
+			const success = await executeOneEnhancedCell(cell, true, true);
+			if (!success) {
+				break;
+			}
 		}
-
-		stopAnim();
-		const success = cell.executionSummary?.success ?? false;
-		handleCellFinished(cell, success);
-	}
+	});
 };
 
 // --- RUN SEQUENCE HANDLER ---
@@ -294,7 +415,16 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 	let loopEnd = notebook.cellCount;
 	let anchorIndex = editor.selections[0]?.start ?? 0;
 
-	if (args && args.document) anchorIndex = args.index;
+	if (args && typeof args.index === 'number') {
+		anchorIndex = args.index;
+	} else if (args?.ranges?.length > 0) {
+		if (mode === 'above') {
+			const last = args.ranges[args.ranges.length - 1];
+			anchorIndex = Math.max(0, last.end - 1);
+		} else {
+			anchorIndex = args.ranges[0].start;
+		}
+	}
 
 	if (mode === 'all') {
 		loopStart = 0; loopEnd = notebook.cellCount;
@@ -314,12 +444,13 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 		}
 	}
 
-	singleHijack?.dispose();
-
-	try {
+	// Unwrap once for the whole sequence (avoid per-cell command dispose/re-register)
+	await withNativeCellExecute(async () => {
 		for (let i = loopStart; i < loopEnd; i++) {
 			const cell = notebook.cellAt(i);
-			if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) continue;
+			if (cell.kind !== vscode.NotebookCellKind.Code || !cell.document.getText().trim()) {
+				continue;
+			}
 
 			cellStatusMap.delete(cell.document.uri.toString());
 			restoreDecorationForCell(cell);
@@ -327,8 +458,6 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 			const range = new vscode.NotebookRange(i, i + 1);
 			editor.selections = [range];
 			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
-
-			await new Promise(r => setTimeout(r, 100));
 
 			const stopAnim = startAnimationLoopForCell(cell);
 			let success = false;
@@ -341,32 +470,125 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 			} finally {
 				stopAnim();
 			}
-			
+
 			handleCellFinished(cell, success);
 
-			if (!success) break;
+			if (!success) {
+				break;
+			}
 		}
-	} finally {
-		registerHijacks();
-	}
+	});
 };
 
 // --- CORE HELPERS ---
 
+/**
+ * Execute a cell via native command and wait for *this* run to finish.
+ * Uses execution-state API when available; otherwise waits for executionOrder/endTime to change.
+ */
 async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<boolean> {
-	return new Promise<boolean>((resolve, reject) => {
-		const timeout = setTimeout(() => {
-			clearInterval(poller);
-			const errorMsg = `Cell ${cell.index} execution timed out after 5 minutes`;
-			output.appendLine(`[ERROR] ${errorMsg}`);
-			reject(new Error(errorMsg));
-		}, 5 * 60 * 1000); // 5 minute timeout
+	const cellUri = cell.document.uri.toString();
+	const priorOrder = cell.executionSummary?.executionOrder;
+	const priorEnd = cell.executionSummary?.timing?.endTime;
 
-		const poller = setInterval(() => {
-			if (cell.executionSummary?.success !== undefined) {
+	return new Promise<boolean>((resolve, reject) => {
+		let settled = false;
+		let sawStarted = false;
+		let stateSub: vscode.Disposable | undefined;
+		let docSub: vscode.Disposable | undefined;
+		let poller: ReturnType<typeof setInterval> | undefined;
+
+		const cleanup = () => {
+			if (settled) {
+				return;
+			}
+			settled = true;
+			stateSub?.dispose();
+			docSub?.dispose();
+			if (poller) {
 				clearInterval(poller);
-				clearTimeout(timeout);
-				resolve(cell.executionSummary.success);
+			}
+			clearTimeout(timeout);
+		};
+
+		const finish = (success: boolean) => {
+			cleanup();
+			resolve(success);
+		};
+
+		const fail = (err: unknown) => {
+			cleanup();
+			reject(err);
+		};
+
+		const timeout = setTimeout(() => {
+			fail(new Error(`Cell ${cell.index} execution timed out after 5 minutes`));
+		}, 5 * 60 * 1000);
+
+		const isSameCell = (other: vscode.NotebookCell) =>
+			other.document.uri.toString() === cellUri;
+
+		const summaryLooksComplete = (): boolean | undefined => {
+			const summary = cell.executionSummary;
+			if (!summary) {
+				return undefined;
+			}
+			const orderChanged =
+				summary.executionOrder !== undefined && summary.executionOrder !== priorOrder;
+			const endChanged =
+				summary.timing?.endTime !== undefined && summary.timing.endTime !== priorEnd;
+			// Require endTime change so a prior run's success is not treated as completion
+			if (endChanged) {
+				return summary.success ?? false;
+			}
+			// New order without end yet → still running
+			if (orderChanged) {
+				sawStarted = true;
+				return undefined;
+			}
+			return undefined;
+		};
+
+		try {
+			const notebooksAny = vscode.notebooks as any;
+			const onStateChange = notebooksAny?.onDidChangeNotebookCellExecutionState;
+			if (typeof onStateChange === 'function') {
+				stateSub = onStateChange.call(notebooksAny, (e: { cell: vscode.NotebookCell; state: number }) => {
+					if (!isSameCell(e.cell)) {
+						return;
+					}
+					// 2 = Pending, 3 = Executing, 1 = Idle
+					if (e.state === 2 || e.state === 3) {
+						sawStarted = true;
+					} else if (e.state === 1 && sawStarted) {
+						finish(cell.executionSummary?.success ?? false);
+					}
+				});
+			}
+		} catch {
+			// fall through to polling
+		}
+
+		docSub = vscode.workspace.onDidChangeNotebookDocument(e => {
+			if (e.notebook.uri.toString() !== cell.notebook.uri.toString()) {
+				return;
+			}
+			for (const change of e.cellChanges) {
+				if (!isSameCell(change.cell)) {
+					continue;
+				}
+				const done = summaryLooksComplete();
+				if (done !== undefined) {
+					finish(done);
+					return;
+				}
+			}
+		});
+
+		poller = setInterval(() => {
+			const done = summaryLooksComplete();
+			if (done !== undefined) {
+				finish(done);
 			}
 		}, 100);
 
@@ -374,12 +596,10 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 			ranges: [{ start: cell.index, end: cell.index + 1 }],
 			notebookUri: cell.notebook.uri
 		}).then(undefined, (err) => {
-			clearInterval(poller);
-			clearTimeout(timeout);
 			const errorMsg = `Failed to execute cell ${cell.index}: ${err}`;
 			output.appendLine(`[ERROR] ${errorMsg}`);
 			vscode.window.showErrorMessage(errorMsg);
-			reject(err);
+			fail(err);
 		});
 	});
 }
@@ -435,22 +655,6 @@ function handleCellFinished(cell: vscode.NotebookCell, success: boolean) {
 		setTimeout(() => removeDecoration(cell, flashDec), config.get('general.flashDuration', 300));
 	}
 	restoreDecorationForCell(cell);
-}
-
-function checkForFinishedCells() {
-	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) return;
-	for (const cell of editor.notebook.getCells()) {
-		if (cell.kind !== vscode.NotebookCellKind.Code) continue;
-		const summary = cell.executionSummary;
-		if (summary && summary.timing?.endTime) {
-			const uri = cell.document.uri.toString();
-			const lastTime = lastExecutionTimes.get(uri) ?? 0;
-			if (summary.timing.endTime > lastTime) {
-				handleCellFinished(cell, summary.success ?? false);
-			}
-		}
-	}
 }
 
 // --- DECORATION UTILS ---

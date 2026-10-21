@@ -3,20 +3,34 @@
 import * as vscode from 'vscode';
 import { updateCellMetadata, getCellMetadata } from '../util/notebookMetadata';
 
+const EDIT_DEBOUNCE_MS = 1500;
+
 /**
  * Track cell creation and content modification events
- * Sets cellCreated and cellEdited metadata timestamps
+ * Sets cellCreated and cellEdited metadata timestamps (debounced for edits).
  */
 export function trackCellHistory(context: vscode.ExtensionContext) {
+    const pendingEdits = new Map<string, { cell: vscode.NotebookCell; timer: ReturnType<typeof setTimeout> }>();
+
+    const flushEdit = (key: string) => {
+        const pending = pendingEdits.get(key);
+        if (!pending) {
+            return;
+        }
+        pendingEdits.delete(key);
+        const timestamp = new Date().toISOString();
+        updateCellMetadata(pending.cell, ['custom', 'metadata', 'cellEdited'], timestamp).catch(err => {
+            console.error(`Failed to update cellEdited metadata for cell ${pending.cell.index}:`, err);
+        });
+    };
+
     context.subscriptions.push(
         vscode.workspace.onDidChangeNotebookDocument(e => {
             const timestamp = new Date().toISOString();
 
-            // Handle cell additions (creation)
             e.contentChanges.forEach(change => {
                 if (change.addedCells && change.addedCells.length > 0) {
                     change.addedCells.forEach(cell => {
-                        // Only set cellCreated if it doesn't already exist (preserve original creation time)
                         const existingCreated = getCellMetadata<string>(cell, ['custom', 'metadata', 'cellCreated'], '');
                         if (!existingCreated) {
                             updateCellMetadata(cell, ['custom', 'metadata', 'cellCreated'], timestamp).catch(err => {
@@ -27,17 +41,32 @@ export function trackCellHistory(context: vscode.ExtensionContext) {
                 }
             });
 
-            // Handle cell content modifications (edits)
             e.cellChanges.forEach(change => {
-                // Check if the document (cell content) was modified
-                if (change.document) {
-                    const cell = change.cell;
-                    // Always update cellEdited when content changes (overwrite with latest edit time)
-                    updateCellMetadata(cell, ['custom', 'metadata', 'cellEdited'], timestamp).catch(err => {
-                        console.error(`Failed to update cellEdited metadata for cell ${cell.index}:`, err);
+                if (!change.document) {
+                    return;
+                }
+                const cell = change.cell;
+                const key = `${cell.notebook.uri.toString()}#${cell.index}`;
+                const existing = pendingEdits.get(key);
+                if (existing) {
+                    clearTimeout(existing.timer);
+                }
+                const timer = setTimeout(() => flushEdit(key), EDIT_DEBOUNCE_MS);
+                pendingEdits.set(key, { cell, timer });
+            });
+        }),
+        {
+            dispose: () => {
+                const entries = [...pendingEdits.entries()];
+                pendingEdits.clear();
+                for (const [, pending] of entries) {
+                    clearTimeout(pending.timer);
+                    const timestamp = new Date().toISOString();
+                    updateCellMetadata(pending.cell, ['custom', 'metadata', 'cellEdited'], timestamp).catch(() => {
+                        /* ignore on dispose */
                     });
                 }
-            });
-        })
+            }
+        }
     );
 }

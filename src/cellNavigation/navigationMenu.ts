@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { navigateToPreviousExecutedCell, navigateToNextExecutedCell } from '../cellExecution/cellExecutionTracking';
 import { getCellExecutionStatus } from '../cellExecution/cellExecutionTracking';
 import { getActiveCell } from '../util/notebookSelection';
+import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 async function navigateToPreviousErrorCell(context: vscode.ExtensionContext) {
@@ -107,8 +108,7 @@ async function navigateToNextErrorCell(context: vscode.ExtensionContext) {
 }
 
 async function showNavigationMenu(context: vscode.ExtensionContext) {
-	const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
-	const enableErrorNavigation = config.get<boolean>('enableErrorNavigation', false);
+	const enableErrorNavigation = isFeatureEnabled('errorNavigation');
 	
 	const items: vscode.QuickPickItem[] = [
 		{

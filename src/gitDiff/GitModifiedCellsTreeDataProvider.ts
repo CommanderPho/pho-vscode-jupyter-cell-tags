@@ -202,9 +202,17 @@ export function registerGitModifiedCellsView(context: vscode.ExtensionContext): 
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument(e => {
-			if (e.notebook === vscode.window.activeNotebookEditor?.notebook) {
-				provider.scheduleRefresh(400);
+			if (e.notebook !== vscode.window.activeNotebookEditor?.notebook) {
+				return;
 			}
+			// Skip output/execution-only noise; LCS is expensive
+			const contentRelevant =
+				e.contentChanges.length > 0 ||
+				e.cellChanges.some(c => c.document !== undefined || c.metadata !== undefined);
+			if (!contentRelevant) {
+				return;
+			}
+			provider.scheduleRefresh(800);
 		})
 	);
 

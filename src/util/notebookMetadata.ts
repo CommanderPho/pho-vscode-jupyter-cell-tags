@@ -62,8 +62,8 @@ export function getNotebookMetadata<T>(notebook: vscode.NotebookDocument, metada
  * @param value New value to set at the specified path
  */
 export async function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, metadataPath: string[], value: T): Promise<void> {
-    // Clone the existing metadata
-    const newMetadata = { ...(notebook.metadata || {}) };
+    // Deep-clone so nested objects are not shared with the live notebook metadata
+    const newMetadata = JSON.parse(JSON.stringify(notebook.metadata || {}));
     
     // We'll traverse the path and build the objects as needed
     let current = newMetadata;
@@ -150,8 +150,8 @@ export function getCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: stri
  * @param value New value to set at the specified path
  */
 export async function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: string[], value: T): Promise<void> {
-    // Clone the existing metadata
-    const newMetadata = { ...(cell.metadata || {}) };
+    // Deep-clone so nested objects are not shared with the live cell metadata
+    const newMetadata = JSON.parse(JSON.stringify(cell.metadata || {}));
     
     // We'll traverse the path and build the objects as needed
     let current = newMetadata;

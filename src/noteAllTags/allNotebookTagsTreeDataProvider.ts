@@ -12,6 +12,7 @@ import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { ScrollbarDecoratorManager } from './scrollbarDecorators';
+import { isFeatureEnabled } from '../util/featureFlags';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -55,6 +56,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
+    private _updateTagsTimer: ReturnType<typeof setTimeout> | undefined;
+    private static readonly UPDATE_TAGS_DEBOUNCE_MS = 250;
     // private _sortMode: TagSortMode = TagSortMode.Alphabetical;
     // // Add a setter for the sort mode
     // public set sortMode(mode: TagSortMode) {
@@ -111,10 +114,34 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         await vscode.commands.executeCommand('setContext', 'jupyter:showAllTagsExplorer', true);
         log('Context set');
 
-        this._editorDisposables.push(vscode.workspace.onDidChangeNotebookDocument(e => {
-            this.updateTags(editor);
-        }));
+        this._editorDisposables.push(
+            vscode.workspace.onDidChangeNotebookDocument(e => {
+                if (e.notebook !== editor.notebook) {
+                    return;
+                }
+                if (!notebookChangeMayAffectTags(e)) {
+                    return;
+                }
+                this.scheduleUpdateTags(editor);
+            }),
+            { dispose: () => {
+                if (this._updateTagsTimer) {
+                    clearTimeout(this._updateTagsTimer);
+                    this._updateTagsTimer = undefined;
+                }
+            } }
+        );
         this.updateTags(editor);
+    }
+
+    private scheduleUpdateTags(editor: vscode.NotebookEditor): void {
+        if (this._updateTagsTimer) {
+            clearTimeout(this._updateTagsTimer);
+        }
+        this._updateTagsTimer = setTimeout(() => {
+            this._updateTagsTimer = undefined;
+            void this.updateTags(editor);
+        }, AllTagsTreeDataProvider.UPDATE_TAGS_DEBOUNCE_MS);
     }
 
     public changeSortOrder() {
@@ -259,10 +286,10 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     
-    // Read outline sync configuration from VS Code settings
+    // Read outline sync configuration from VS Code settings (features.outlineSync is the master switch)
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
     const outlineSyncConfig = {
-        enabled: config.get<boolean>('outlineSync.enabled', true),
+        enabled: isFeatureEnabled('outlineSync'),
         debounceMs: config.get<number>('outlineSync.debounceMs', 100)
     };
     
@@ -273,10 +300,13 @@ export function register(context: vscode.ExtensionContext) {
     // Listen for configuration changes and update sync manager / hot-color fade
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('jupyter-cell-tags.outlineSync')) {
+            if (
+                e.affectsConfiguration('jupyter-cell-tags.outlineSync') ||
+                e.affectsConfiguration('jupyter-cell-tags.features.outlineSync')
+            ) {
                 const updatedConfig = vscode.workspace.getConfiguration('jupyter-cell-tags');
                 const newConfig = {
-                    enabled: updatedConfig.get<boolean>('outlineSync.enabled', true),
+                    enabled: isFeatureEnabled('outlineSync'),
                     debounceMs: updatedConfig.get<number>('outlineSync.debounceMs', 100)
                 };
                 outlineSyncManager.updateConfig(newConfig);
@@ -539,18 +569,9 @@ export function register(context: vscode.ExtensionContext) {
             return;
         }
 
-        for (const cellRef of cellRefs) {
-            const cell = editor.notebook.cellAt(cellRef.index);
-            if (cell) {
-                // Execute the cell
-                // await editor.notebook.executeCell(cell.index);
-                // await editor.executeCell(cell.index);
-                executeGroup(tag, cell);    // Execute the group of cells
-            }
-        }
+        // executeGroup already filters and runs every cell with this tag once
+        await executeGroup(tag);
 
-        // vscode.window.showInformationMessage(`Executed ${cellRefs.length} cells with tag: ${tag}`);
-        // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
         showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
     }));
@@ -920,4 +941,17 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+}
+
+/** True when a notebook change could alter the tags tree (skip output/execution-only noise). */
+function notebookChangeMayAffectTags(e: vscode.NotebookDocumentChangeEvent): boolean {
+    if (e.contentChanges.length > 0) {
+        return true;
+    }
+    for (const change of e.cellChanges) {
+        if (change.document || change.metadata) {
+            return true;
+        }
+    }
+    return false;
 }

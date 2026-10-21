@@ -26,15 +26,27 @@ import { activateCellHistoryTracking } from './cellHistory/startup';
 import { registerCellMetadataDisplay } from './cellMetadataDisplay/cellMetadataDisplay';
 import { activateRingMeJupyter } from './ringMeJupyter/startup';
 import { activateJupyterEnhancementsModule } from './jupyterEnhancements/startup';
+import { deactivateJupyterEnhancements } from './jupyterEnhancements/extension';
 import { activateGitDiffHighlighting } from './gitDiff/startup';
 import { activateDependencyChain } from './dependencyChain/startup';
+import { activateNotebookFilter } from './notebookFilter/startup';
+import { activateExternalKernel } from './externalKernel/startup';
+import {
+    isFeatureEnabled,
+    migrateDeprecatedFeatureSettings,
+    registerFeatureReloadPrompt,
+} from './util/featureFlags';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
 
     const has_invalid_extension_installed = detect_conflicting_microsoft_extension();
+
+    // Migrate deprecated enable* settings into features.* before gating activation
+    await migrateDeprecatedFeatureSettings();
+    registerFeatureReloadPrompt(context);
 
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
@@ -42,11 +54,14 @@ export function activate(context: vscode.ExtensionContext) {
 
 	registerCellTags(context);
     registerAllNotebookTagsView(context);
-    setJumpbackExtensionContext(context);
-    registerJumpbackCommand(context);
-    registerRemoveJumpbackCommand(context);
-    registerOpenJumpbackCommand(context);
-    registerJumpbackTreeDataProvider(context);
+
+    if (isFeatureEnabled('jumpbacks')) {
+        setJumpbackExtensionContext(context);
+        registerJumpbackCommand(context);
+        registerRemoveJumpbackCommand(context);
+        registerOpenJumpbackCommand(context);
+        registerJumpbackTreeDataProvider(context);
+    }
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),
@@ -54,26 +69,58 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('jupyter-cell-tags.exportExecutedCodeToPython', exportExecutedCodeToPython)
     );
 	// Update context when the active editor or selection changes
-	vscode.window.onDidChangeActiveNotebookEditor(updateContext);
-	vscode.window.onDidChangeNotebookEditorSelection(updateContext);
-	vscode.window.onDidChangeActiveTextEditor(updateContext);
-	vscode.window.onDidChangeTextEditorSelection(updateContext);
+	context.subscriptions.push(
+		vscode.window.onDidChangeActiveNotebookEditor(updateContext),
+		vscode.window.onDidChangeNotebookEditorSelection(updateContext),
+		vscode.window.onDidChangeActiveTextEditor(updateContext),
+		vscode.window.onDidChangeTextEditorSelection(updateContext),
+	);
 
 	updateContext();
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
-    activateNotebookCellExecutionTracking(context);
+    if (isFeatureEnabled('cellExecutionTracking')) {
+        activateNotebookCellExecutionTracking(context);
+    }
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
-    activateOutlineSync(context);
-    registerCustomOutline(context);
+    if (isFeatureEnabled('outlineSync')) {
+        activateOutlineSync(context);
+    }
+    if (isFeatureEnabled('customOutline')) {
+        registerCustomOutline(context);
+    }
     registerNavigationMenu(context);
-    activateCellHistoryTracking(context);
+    if (isFeatureEnabled('cellHistory')) {
+        activateCellHistoryTracking(context);
+    }
     registerCellMetadataDisplay(context);
-    activateRingMeJupyter(context);
-    activateJupyterEnhancementsModule(context);
-    activateGitDiffHighlighting(context);
-    activateDependencyChain(context);
+    if (isFeatureEnabled('ringMeJupyter')) {
+        activateRingMeJupyter(context);
+    }
+    if (isFeatureEnabled('notebookFilter')) {
+        activateNotebookFilter(context);
+    }
+    if (isFeatureEnabled('jupyterEnhancements')) {
+        try {
+            activateJupyterEnhancementsModule(context);
+        } catch (err) {
+            log(`Jupyter enhancements failed to activate (continuing): ${err}`);
+        }
+    }
+    if (isFeatureEnabled('gitDiff')) {
+        activateGitDiffHighlighting(context);
+    }
+    if (isFeatureEnabled('dependencyChain')) {
+        activateDependencyChain(context);
+    }
+    if (isFeatureEnabled('durableKernel')) {
+        try {
+            activateExternalKernel(context);
+        } catch (err) {
+            log(`Durable external kernel feature failed to activate (continuing): ${err}`);
+        }
+    }
     log('Extension activated.');
 }
 
@@ -116,4 +163,9 @@ function updateContext() {
 
 export function deactivate() {
     disposeCellHighlight();
+    try {
+        deactivateJupyterEnhancements();
+    } catch {
+        // Feature may not have been activated
+    }
 }

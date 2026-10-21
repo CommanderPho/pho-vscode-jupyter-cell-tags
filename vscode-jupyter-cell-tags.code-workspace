@@ -19,7 +19,15 @@
             "notebook.outputContainerBorderColor": "#10ff10"
         },
         "actionButtons": {
-            "commands": [],
+            "commands": [
+                {
+                    "name": "VS Code Dev",
+                    "color": "#99CCFF",
+                    "tooltip": "Open this workspace in regular VS Code for extension development",
+                    "command": "code --new-window \"${workspaceFolder}\\vscode-jupyter-cell-tags.code-workspace\"",
+                    "singleInstance": true
+                }
+            ],
             "defaultColor": "white",
             "reloadButton": "↻",
             "loadNpmCommands": true
