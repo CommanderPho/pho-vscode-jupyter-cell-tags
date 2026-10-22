@@ -133,7 +133,7 @@
 					"jupyter-cell-tags.features.dependencyChain": {
 						"type": "boolean",
 						"default": true,
-						"description": "🔗 Show variable dependency chains between cells"
+						"description": "⛓️ Show variable dependency chains between cells"
 					},
 					"jupyter-cell-tags.features.notebookFilter": {
 						"type": "boolean",
@@ -1354,8 +1354,8 @@
 				},
 				{
 					"id": "dependency-chain-view",
-					"name": "🔗 Dependency Chain",
-					"contextualTitle": "🔗 Dependency Chain",
+					"name": "⛓️ Dependency Chain",
+					"contextualTitle": "⛓️ Dependency Chain",
 					"type": "tree",
 					"icon": "$(type-hierarchy)",
 					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.dependencyChain"
