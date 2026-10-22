@@ -26,7 +26,19 @@ desktop.ini
 package-lock.json
 FM-*.ico
 
+# Internal / unpack leftovers
+test-uri.js
+.agents/
+.github/
+extension/
+
 # TypeScript source (runtime uses out/ only). Keep the symbol analyzer script.
-src/**
-!src/dependencyChain/
-!src/dependencyChain/analyzeSymbols.py
+src/**/*.ts
+src/**/*.js
+src/**/*.map
+src/**/*.md
+
+# Compiled tests and source maps
+**/*.map
+**/*.test.js
+out/**/test/**
