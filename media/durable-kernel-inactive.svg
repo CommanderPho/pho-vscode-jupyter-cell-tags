@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+  <!-- Red border: not-active / select durable kernel -->
+  <rect x="1.5" y="1.5" width="13" height="13" rx="2.5" stroke="#e11d48" stroke-width="1.5"/>
+  <!-- Server/vm glyph -->
+  <rect x="4" y="4.5" width="8" height="2.5" rx="0.5" fill="#e11d48"/>
+  <rect x="4" y="8" width="8" height="2.5" rx="0.5" fill="#e11d48"/>
+  <circle cx="5.5" cy="5.75" r="0.6" fill="#ffffff"/>
+  <circle cx="5.5" cy="9.25" r="0.6" fill="#ffffff"/>
+</svg>

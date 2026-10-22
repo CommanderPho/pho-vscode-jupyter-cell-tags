@@ -4,11 +4,19 @@ import * as vscode from 'vscode';
  * This should handle getting/setting/updating cell and notebook level metadata
  */
 
-export function useCustomMetadata() {
-    if (vscode.extensions.getExtension('vscode.ipynb')?.exports.dropCustomMetadata) {
-        return false;
+let _useCustomMetadata: boolean | undefined;
+export function useCustomMetadata(): boolean {
+    if (_useCustomMetadata === undefined) {
+        const ext = vscode.extensions.getExtension('vscode.ipynb');
+        if (ext !== undefined) {
+            // Only cache when the extension is present; if it hasn't activated yet,
+            // return the safe default (true) without caching so we retry next call.
+            _useCustomMetadata = !ext.exports.dropCustomMetadata;
+        } else {
+            return true;
+        }
     }
-    return true;
+    return _useCustomMetadata;
 }
 
 /**
@@ -62,8 +70,8 @@ export function getNotebookMetadata<T>(notebook: vscode.NotebookDocument, metada
  * @param value New value to set at the specified path
  */
 export async function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, metadataPath: string[], value: T): Promise<void> {
-    // Clone the existing metadata
-    const newMetadata = { ...(notebook.metadata || {}) };
+    // Deep-clone so nested objects are not shared with the live notebook metadata
+    const newMetadata = JSON.parse(JSON.stringify(notebook.metadata || {}));
     
     // We'll traverse the path and build the objects as needed
     let current = newMetadata;
@@ -150,8 +158,8 @@ export function getCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: stri
  * @param value New value to set at the specified path
  */
 export async function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: string[], value: T): Promise<void> {
-    // Clone the existing metadata
-    const newMetadata = { ...(cell.metadata || {}) };
+    // Deep-clone so nested objects are not shared with the live cell metadata
+    const newMetadata = JSON.parse(JSON.stringify(cell.metadata || {}));
     
     // We'll traverse the path and build the objects as needed
     let current = newMetadata;

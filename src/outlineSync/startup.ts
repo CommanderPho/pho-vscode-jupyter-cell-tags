@@ -5,6 +5,7 @@ import * as vscode from 'vscode';
 import { OutlineSyncManager } from './OutlineSyncManager';
 import { SelectionChangeDetector } from './SelectionChangeDetector';
 import { OutlineSyncConfig } from './IOutlineSyncManager';
+import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 /**
@@ -19,7 +20,7 @@ let selectionDetector: SelectionChangeDetector | undefined;
 function readConfiguration(): Partial<OutlineSyncConfig> {
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags.outlineSync');
     
-    const enabled = config.get<boolean>('enabled', true);
+    const enabled = isFeatureEnabled('outlineSync');
     const debounceMs = config.get<number>('debounceMs', 300);
     
     log(`Configuration read: enabled=${enabled}, debounceMs=${debounceMs}`);
@@ -85,8 +86,10 @@ export function activateOutlineSync(context: vscode.ExtensionContext): void {
     
     // Listen for configuration changes
     const configChangeDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
-        // Check if our configuration changed
-        if (event.affectsConfiguration('jupyter-cell-tags.outlineSync')) {
+        if (
+            event.affectsConfiguration('jupyter-cell-tags.outlineSync') ||
+            event.affectsConfiguration('jupyter-cell-tags.features.outlineSync')
+        ) {
             log('Outline sync configuration changed, updating...');
             const newConfig = readConfiguration();
             updateConfiguration(newConfig);

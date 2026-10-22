@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { GitDiffCellHighlighter, pickCommitAndHighlight, highlightVsHead } from './gitDiffProvider';
+import { registerGitModifiedCellsView } from './GitModifiedCellsTreeDataProvider';
 
 export function activateGitDiffHighlighting(context: vscode.ExtensionContext): void {
 	const highlighter = new GitDiffCellHighlighter();
@@ -26,4 +27,6 @@ export function activateGitDiffHighlighting(context: vscode.ExtensionContext): v
 			() => highlightVsHead(highlighter)
 		)
 	);
+
+	registerGitModifiedCellsView(context);
 }

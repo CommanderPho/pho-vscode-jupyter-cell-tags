@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { IOutlineSelectionSync } from './IOutlineSelectionSync';
-import { OutlineItem } from './models';
+import { OutlineItem, NotebookTreeItem } from './models';
 import { SelectionChangeDetector } from '../outlineSync/SelectionChangeDetector';
 import { log } from '../util/logging';
 
@@ -12,7 +12,7 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
     private currentSection: OutlineItem | undefined;
 
     constructor(
-        private readonly treeView: vscode.TreeView<OutlineItem>,
+        private readonly treeView: vscode.TreeView<NotebookTreeItem>,
         private readonly selectionDetector: SelectionChangeDetector | undefined
     ) {}
 
@@ -63,19 +63,23 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
     /**
      * Sync outline item selections to the notebook editor.
      * Selecting items in the outline selects their heading cells in the editor.
+     * ExecutedCellLineItem navigates to the executed cell instead.
      */
-    async syncOutlineToEditor(selectedItems: readonly OutlineItem[]): Promise<void> {
+    async syncOutlineToEditor(selectedItems: readonly vscode.TreeItem[]): Promise<void> {
         const editor = vscode.window.activeNotebookEditor;
         if (!editor || !selectedItems.length) {
             return;
         }
 
-        const ranges = selectedItems.map(item => new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1));
+        const outlineItems = selectedItems.filter((i): i is OutlineItem => i instanceof OutlineItem);
+        if (!outlineItems.length) {
+            return;
+        }
+
+        const ranges = outlineItems.map(item => new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1));
 
         try {
             if (this.selectionDetector) {
-                // Use shared SelectionChangeDetector so that outline-selection-sync
-                // continues to work and debounce logic is reused.
                 this.selectionDetector.triggerSelectionChange(editor, ranges);
             } else {
                 editor.selections = ranges;

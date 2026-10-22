@@ -65,7 +65,9 @@ export function register(context: vscode.ExtensionContext) {
     const jumpbackProvider = new JumpbackTreeDataProvider();
     context.subscriptions.push(vscode.window.registerTreeDataProvider('jumpbacks', jumpbackProvider));
 
-    const updateJumpbackView = () => {
+    let updateJumpbackTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const doUpdateJumpbackView = () => {
         const ds = JumpbackDataSource.loadFromActiveEditor();
         if (!ds) {
             jumpbackProvider.refresh([]);
@@ -77,9 +79,25 @@ export function register(context: vscode.ExtensionContext) {
         jumpbackProvider.refresh(ds.getList(), targetUri);
     };
 
-    context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(() => updateJumpbackView()));
-    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => updateJumpbackView()));
+    const updateJumpbackView = (): void => {
+        if (updateJumpbackTimer) {
+            clearTimeout(updateJumpbackTimer);
+        }
+        updateJumpbackTimer = setTimeout(() => {
+            updateJumpbackTimer = undefined;
+            doUpdateJumpbackView();
+        }, 150);
+    };
+
+    context.subscriptions.push({ dispose: () => { clearTimeout(updateJumpbackTimer); } });
+
+    context.subscriptions.push(vscode.window.onDidChangeActiveNotebookEditor(() => doUpdateJumpbackView()));
+    context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(() => doUpdateJumpbackView()));
     context.subscriptions.push(vscode.workspace.onDidChangeNotebookDocument((e) => {
+        // Only notebook-level metadata changes can affect the jumpback list
+        if (e.metadata === undefined) {
+            return;
+        }
         const active = vscode.window.activeNotebookEditor;
         if (active && e.notebook.uri.toString() === active.notebook.uri.toString()) {
             updateJumpbackView();

@@ -10,5 +10,5 @@ export interface IOutlineSelectionSync {
     syncEditorToOutline(editor: vscode.NotebookEditor, outlineItems: OutlineItem[]): Promise<void>;
 
     /** Sync outline item selections to the notebook editor */
-    syncOutlineToEditor(selectedItems: readonly OutlineItem[]): Promise<void>;
+    syncOutlineToEditor(selectedItems: readonly vscode.TreeItem[]): Promise<void>;
 }

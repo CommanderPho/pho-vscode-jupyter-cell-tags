@@ -11,6 +11,8 @@ import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
+import { ScrollbarDecoratorManager } from './scrollbarDecorators';
+import { isFeatureEnabled } from '../util/featureFlags';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -54,6 +56,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     private _disposables: vscode.Disposable[] = [];
     private _editorDisposables: vscode.Disposable[] = [];
     private _sortOrder: TagSortOrder = TagSortOrder.Alphabetical;
+    private _updateTagsTimer: ReturnType<typeof setTimeout> | undefined;
+    private static readonly UPDATE_TAGS_DEBOUNCE_MS = 250;
     // private _sortMode: TagSortMode = TagSortMode.Alphabetical;
     // // Add a setter for the sort mode
     // public set sortMode(mode: TagSortMode) {
@@ -110,10 +114,34 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
         await vscode.commands.executeCommand('setContext', 'jupyter:showAllTagsExplorer', true);
         log('Context set');
 
-        this._editorDisposables.push(vscode.workspace.onDidChangeNotebookDocument(e => {
-            this.updateTags(editor);
-        }));
+        this._editorDisposables.push(
+            vscode.workspace.onDidChangeNotebookDocument(e => {
+                if (e.notebook !== editor.notebook) {
+                    return;
+                }
+                if (!notebookChangeMayAffectTags(e)) {
+                    return;
+                }
+                this.scheduleUpdateTags(editor);
+            }),
+            { dispose: () => {
+                if (this._updateTagsTimer) {
+                    clearTimeout(this._updateTagsTimer);
+                    this._updateTagsTimer = undefined;
+                }
+            } }
+        );
         this.updateTags(editor);
+    }
+
+    private scheduleUpdateTags(editor: vscode.NotebookEditor): void {
+        if (this._updateTagsTimer) {
+            clearTimeout(this._updateTagsTimer);
+        }
+        this._updateTagsTimer = setTimeout(() => {
+            this._updateTagsTimer = undefined;
+            void this.updateTags(editor);
+        }, AllTagsTreeDataProvider.UPDATE_TAGS_DEBOUNCE_MS);
     }
 
     public changeSortOrder() {
@@ -121,7 +149,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
             { label: 'Alphabetical', value: TagSortOrder.Alphabetical },
             { label: 'Creation Date', value: TagSortOrder.CreationDate },
             { label: 'Modification Date', value: TagSortOrder.ModificationDate },
-            { label: 'Priority', value: TagSortOrder.Priority }
+            { label: 'Priority', value: TagSortOrder.Priority },
+            { label: 'Detected datetimes first', value: TagSortOrder.DetectedDatetimes }
         ];
 
         vscode.window.showQuickPick(options, {
@@ -165,7 +194,9 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     getTreeItem(element: string | CellReference): vscode.TreeItem | Thenable<vscode.TreeItem> {
         if (typeof element === 'string') {
             // Tag node
-            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element); // .contextValue = 'tagItem'
+            const notebook = vscode.window.activeNotebookEditor?.notebook;
+            const allProps = notebook ? TagPropertiesManager.getAllTagProperties(notebook) : {};
+            const tagItem = new TagTreeItem(element, vscode.TreeItemCollapsibleState.Collapsed, element, allProps[element]); // .contextValue = 'tagItem'
             return tagItem;
         } else {
             // Cell reference node -- the leaf nodes that say "Cell 65" or similar
@@ -227,6 +258,8 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
     }
 
     dispose() {
+        clearTimeout(this._updateTagsTimer);
+        this._updateTagsTimer = undefined;
         this._editorDisposables.forEach(d => d.dispose());
         this._disposables.forEach(d => d.dispose());
     }
@@ -256,11 +289,12 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
 export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
+    context.subscriptions.push(treeDataProvider);
     
-    // Read outline sync configuration from VS Code settings
+    // Read outline sync configuration from VS Code settings (features.outlineSync is the master switch)
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
     const outlineSyncConfig = {
-        enabled: config.get<boolean>('outlineSync.enabled', true),
+        enabled: isFeatureEnabled('outlineSync'),
         debounceMs: config.get<number>('outlineSync.debounceMs', 100)
     };
     
@@ -268,20 +302,30 @@ export function register(context: vscode.ExtensionContext) {
     const outlineSyncManager = new OutlineSyncManager(outlineSyncConfig);
     context.subscriptions.push(outlineSyncManager);
     
-    // Listen for configuration changes and update sync manager
+    // Listen for configuration changes and update sync manager / hot-color fade
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (e.affectsConfiguration('jupyter-cell-tags.outlineSync')) {
+            if (
+                e.affectsConfiguration('jupyter-cell-tags.outlineSync') ||
+                e.affectsConfiguration('jupyter-cell-tags.features.outlineSync')
+            ) {
                 const updatedConfig = vscode.workspace.getConfiguration('jupyter-cell-tags');
                 const newConfig = {
-                    enabled: updatedConfig.get<boolean>('outlineSync.enabled', true),
+                    enabled: isFeatureEnabled('outlineSync'),
                     debounceMs: updatedConfig.get<number>('outlineSync.debounceMs', 100)
                 };
                 outlineSyncManager.updateConfig(newConfig);
                 log('Outline sync configuration updated:', newConfig);
             }
+            if (e.affectsConfiguration('jupyter-cell-tags.tagHotColor')) {
+                treeDataProvider.refresh();
+            }
         })
     );
+
+    // Create ScrollbarDecoratorManager for tag decorations
+    const scrollbarDecoratorManager = new ScrollbarDecoratorManager(context);
+    context.subscriptions.push(scrollbarDecoratorManager);
 
     // Expose the provider globally for debugging
     // if (!globalThis._debug) {
@@ -296,7 +340,36 @@ export function register(context: vscode.ExtensionContext) {
     // };
 
 
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('all-notebook-tags-view', treeDataProvider));
+    // Register TreeView (not just TreeDataProvider) to capture selection events
+    const treeView = vscode.window.createTreeView('all-notebook-tags-view', {
+        treeDataProvider: treeDataProvider,
+        showCollapseAll: true
+    });
+    context.subscriptions.push(treeView);
+
+    // Periodically refresh so hot-age icon colors cool without a notebook edit (~15 min)
+    const HOT_COLOR_REFRESH_MS = 15 * 60 * 1000;
+    const hotColorRefreshInterval = setInterval(() => {
+        treeDataProvider.refresh();
+    }, HOT_COLOR_REFRESH_MS);
+    context.subscriptions.push({ dispose: () => clearInterval(hotColorRefreshInterval) });
+
+    // Listen for tree view selection changes to emphasize scrollbar decorators
+    context.subscriptions.push(
+        treeView.onDidChangeSelection(e => {
+            if (e.selection.length > 0) {
+                const selected = e.selection[0];
+                // Check if the selected item is a tag (string), not a cell reference
+                if (typeof selected === 'string') {
+                    log(`Tag selected in tree view: ${selected}`);
+                    scrollbarDecoratorManager.emphasizeTag(selected);
+                }
+            } else {
+                scrollbarDecoratorManager.clearEmphasis();
+            }
+        })
+    );
+
     log('View registration started for all-notebook-tags-view');
     // Your view registration code
     log('View registration completed');
@@ -501,18 +574,9 @@ export function register(context: vscode.ExtensionContext) {
             return;
         }
 
-        for (const cellRef of cellRefs) {
-            const cell = editor.notebook.cellAt(cellRef.index);
-            if (cell) {
-                // Execute the cell
-                // await editor.notebook.executeCell(cell.index);
-                // await editor.executeCell(cell.index);
-                executeGroup(tag, cell);    // Execute the group of cells
-            }
-        }
+        // executeGroup already filters and runs every cell with this tag once
+        await executeGroup(tag);
 
-        // vscode.window.showInformationMessage(`Executed ${cellRefs.length} cells with tag: ${tag}`);
-        // vscode.window.showInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`);
         showTimedInformationMessage(`Executing ${cellRefs.length} cells with tag: ${tag}`, 3000);
 
     }));
@@ -882,4 +946,17 @@ export function register(context: vscode.ExtensionContext) {
         })
     );
 
+}
+
+/** True when a notebook change could alter the tags tree (skip output/execution-only noise). */
+function notebookChangeMayAffectTags(e: vscode.NotebookDocumentChangeEvent): boolean {
+    if (e.contentChanges.length > 0) {
+        return true;
+    }
+    for (const change of e.cellChanges) {
+        if (change.document || change.metadata) {
+            return true;
+        }
+    }
+    return false;
 }

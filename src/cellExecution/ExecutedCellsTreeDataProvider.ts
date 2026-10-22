@@ -108,18 +108,40 @@ export function register(context: vscode.ExtensionContext) {
 		}
 	};
 
+	let refreshTimer: ReturnType<typeof setTimeout> | undefined;
+	const scheduleUpdateView = () => {
+		if (refreshTimer) {
+			clearTimeout(refreshTimer);
+		}
+		refreshTimer = setTimeout(() => {
+			refreshTimer = undefined;
+			updateView();
+		}, 500);
+	};
+
 	// Listen to notebook changes
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveNotebookEditor(() => updateView())
+		vscode.window.onDidChangeActiveNotebookEditor(() => updateView()),
+		{
+			dispose: () => {
+				if (refreshTimer) {
+					clearTimeout(refreshTimer);
+				}
+			}
+		}
 	);
 
 	// Listen to notebook document changes (cell execution, outputs, etc.)
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument((e) => {
-			if (e.notebook === vscode.window.activeNotebookEditor?.notebook) {
-				// Refresh after a short delay to allow execution to complete
-				setTimeout(() => updateView(), 500);
+			if (e.notebook !== vscode.window.activeNotebookEditor?.notebook) {
+				return;
 			}
+			const executionChanged = e.cellChanges.some(c => c.executionSummary !== undefined);
+			if (!executionChanged && e.contentChanges.length === 0) {
+				return;
+			}
+			scheduleUpdateView();
 		})
 	);
 

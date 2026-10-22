@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
+import { log } from '../../util/logging';
 
 // Retrieve the cell run group value
 export function getCellRunGroupMetadata(cell: vscode.NotebookCell): string {
@@ -15,7 +16,7 @@ export function getCellRunGroupMetadata(cell: vscode.NotebookCell): string {
 }
 
 // Update cell metadata with the new run group value
-export function updateCellRunGroupMetadata(cell: vscode.NotebookCell, newGroupValue: string) {
+export async function updateCellRunGroupMetadata(cell: vscode.NotebookCell, newGroupValue: string): Promise<void> {
     const newMetadata = { ...(cell.metadata || {}) };
     newMetadata.custom = newMetadata.custom || {};
     newMetadata.custom.metadata = newMetadata.custom.metadata || {};
@@ -28,5 +29,8 @@ export function updateCellRunGroupMetadata(cell: vscode.NotebookCell, newGroupVa
     const wsEdit = new vscode.WorkspaceEdit();
     const notebookEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, newMetadata);
     wsEdit.set(cell.notebook.uri, [notebookEdit]);
-    vscode.workspace.applyEdit(wsEdit);
+    const success = await vscode.workspace.applyEdit(wsEdit);
+    if (!success) {
+        log('updateCellRunGroupMetadata: applyEdit failed for cell', cell.index);
+    }
 }

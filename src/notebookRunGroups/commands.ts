@@ -64,9 +64,7 @@ export function registerCommands(context: vscode.ExtensionContext) {
             // const tag = await quickPickAllTags();
             const tag = await quickPickAllRunGroupTags();
             if (tag) {
-                executeGroup(tag, argNotebookCell(args));
-                // await addCellTag(cell, [tag]);
-                // log('executing tag', tag);
+                await executeGroup(tag, argNotebookCell(args));
             }
             else {
                 log('no tag');
