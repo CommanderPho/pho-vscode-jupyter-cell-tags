@@ -98,7 +98,7 @@
 					"jupyter-cell-tags.features.jumpbacks": {
 						"type": "boolean",
 						"default": false,
-						"description": "Jumpbacks: bookmark cells or text lines and jump back to them"
+						"description": "↩️ Jumpbacks: bookmark cells or text lines and jump back to them"
 					},
 					"jupyter-cell-tags.features.errorNavigation": {
 						"type": "boolean",
@@ -113,37 +113,37 @@
 					"jupyter-cell-tags.features.customOutline": {
 						"type": "boolean",
 						"default": true,
-						"description": "Custom notebook outline view with multi-select"
+						"description": "★ Custom notebook outline view with multi-select"
 					},
 					"jupyter-cell-tags.features.scrollbarDecorators": {
 						"type": "boolean",
-						"default": true,
-						"description": "Scrollbar markers for tag locations in the notebook"
+						"default": false,
+						"description": "🏷️ Scrollbar markers for tag locations in the notebook"
 					},
 					"jupyter-cell-tags.features.jupyterEnhancements": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "Cell execution visuals (borders, flash, background) and layout helpers"
 					},
 					"jupyter-cell-tags.features.gitDiff": {
 						"type": "boolean",
 						"default": true,
-						"description": "Highlight and list cells changed vs a git commit"
+						"description": "🔀 Highlight and list cells changed vs a git commit"
 					},
 					"jupyter-cell-tags.features.dependencyChain": {
 						"type": "boolean",
 						"default": true,
-						"description": "Show variable dependency chains between cells"
+						"description": "🔗 Show variable dependency chains between cells"
 					},
 					"jupyter-cell-tags.features.notebookFilter": {
 						"type": "boolean",
 						"default": true,
-						"description": "Collapse/filter notebook cells by criteria"
+						"description": "🔍 Collapse/filter notebook cells by criteria"
 					},
 					"jupyter-cell-tags.toolbar.notebookFilter": {
 						"type": "boolean",
 						"default": false,
-						"description": "Show the Filter Notebook Cells button in the notebook toolbar (requires features.notebookFilter to be enabled). When false, the command is still accessible via the '...' overflow menu."
+						"description": "🔍 Show the Filter Notebook Cells button in the notebook toolbar (requires features.notebookFilter to be enabled). When false, the command is still accessible via the '...' overflow menu."
 					},
 					"jupyter-cell-tags.features.ringMeJupyter": {
 						"type": "boolean",
@@ -163,7 +163,7 @@
 					"jupyter-cell-tags.features.cellExecutionTracking": {
 						"type": "boolean",
 						"default": true,
-						"description": "Track executed cells in a sidebar view and record execution history for the session"
+						"description": "▶️ Track executed cells in a sidebar view and record execution history for the session"
 					},
 					"jupyter-cell-tags.features.cellNavigation": {
 						"type": "boolean",
@@ -174,7 +174,7 @@
 			},
 			{
 				"id": "jupyter-cell-tags",
-				"title": "Jupyter Cell Tags",
+				"title": "🏷️ Jupyter Cell Tags",
 				"order": 2,
 				"properties": {
 					"jupyter-cell-tags.tagSortOrder": {
@@ -187,13 +187,13 @@
 							"detected-datetimes"
 						],
 						"default": "alphabetical",
-						"description": "Sort order for tags in the All Notebook Tags view"
+						"description": "🏷️ Sort order for tags in the All Notebook Tags view"
 					},
 					"jupyter-cell-tags.tagHotColor.fadeDays": {
 						"type": "number",
 						"default": 30,
 						"minimum": 1,
-						"description": "Days until a newly created tag fades from hot red to the default icon in the All Notebook Tags view (only when no manual color is set)"
+						"description": "🏷️ Days until a newly created tag fades from hot red to the default icon in the All Notebook Tags view (only when no manual color is set)"
 					},
 					"jupyter-cell-tags.debugPrint": {
 						"type": "boolean",
@@ -471,7 +471,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.paramaterize",
-				"title": "Mark Cell as Parameters"
+				"title": "🏷️ Mark Cell as Parameters"
 			},
 			{
 				"command": "jupyter-cell-tags.showAllNotebookTags",
@@ -491,7 +491,7 @@
 			},
 			{
 				"command": "jupyter-cell-tags.refreshEntry",
-				"title": "Refresh",
+				"title": "🏷️ Refresh",
 				"icon": {
 					"light": "resources/light/refresh.svg",
 					"dark": "resources/dark/refresh.svg"
@@ -499,13 +499,13 @@
 			},
 			{
 				"command": "jupyter-cell-tags.runTag",
-				"title": "Run Tag",
+				"title": "🏷️ Run Tag",
 				"icon": "$(run-all)",
 				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.deleteCellsUnderHeading",
-				"title": "Delete Cells Under Heading"
+				"title": "📑 Delete Cells Under Heading"
 			},
 			{
 				"command": "jupyter-cell-tags.selectCellsUnderHeading",
@@ -526,12 +526,12 @@
 			},
 			{
 				"command": "jupyter-cell-tags.selectAllChildCells",
-				"title": "Select All Child Cells",
+				"title": "🏷️ Select All Child Cells",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.listExecutedNotebookCells",
-				"title": "Show the previously executed notebook cells in the current jupyter notebook",
+				"title": "▶️ Show the previously executed notebook cells in the current jupyter notebook",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -542,50 +542,50 @@
 			},
 			{
 				"command": "jupyter-cell-tags.selectAllCellsUnderTag",
-				"title": "Select All Cells Under Tag",
+				"title": "🏷️ Select All Cells Under Tag",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.customOutline.selectCell",
-				"title": "Notebook Outline: Select Cell",
+				"title": "★ Notebook Outline: Select Cell",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.customOutline.selectAllChildCells",
-				"title": "Notebook Outline: Select All Child Cells",
+				"title": "★ Notebook Outline: Select All Child Cells",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.customOutline.deleteCellsUnderHeading",
-				"title": "Notebook Outline: Delete Cells Under Heading",
+				"title": "★ Notebook Outline: Delete Cells Under Heading",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.changeSortOrder",
-				"title": "Change Tag Sort Order",
+				"title": "🏷️ Change Tag Sort Order",
 				"icon": "$(sort-precedence)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.setTagPriority",
-				"title": "Set Tag Priority",
+				"title": "🏷️ Set Tag Priority",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.setTagColor",
-				"title": "Set Tag Color",
+				"title": "🏷️ Set Tag Color",
 				"icon": "$(symbol-color)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.clearTagColor",
-				"title": "Clear Tag Color",
+				"title": "🏷️ Clear Tag Color",
 				"icon": "$(close)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.renameTag",
-				"title": "Rename Tag",
+				"title": "🏷️ Rename Tag",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -649,47 +649,47 @@
 			},
 			{
 				"command": "jupyter-cell-tags.exportTags",
-				"title": "Jupyter: Export tags for notebook..",
+				"title": "🏷️ Jupyter: Export tags for notebook..",
 				"icon": "$(file-code)",
 				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.importTags",
-				"title": "Jupyter: Import Cell Tags from JSON",
+				"title": "🏷️ Jupyter: Import Cell Tags from JSON",
 				"icon": "$(go-to-file)",
 				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.exportExecutedCodeToPython",
-				"title": "Jupyter: Export executed code to Python file...",
+				"title": "▶️ Jupyter: Export executed code to Python file...",
 				"icon": "$(file-code)",
 				"category": "Jupyter"
 			},
 			{
 				"command": "jupyter-cell-tags.showCustomNotebookOutline",
-				"title": "Show Custom Notebook Outline",
+				"title": "★ Show Custom Notebook Outline",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.customOutline.filter",
-				"title": "Notebook Outline: Filter Items",
+				"title": "★ Notebook Outline: Filter Items",
 				"icon": "$(search)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.customOutline.clearFilter",
-				"title": "Notebook Outline: Clear Filter",
+				"title": "★ Notebook Outline: Clear Filter",
 				"icon": "$(close)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.executeAndSelectBelowWithTracking",
-				"title": "Execute Cell and Select Below (with tracking)",
+				"title": "▶️ Execute Cell and Select Below (with tracking)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.executeAndFocusContainerWithTracking",
-				"title": "Execute Cell and Focus Container (with tracking)",
+				"title": "▶️ Execute Cell and Focus Container (with tracking)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -737,47 +737,47 @@
 			},
 			{
 				"command": "jupyter-cell-tags.gitDiff.refreshModifiedCells",
-				"title": "Refresh Git Modified Cells",
+				"title": "🔀 Refresh Git Modified Cells",
 				"icon": "$(refresh)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.gitDiff.selectModifiedCell",
-				"title": "Select Git Modified Cell",
+				"title": "🔀 Select Git Modified Cell",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.notebookFilter.set",
-				"title": "Filter Notebook Cells…",
+				"title": "🔍 Filter Notebook Cells…",
 				"icon": "$(filter)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.notebookFilter.clear",
-				"title": "Clear Notebook Cell Filter",
+				"title": "🔍❌ Clear Notebook Cell Filter",
 				"icon": "$(filter-filled)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
-				"title": "Dependency Chain: Show Dependant Cells",
+				"title": "⛓️ Dependency Chain: Show Dependant Cells",
 				"icon": "$(type-hierarchy)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.dependencyChain.clearHighlights",
-				"title": "Dependency Chain: Clear Highlights",
+				"title": "⛓️❌ Dependency Chain: Clear Highlights",
 				"icon": "$(close)",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.dependencyChain.selectChain",
-				"title": "Dependency Chain: Select Chain",
+				"title": "⛓️ Dependency Chain: Select Chain",
 				"category": "Jupyter Cell Tags"
 			},
 			{
 				"command": "jupyter-cell-tags.dependencyChain.revealCell",
-				"title": "Dependency Chain: Reveal Cell",
+				"title": "⛓️ Dependency Chain: Reveal Cell",
 				"category": "Jupyter Cell Tags"
 			},
 			{
@@ -853,7 +853,7 @@
 				},
 				{
 					"command": "jupyter-cell-tags.listExecutedNotebookCells",
-					"title": "Show the previously executed notebook cells in the current jupyter notebook",
+					"title": "▶️ Show the previously executed notebook cells in the current jupyter notebook",
 					"group": "Jupyter Cell Tags"
 				},
 				{
@@ -868,7 +868,7 @@
 				},
 				{
 					"command": "jupyter-cell-tags.showCustomNotebookOutline",
-					"title": "Show Custom Notebook Outline",
+					"title": "★ Show Custom Notebook Outline",
 					"group": "Jupyter Cell Tags",
 					"when": "config.jupyter-cell-tags.features.customOutline"
 				},
@@ -1007,13 +1007,13 @@
 				},
 				{
 					"command": "jupyter-cell-tags.exportTags",
-					"title": "Export tags for notebook..",
+					"title": "🏷️💾 Export tags for notebook..",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
 				{
 					"command": "jupyter-cell-tags.importTags",
-					"title": "Import tags for notebook..",
+					"title": "🏷️ Import tags for notebook..",
 					"when": "view == all-notebook-tags-view",
 					"group": "navigation"
 				},
@@ -1188,7 +1188,7 @@
 				},
 				{
 					"command": "jupyter-cell-tags.executeRunCell",
-					"title": "Run Cell",
+					"title": "▶️ Run Cell",
 					"icon": "$(play)",
 					"when": "view == all-notebook-tags-view && ((viewItem == cellItem) || (viewItem == jupyterCellItem))",
 					"group": "inline"
