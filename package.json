@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.7.1",
+	"version": "0.7.2",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -140,6 +140,11 @@
 						"default": true,
 						"description": "Collapse/filter notebook cells by criteria"
 					},
+					"jupyter-cell-tags.toolbar.notebookFilter": {
+						"type": "boolean",
+						"default": false,
+						"description": "Show the Filter Notebook Cells button in the notebook toolbar (requires features.notebookFilter to be enabled). When false, the command is still accessible via the '...' overflow menu."
+					},
 					"jupyter-cell-tags.features.ringMeJupyter": {
 						"type": "boolean",
 						"default": false,
@@ -159,6 +164,11 @@
 						"type": "boolean",
 						"default": true,
 						"description": "Track executed cells in a sidebar view and record execution history for the session"
+					},
+					"jupyter-cell-tags.features.cellNavigation": {
+						"type": "boolean",
+						"default": false,
+						"description": "Show the 🧭 Cell Navigation toolbar button in the notebook toolbar"
 					}
 				}
 			},
@@ -1121,7 +1131,8 @@
 				},
 				{
 					"command": "jupyter-cell-tags.showNavigationMenu",
-					"group": "navigation/execute@7"
+					"group": "navigation/execute@7",
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.cellNavigation"
 				},
 				{
 					"command": "jupyter-cell-tags.jupyterEnhancements.execute",
@@ -1136,12 +1147,22 @@
 				{
 					"command": "jupyter-cell-tags.notebookFilter.set",
 					"group": "navigation/execute@9",
-					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter"
+					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.notebookFilter.clear",
 					"group": "navigation/execute@9",
-					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter"
+					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.set",
+					"group": "z_notebookFilter@1",
+					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.clear",
+					"group": "z_notebookFilter@1",
+					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
@@ -1281,7 +1302,7 @@
 			"jupyter-variables": [
 				{
 					"id": "cell-tag",
-					"name": "Cell Tags",
+					"name": "🏷️ Cell Tags",
 					"type": "tree",
 					"icon": "$(tag)",
 					"when": "jupyter:showTagsExplorer && jupyter.hasNativeNotebookOrInteractiveWindowOpen && jupyter-cell-tags.notebookActive",
@@ -1291,8 +1312,8 @@
 			"explorer": [
 				{
 					"id": "all-notebook-tags-view",
-					"name": "All Notebook Tags",
-					"contextualTitle": "Notebook Tags",
+					"name": "🏷️ All Notebook Tags",
+					"contextualTitle": "🏷️ Notebook Tags",
 					"type": "tree",
 					"icon": "$(tag)",
 					"when": "jupyter:showAllTagsExplorer && jupyter-cell-tags.notebookActive",
@@ -1300,8 +1321,8 @@
 				},
 				{
 					"id": "jumpbacks",
-					"name": "Jumpbacks",
-					"contextualTitle": "Notebook Jumpbacks",
+					"name": "↩️ Jumpbacks",
+					"contextualTitle": "↩️ Notebook Jumpbacks",
 					"type": "tree",
 					"icon": "$(bookmark)",
 					"when": "config.jupyter-cell-tags.features.jumpbacks && jupyter-cell-tags.jumpbackTargetActive"
@@ -1309,7 +1330,7 @@
 				{
 					"id": "custom-notebook-outline",
 					"name": "★ Custom NB Outline",
-					"contextualTitle": "Custom NB Outline",
+					"contextualTitle": "★ Custom NB Outline",
 					"type": "tree",
 					"icon": "$(list-tree)",
 					"when": "config.jupyter-cell-tags.features.customOutline && jupyter-cell-tags.notebookActive",
@@ -1317,32 +1338,32 @@
 				},
 				{
 					"id": "executed-cells-view",
-					"name": "Executed Cells",
-					"contextualTitle": "Executed Cells",
+					"name": "▶️ Executed Cells",
+					"contextualTitle": "▶️ Executed Cells",
 					"type": "tree",
 					"icon": "$(play)",
 					"when": "jupyter-cell-tags.notebookActive"
 				},
 				{
 					"id": "git-modified-cells-view",
-					"name": "Git Modified Cells",
-					"contextualTitle": "Git Modified Cells vs HEAD",
+					"name": "🔀 Git Modified Cells",
+					"contextualTitle": "🔀 Git Modified Cells vs HEAD",
 					"type": "tree",
 					"icon": "$(git-compare)",
 					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.gitDiff"
 				},
 				{
 					"id": "dependency-chain-view",
-					"name": "Dependency Chain",
-					"contextualTitle": "Dependency Chain",
+					"name": "🔗 Dependency Chain",
+					"contextualTitle": "🔗 Dependency Chain",
 					"type": "tree",
 					"icon": "$(type-hierarchy)",
 					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.dependencyChain"
 				},
 				{
 					"id": "notebook-cell-filter-view",
-					"name": "Notebook Cell Filter",
-					"contextualTitle": "Notebook Cell Filter",
+					"name": "🔍 Notebook Cell Filter",
+					"contextualTitle": "🔍 Notebook Cell Filter",
 					"type": "webview",
 					"icon": "$(filter)",
 					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.notebookFilter"
