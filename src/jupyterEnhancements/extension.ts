@@ -27,6 +27,7 @@ let allHijack: vscode.Disposable | undefined;
 let isHijacking = false; // Flag to prevent concurrent hijack operations
 let executeGate: Promise<void> = Promise.resolve(); // Serialize native execute unwraps
 let hasExecutionStateApi = false;
+let scrollTimeout: NodeJS.Timeout | undefined;
 
 export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	output = vscode.window.createOutputChannel("Jupyter Enhancements");
@@ -46,13 +47,24 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	}));
 
 	// 2. Scroll Listener (Debounced)
-	let scrollTimeout: NodeJS.Timeout | undefined;
 	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => {
-		if (scrollTimeout) clearTimeout(scrollTimeout);
+		if (scrollTimeout) {
+			clearTimeout(scrollTimeout);
+			scrollTimeout = undefined;
+		}
 		scrollTimeout = setTimeout(() => {
+			scrollTimeout = undefined;
 			for (const editor of editors) restoreDecorationForEditor(editor);
 		}, 100); // Wait 100ms for the user to stop dragging/scrolling
 	}));
+	context.subscriptions.push({
+		dispose: () => {
+			if (scrollTimeout) {
+				clearTimeout(scrollTimeout);
+				scrollTimeout = undefined;
+			}
+		}
+	});
 
 	// 3. Execution-state API for finished-cell visuals (no forever poll).
 	// Fallback: notebook document changes that update executionSummary timing.
@@ -128,6 +140,10 @@ export function deactivateJupyterEnhancements() {
 	allHijack?.dispose();
 	singleHijack = undefined;
 	allHijack = undefined;
+	if (scrollTimeout) {
+		clearTimeout(scrollTimeout);
+		scrollTimeout = undefined;
+	}
 }
 
 // --- LAYOUT SETTINGS HANDLER ---
