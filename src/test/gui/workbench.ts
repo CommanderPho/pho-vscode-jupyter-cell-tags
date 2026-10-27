@@ -141,8 +141,17 @@ export async function clickTreeCellUnderTag(tag: string, cellLabel: string): Pro
 }
 
 export async function runPaletteCommand(title: string): Promise<void> {
+	await browser.keys(['Escape']);
+	await browser.keys(['F1']);
 	const workbench = await browser.getWorkbench();
-	await workbench.executeCommand(title);
+	const input = new InputBox(workbench.locatorMap);
+	await input.wait(15000);
+	await input.setText(title);
+	try {
+		await input.selectQuickPick(title);
+	} catch {
+		await input.confirm();
+	}
 }
 
 export async function acceptQuickPick(value: string): Promise<void> {
@@ -171,11 +180,16 @@ export async function openFilterWebview(): Promise<void> {
 
 export async function applyExistingTagFilter(): Promise<string> {
 	const workbench = await browser.getWorkbench();
-	const webviews = await workbench.getAllWebviews();
-	if (webviews.length === 0) {
-		throw new Error('No webviews found');
+	let webview;
+	try {
+		webview = await workbench.getWebviewByTitle(/Filter/i);
+	} catch {
+		const webviews = await workbench.getAllWebviews();
+		if (webviews.length === 0) {
+			throw new Error('No webviews found');
+		}
+		webview = webviews[webviews.length - 1];
 	}
-	const webview = webviews[webviews.length - 1];
 	await webview.open();
 	try {
 		const checkbox = await $('input[type="checkbox"][value="existing-tag"]');

@@ -69,7 +69,7 @@ export function prepareGuiLaunch(): GuiLaunchPaths {
 	ensureJunction(repoLink, realRepo);
 
 	const extensionsDir = path.join(root, 'extensions');
-	const storagePath = path.join(root, 'wdio-storage');
+	const storagePath = path.join(root, `wdio-storage-${process.pid}`);
 	const vscodeCache = path.join(root, 'wdio-vscode');
 	const outputDir = path.join(root, 'wdio-trace');
 	fs.mkdirSync(extensionsDir, { recursive: true });

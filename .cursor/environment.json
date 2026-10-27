@@ -1,6 +1,9 @@
 {
-  "snapshot": "snapshot-20260113-ac3dca15-8561-4938-b771-e821e9c9540c",
-  "install": "npm install",
-  "start": "npm run compile",
-  "terminals": []
+	"name": "pho-jupyter-cell-tags",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"context": ".."
+	},
+	"install": "bash .cursor/install.sh",
+	"chromeExecutablePath": "/usr/bin/google-chrome-stable"
 }

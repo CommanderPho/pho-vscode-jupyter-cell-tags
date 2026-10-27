@@ -16,25 +16,33 @@ function remap(value, realRepo, junction) {
 	return out;
 }
 
+function rewrite(capabilities, label) {
+	const chrome = capabilities['goog:chromeOptions'];
+	if (!chrome) {
+		console.log(`GUI smoke ${label}: no goog:chromeOptions`);
+		return;
+	}
+	const realRepo = process.env.PHO_JCT_REAL_REPO || path.resolve(__dirname, '../../..');
+	const junction = process.env.PHO_JCT_JUNCTION || path.join(os.tmpdir(), 'pho-jct', 'src');
+	if (chrome.binary) {
+		chrome.binary = remap(chrome.binary, realRepo, junction);
+	}
+	if (Array.isArray(chrome.args)) {
+		chrome.args = chrome.args
+			.filter((arg) => !String(arg).startsWith('--disable-extensions'))
+			.map((arg) => remap(String(arg), realRepo, junction));
+	}
+	console.log(`GUI smoke ${label} binary:`, chrome.binary);
+	console.log(`GUI smoke ${label} args:\n${(chrome.args || []).join('\n')}`);
+}
+
 class RewriteChromeArgs {
 	beforeSession(_config, capabilities) {
-		const chrome = capabilities['goog:chromeOptions'];
-		if (!chrome) {
-			console.log('GUI smoke: no goog:chromeOptions yet');
-			return;
-		}
-		const realRepo = process.env.PHO_JCT_REAL_REPO || path.resolve(__dirname, '../../..');
-		const junction = process.env.PHO_JCT_JUNCTION || path.join(os.tmpdir(), 'pho-jct', 'src');
-		if (chrome.binary) {
-			chrome.binary = remap(chrome.binary, realRepo, junction);
-		}
-		if (Array.isArray(chrome.args)) {
-			chrome.args = chrome.args
-				.filter((arg) => !String(arg).startsWith('--disable-extensions'))
-				.map((arg) => remap(String(arg), realRepo, junction));
-		}
-		console.log('GUI smoke chrome binary:', chrome.binary);
-		console.log('GUI smoke chrome args:\n' + (chrome.args || []).join('\n'));
+		rewrite(capabilities, 'beforeSession');
+	}
+
+	before(capabilities) {
+		rewrite(capabilities, 'before');
 	}
 }
 

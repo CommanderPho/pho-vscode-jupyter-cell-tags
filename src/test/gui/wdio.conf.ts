@@ -37,6 +37,9 @@ export const config: WebdriverIO.Config = {
 			browserName: 'vscode',
 			browserVersion: 'stable',
 			'wdio:enforceWebDriverClassic': true,
+			'wdio:chromedriverOptions': {
+				cacheDir: launch.vscodeCache
+			},
 			'wdio:vscodeOptions': {
 				extensionPath: launch.extensionPath,
 				workspacePath: launch.workspacePath,
@@ -52,6 +55,7 @@ export const config: WebdriverIO.Config = {
 					skipWelcome: true,
 					skipReleaseNotes: true,
 					disableWorkspaceTrust: true,
+					disableExtensions: false,
 					'enable-proposed-api': 'phohale.pho-vscode-jupyter-cell-tags',
 					'disable-extension': 'ms-toolsai.vscode-jupyter-cell-tags',
 					'extensions-dir': launch.extensionsDir,
@@ -69,6 +73,38 @@ export const config: WebdriverIO.Config = {
 		['vscode', { cachePath: launch.vscodeCache }],
 		path.join(__dirname, 'rewriteChromeArgs.cjs')
 	],
+	beforeSession(_config, capabilities) {
+		const chrome = (capabilities as WebdriverIO.Capabilities)['goog:chromeOptions'] as
+			| { args?: string[]; binary?: string }
+			| undefined;
+		if (!chrome) {
+			return;
+		}
+		const realRepo = launch.realRepo;
+		const junction = launch.extensionPath;
+		const remap = (value: string) => {
+			const pairs: Array<[string, string]> = [
+				[realRepo, junction],
+				[realRepo.replace(/\\/g, '/'), junction.replace(/\\/g, '/')]
+			];
+			let out = value;
+			for (const [from, to] of pairs) {
+				const index = out.toLowerCase().indexOf(from.toLowerCase());
+				if (index >= 0) {
+					out = out.slice(0, index) + to + out.slice(index + from.length);
+				}
+			}
+			return out;
+		};
+		if (chrome.binary) {
+			chrome.binary = remap(chrome.binary);
+		}
+		if (chrome.args) {
+			chrome.args = chrome.args
+				.filter((arg) => !arg.startsWith('--disable-extensions'))
+				.map(remap);
+		}
+	},
 	framework: 'mocha',
 	reporters: ['spec'],
 	outputDir: launch.outputDir,

@@ -1,3 +1,4 @@
+import * as assert from 'assert';
 import {
 	DEFINE_X,
 	EXISTING_TAG,
@@ -52,6 +53,6 @@ describe('GUI smoke', () => {
 	it('applies the notebook cell filter from the webview', async () => {
 		await openFilterWebview();
 		const status = await applyExistingTagFilter();
-		await expect(status).toContain('Showing 2/9 cells');
+		assert.match(status, /Showing 2\/9 cells/);
 	});
 });

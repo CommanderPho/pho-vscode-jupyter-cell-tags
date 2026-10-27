@@ -10,13 +10,13 @@ todos:
     status: completed
   - id: smoke-activation
     content: "GUI spec: open fixture, All Notebook Tags view shows existing-tag"
-    status: in_progress
+    status: completed
   - id: smoke-palette
     content: "GUI spec: Command Palette Add Tag to Cell, type gui-smoke-tag, assert cell tags"
-    status: pending
+    status: in_progress
   - id: smoke-tree
     content: "GUI spec: expand existing-tag and click a child cell; assert notebook selection"
-    status: pending
+    status: completed
   - id: smoke-filter
     content: "GUI spec: check existing-tag, click Filter, assert Showing 2/9 cells"
     status: pending
