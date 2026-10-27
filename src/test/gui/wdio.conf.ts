@@ -33,9 +33,6 @@ export const config: WebdriverIO.Config = {
 			browserName: 'vscode',
 			browserVersion: 'stable',
 			'wdio:enforceWebDriverClassic': true,
-			'wdio:chromedriverOptions': {
-				cacheDir: path.join(launch.vscodeCache, 'chromedriver')
-			},
 			'wdio:vscodeOptions': {
 				extensionPath: launch.extensionPath,
 				workspacePath: launch.workspacePath,
@@ -68,12 +65,32 @@ export const config: WebdriverIO.Config = {
 		[
 			class RewriteChromeArgs {
 				beforeSession(_config: unknown, capabilities: WebdriverIO.Capabilities) {
-					const chrome = capabilities['goog:chromeOptions'] as { args?: string[] } | undefined;
-					if (!chrome?.args) {
+					const chrome = capabilities['goog:chromeOptions'] as { args?: string[]; binary?: string } | undefined;
+					if (!chrome) {
 						return;
 					}
-					// Default WDIO args include --disable-extensions, which blocks Jupyter.
-					chrome.args = chrome.args.filter((arg) => !arg.startsWith('--disable-extensions'));
+					const remap = (value: string) => {
+						const pairs: Array<[string, string]> = [
+							[launch.realRepo, launch.extensionPath],
+							[launch.realRepo.replace(/\\/g, '/'), launch.extensionPath.replace(/\\/g, '/')]
+						];
+						let out = value;
+						for (const [from, to] of pairs) {
+							const index = out.toLowerCase().indexOf(from.toLowerCase());
+							if (index >= 0) {
+								out = out.slice(0, index) + to + out.slice(index + from.length);
+							}
+						}
+						return out;
+					};
+					if (chrome.binary) {
+						chrome.binary = remap(chrome.binary);
+					}
+					if (chrome.args) {
+						chrome.args = chrome.args
+							.filter((arg) => !arg.startsWith('--disable-extensions'))
+							.map(remap);
+					}
 				}
 			}
 		]

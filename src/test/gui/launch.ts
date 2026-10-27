@@ -11,6 +11,7 @@ export function workRoot(): string {
 }
 
 export interface GuiLaunchPaths {
+	realRepo: string;
 	extensionPath: string;
 	workspacePath: string;
 	storagePath: string;
@@ -23,11 +24,10 @@ export interface GuiLaunchPaths {
 function ensureJunction(link: string, target: string): void {
 	try {
 		fs.lstatSync(link);
-		fs.rmdirSync(link);
+		return;
 	} catch {
-		/* no existing link */
+		fs.symlinkSync(target, link, 'junction');
 	}
-	fs.symlinkSync(target, link, 'junction');
 }
 
 function copyLocalExtension(idPrefix: string, versionDigitNext: boolean, extensionsDir: string): boolean {
@@ -89,6 +89,7 @@ export function prepareGuiLaunch(): GuiLaunchPaths {
 	fs.copyFileSync(path.join(realRepo, 'src', 'test', 'fixtures', 'command-matrix.ipynb'), fixturePath);
 
 	return {
+		realRepo,
 		extensionPath: repoLink,
 		workspacePath: path.join(repoLink, 'src', 'test', 'workspace'),
 		storagePath,
