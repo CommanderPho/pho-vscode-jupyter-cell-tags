@@ -24,10 +24,11 @@ export interface GuiLaunchPaths {
 function ensureJunction(link: string, target: string): void {
 	try {
 		fs.lstatSync(link);
-		return;
+		fs.rmdirSync(link);
 	} catch {
-		fs.symlinkSync(target, link, 'junction');
+		/* no existing link */
 	}
+	fs.symlinkSync(target, link, 'junction');
 }
 
 function copyLocalExtension(idPrefix: string, versionDigitNext: boolean, extensionsDir: string): boolean {
@@ -87,6 +88,9 @@ export function prepareGuiLaunch(): GuiLaunchPaths {
 	fs.mkdirSync(fixtureDir, { recursive: true });
 	const fixturePath = path.join(fixtureDir, 'command-matrix.ipynb');
 	fs.copyFileSync(path.join(realRepo, 'src', 'test', 'fixtures', 'command-matrix.ipynb'), fixturePath);
+
+	process.env.PHO_JCT_REAL_REPO = realRepo;
+	process.env.PHO_JCT_JUNCTION = repoLink;
 
 	return {
 		realRepo,

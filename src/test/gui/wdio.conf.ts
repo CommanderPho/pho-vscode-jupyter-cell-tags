@@ -24,6 +24,10 @@ const featureSettings = {
 	'jupyter-cell-tags.debugPrint': false
 };
 
+const proxyEntry = path
+	.join(launch.extensionPath, 'node_modules', 'wdio-vscode-service', 'dist', 'proxy', 'cjs', 'entry.js')
+	.replace(/\\/g, '/');
+
 export const config: WebdriverIO.Config = {
 	runner: 'local',
 	specs: [path.join(__dirname, '*.gui.ts')],
@@ -50,7 +54,8 @@ export const config: WebdriverIO.Config = {
 					disableWorkspaceTrust: true,
 					'enable-proposed-api': 'phohale.pho-vscode-jupyter-cell-tags',
 					'disable-extension': 'ms-toolsai.vscode-jupyter-cell-tags',
-					'extensions-dir': launch.extensionsDir
+					'extensions-dir': launch.extensionsDir,
+					extensionTestsPath: proxyEntry
 				}
 			}
 		}
@@ -62,38 +67,7 @@ export const config: WebdriverIO.Config = {
 	connectionRetryCount: 2,
 	services: [
 		['vscode', { cachePath: launch.vscodeCache }],
-		[
-			class RewriteChromeArgs {
-				beforeSession(_config: unknown, capabilities: WebdriverIO.Capabilities) {
-					const chrome = capabilities['goog:chromeOptions'] as { args?: string[]; binary?: string } | undefined;
-					if (!chrome) {
-						return;
-					}
-					const remap = (value: string) => {
-						const pairs: Array<[string, string]> = [
-							[launch.realRepo, launch.extensionPath],
-							[launch.realRepo.replace(/\\/g, '/'), launch.extensionPath.replace(/\\/g, '/')]
-						];
-						let out = value;
-						for (const [from, to] of pairs) {
-							const index = out.toLowerCase().indexOf(from.toLowerCase());
-							if (index >= 0) {
-								out = out.slice(0, index) + to + out.slice(index + from.length);
-							}
-						}
-						return out;
-					};
-					if (chrome.binary) {
-						chrome.binary = remap(chrome.binary);
-					}
-					if (chrome.args) {
-						chrome.args = chrome.args
-							.filter((arg) => !arg.startsWith('--disable-extensions'))
-							.map(remap);
-					}
-				}
-			}
-		]
+		path.join(__dirname, 'rewriteChromeArgs.cjs')
 	],
 	framework: 'mocha',
 	reporters: ['spec'],
