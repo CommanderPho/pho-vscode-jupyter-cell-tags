@@ -44,7 +44,8 @@
             "jkearins.action-buttons-ext",
             "vscode-icons-team.vscode-icons",
             "kavinrajasekaran.notebook-snapshots",
-            "olavovieiradecarvalho.notebook-mcp-server"
+            "olavovieiradecarvalho.notebook-mcp-server",
+            "hbenl.vscode-mocha-test-adapter"
         ]
     }
 }

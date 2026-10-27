@@ -5,6 +5,7 @@
 		"spywhere.extension-api",
 		"benmcmorran.vscode-api-explorer",
 		"kavinrajasekaran.notebook-snapshots",
-		"olavovieiradecarvalho.notebook-mcp-server"
+		"olavovieiradecarvalho.notebook-mcp-server",
+		"hbenl.vscode-mocha-test-adapter"
 	]
 }

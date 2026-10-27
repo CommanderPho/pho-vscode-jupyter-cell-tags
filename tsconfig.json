@@ -27,6 +27,7 @@
 	"exclude": [
 		"node_modules",
 		".vscode-test",
-		"examples"
+		"examples",
+		"src/test/gui"
 	]
 }

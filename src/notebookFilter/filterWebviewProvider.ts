@@ -249,8 +249,8 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		</div>
 	</div>
 	<div class="actions">
-		<button class="primary" id="applyBtn">Filter</button>
-		<button class="secondary" id="clearBtn" disabled>Clear Filter</button>
+		<button class="primary" id="applyBtn" data-testid="notebook-filter-apply">Filter</button>
+		<button class="secondary" id="clearBtn" data-testid="notebook-filter-clear" disabled>Clear Filter</button>
 	</div>
 	<div class="status" id="status"></div>
 	<script nonce="${nonce}">
