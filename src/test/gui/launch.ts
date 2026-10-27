@@ -18,14 +18,15 @@ export interface GuiLaunchPaths {
 	vscodeCache: string;
 	outputDir: string;
 	fixturePath: string;
-	proxyPath: string;
 }
 
 function ensureJunction(link: string, target: string): void {
-	if (fs.existsSync(link)) {
-		fs.rmdirSync(link);
+	try {
+		fs.lstatSync(link);
+		return;
+	} catch {
+		fs.symlinkSync(target, link, 'junction');
 	}
-	fs.symlinkSync(target, link, 'junction');
 }
 
 function copyLocalExtension(idPrefix: string, versionDigitNext: boolean, extensionsDir: string): boolean {
@@ -86,10 +87,6 @@ export function prepareGuiLaunch(): GuiLaunchPaths {
 	const fixturePath = path.join(fixtureDir, 'command-matrix.ipynb');
 	fs.copyFileSync(path.join(realRepo, 'src', 'test', 'fixtures', 'command-matrix.ipynb'), fixturePath);
 
-	const proxyPath = path.join(root, 'wdio-proxy', 'cjs', 'entry.js');
-	const proxySrc = path.join(realRepo, 'node_modules', 'wdio-vscode-service', 'dist', 'proxy');
-	fs.cpSync(proxySrc, path.join(root, 'wdio-proxy'), { recursive: true });
-
 	return {
 		extensionPath: repoLink,
 		workspacePath: path.join(repoLink, 'src', 'test', 'workspace'),
@@ -97,7 +94,6 @@ export function prepareGuiLaunch(): GuiLaunchPaths {
 		extensionsDir,
 		vscodeCache,
 		outputDir,
-		fixturePath,
-		proxyPath
+		fixturePath
 	};
 }

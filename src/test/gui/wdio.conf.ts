@@ -51,7 +51,6 @@ export const config: WebdriverIO.Config = {
 					skipWelcome: true,
 					skipReleaseNotes: true,
 					disableWorkspaceTrust: true,
-					disableExtensions: false,
 					'enable-proposed-api': 'phohale.pho-vscode-jupyter-cell-tags',
 					'disable-extension': 'ms-toolsai.vscode-jupyter-cell-tags',
 					'extensions-dir': launch.extensionsDir
@@ -67,19 +66,14 @@ export const config: WebdriverIO.Config = {
 	services: [
 		['vscode', { cachePath: launch.vscodeCache }],
 		[
-			class RewriteSpacedPaths {
+			class RewriteChromeArgs {
 				beforeSession(_config: unknown, capabilities: WebdriverIO.Capabilities) {
 					const chrome = capabilities['goog:chromeOptions'] as { args?: string[] } | undefined;
 					if (!chrome?.args) {
 						return;
 					}
-					const proxy = launch.proxyPath.replace(/\\/g, '/');
-					chrome.args = chrome.args.map((arg) => {
-						if (/^--extension-?tests-?path=/i.test(arg)) {
-							return `--extensionTestsPath=${proxy}`;
-						}
-						return arg;
-					});
+					// Default WDIO args include --disable-extensions, which blocks Jupyter.
+					chrome.args = chrome.args.filter((arg) => !arg.startsWith('--disable-extensions'));
 				}
 			}
 		]

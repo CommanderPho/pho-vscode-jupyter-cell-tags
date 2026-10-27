@@ -1482,7 +1482,7 @@
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
 		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/outlineSync/test/setup.test.js\"",
-		"test:gui": "npm run compile && wdio run src/test/gui/wdio.conf.ts"
+		"test:gui": "npm run compile && node src/test/gui/runGui.cjs"
 	},
 	"devDependencies": {
 		"@types/mocha": "^10.0.10",
