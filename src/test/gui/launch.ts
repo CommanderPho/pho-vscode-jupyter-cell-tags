@@ -23,10 +23,11 @@ export interface GuiLaunchPaths {
 function ensureJunction(link: string, target: string): void {
 	try {
 		fs.lstatSync(link);
-		return;
+		fs.rmdirSync(link);
 	} catch {
-		fs.symlinkSync(target, link, 'junction');
+		/* no existing link */
 	}
+	fs.symlinkSync(target, link, 'junction');
 }
 
 function copyLocalExtension(idPrefix: string, versionDigitNext: boolean, extensionsDir: string): boolean {

@@ -9,24 +9,24 @@ const path = require('path');
 
 const repo = path.resolve(__dirname, '../../..');
 const junction = path.join(os.tmpdir(), 'pho-jct', 'src');
-const wdioArgs = ['wdio', 'run', 'src/test/gui/wdio.conf.ts'];
+const wdioCli = path.join(junction, 'node_modules', '@wdio', 'cli', 'bin', 'wdio.js');
 
 function ensureJunction(link, target) {
 	fs.mkdirSync(path.dirname(link), { recursive: true });
 	try {
 		fs.lstatSync(link);
-		return;
+		fs.rmdirSync(link);
 	} catch {
-		fs.symlinkSync(target, link, 'junction');
+		/* no existing link */
 	}
+	fs.symlinkSync(target, link, 'junction');
 }
 
 ensureJunction(junction, repo);
 console.log(`GUI smoke: running from ${junction}`);
 
-const child = spawn('npx', wdioArgs, {
+const child = spawn(process.execPath, [wdioCli, 'run', 'src/test/gui/wdio.conf.ts'], {
 	cwd: junction,
-	stdio: 'inherit',
-	shell: true
+	stdio: 'inherit'
 });
 child.on('exit', (code) => process.exit(code ?? 1));
