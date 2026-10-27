@@ -1,12 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
-import { registerCommands, recordCellExecution } from './cellExecutionTracking';
+import { recordCellExecution } from './cellExecutionTracking';
 import { register as registerExecutedCellsView } from './ExecutedCellsTreeDataProvider';
 
 export function activateNotebookCellExecutionTracking(context: vscode.ExtensionContext) {
-	registerCommands(context);
-
 	const showToasts = () =>
 		vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('showDebugExecutionMessages', false);
 

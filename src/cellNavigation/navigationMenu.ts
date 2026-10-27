@@ -109,19 +109,24 @@ async function navigateToNextErrorCell(context: vscode.ExtensionContext) {
 
 async function showNavigationMenu(context: vscode.ExtensionContext) {
 	const enableErrorNavigation = isFeatureEnabled('errorNavigation');
+	const enableExecutionTracking = isFeatureEnabled('cellExecutionTracking');
 	
-	const items: vscode.QuickPickItem[] = [
-		{
-			label: '$(arrow-up) Navigate to Previous Executed Cell',
-			description: 'Go to the previous executed cell',
-			detail: 'Navigate up to the most recently executed cell above the current position'
-		},
-		{
-			label: '$(arrow-down) Navigate to Next Executed Cell',
-			description: 'Go to the next executed cell',
-			detail: 'Navigate down to the next executed cell below the current position'
-		}
-	];
+	const items: vscode.QuickPickItem[] = [];
+
+	if (enableExecutionTracking) {
+		items.push(
+			{
+				label: '$(arrow-up) Navigate to Previous Executed Cell',
+				description: 'Go to the previous executed cell',
+				detail: 'Navigate up to the most recently executed cell above the current position'
+			},
+			{
+				label: '$(arrow-down) Navigate to Next Executed Cell',
+				description: 'Go to the next executed cell',
+				detail: 'Navigate down to the next executed cell below the current position'
+			}
+		);
+	}
 	
 	if (enableErrorNavigation) {
 		items.push(
@@ -136,6 +141,10 @@ async function showNavigationMenu(context: vscode.ExtensionContext) {
 				detail: 'Navigate down to the next error cell below the current position'
 			}
 		);
+	}
+
+	if (items.length === 0) {
+		return;
 	}
 	
 	const selected = await vscode.window.showQuickPick(items, {

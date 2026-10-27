@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { log } from '../util/logging';
 import { getActiveCell } from '../util/notebookSelection';
 import { addTagsToMultipleCells } from '../cellTags/cellTags';
+import { isFeatureEnabled } from '../util/featureFlags';
 
 export interface CellExecutionRecord {
 	cellIndex: number;
@@ -185,49 +186,36 @@ function generateTagName(): string {
 	return `executed-${year}-${month}-${day}-${hours}-${minutes}-${seconds}`;
 }
 
-async function executeAndSelectBelowWithTracking(context: vscode.ExtensionContext) {
+function maybeRecordActiveCellExecution(context: vscode.ExtensionContext): void {
+	if (!isFeatureEnabled('cellExecutionTracking')) {
+		return;
+	}
+
 	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) {
-		log('No active notebook editor found for execution tracking');
-		return;
-	}
-	
 	const activeCell = getActiveCell();
-	if (!activeCell) {
-		log('No active cell found for execution tracking');
+	if (!editor || !activeCell) {
+		log('No active notebook editor/cell found for execution tracking');
 		return;
 	}
-	
-	const executionTime = new Date();
-	const notebookUri = editor.notebook.uri;
-	
-	recordCellExecution(context, notebookUri, activeCell.index, executionTime);
-	
+
+	recordCellExecution(context, editor.notebook.uri, activeCell.index, new Date());
+}
+
+async function executeAndSelectBelowWithTracking(context: vscode.ExtensionContext) {
+	maybeRecordActiveCellExecution(context);
 	await vscode.commands.executeCommand('notebook.cell.executeAndSelectBelow');
 }
 
 async function executeAndFocusContainerWithTracking(context: vscode.ExtensionContext) {
-	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) {
-		log('No active notebook editor found for execution tracking');
-		return;
-	}
-	
-	const activeCell = getActiveCell();
-	if (!activeCell) {
-		log('No active cell found for execution tracking');
-		return;
-	}
-	
-	const executionTime = new Date();
-	const notebookUri = editor.notebook.uri;
-	
-	recordCellExecution(context, notebookUri, activeCell.index, executionTime);
-	
+	maybeRecordActiveCellExecution(context);
 	await vscode.commands.executeCommand('notebook.cell.executeAndFocusContainer');
 }
 
 async function createAndAddTagToAllExecutedCells(context: vscode.ExtensionContext) {
+	if (!isFeatureEnabled('cellExecutionTracking')) {
+		return;
+	}
+
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');
@@ -276,6 +264,10 @@ async function createAndAddTagToAllExecutedCells(context: vscode.ExtensionContex
 }
 
 export async function navigateToPreviousExecutedCell(context: vscode.ExtensionContext) {
+	if (!isFeatureEnabled('cellExecutionTracking')) {
+		return;
+	}
+
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');
@@ -323,6 +315,10 @@ export async function navigateToPreviousExecutedCell(context: vscode.ExtensionCo
 }
 
 export async function navigateToNextExecutedCell(context: vscode.ExtensionContext) {
+	if (!isFeatureEnabled('cellExecutionTracking')) {
+		return;
+	}
+
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');
@@ -378,8 +374,10 @@ export function registerCommands(context: vscode.ExtensionContext) {
 
 	// Register execute commands
 	context.subscriptions.push(
-		vscode.commands.registerCommand('jupyter-cell-tags.listExecutedNotebookCells', async (args) => {
-			// const tag = await quickPickAllTags();
+		vscode.commands.registerCommand('jupyter-cell-tags.listExecutedNotebookCells', async () => {
+			if (!isFeatureEnabled('cellExecutionTracking')) {
+				return;
+			}
 			showExecutedCells();
 		})
 	);

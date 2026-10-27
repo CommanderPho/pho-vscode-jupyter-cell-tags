@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.7.2",
+	"version": "0.7.3",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -853,7 +853,23 @@
 				{
 					"command": "jupyter-cell-tags.listExecutedNotebookCells",
 					"title": "▶️ Show the previously executed notebook cells in the current jupyter notebook",
-					"group": "Jupyter Cell Tags"
+					"group": "Jupyter Cell Tags",
+					"when": "config.jupyter-cell-tags.features.cellExecutionTracking"
+				},
+				{
+					"command": "jupyter-cell-tags.createAndAddTagToAllExecutedCells",
+					"group": "Jupyter Cell Tags",
+					"when": "config.jupyter-cell-tags.features.cellExecutionTracking"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateToPreviousExecutedCell",
+					"group": "Jupyter Cell Tags",
+					"when": "config.jupyter-cell-tags.features.cellExecutionTracking"
+				},
+				{
+					"command": "jupyter-cell-tags.navigateToNextExecutedCell",
+					"group": "Jupyter Cell Tags",
+					"when": "config.jupyter-cell-tags.features.cellExecutionTracking"
 				},
 				{
 					"command": "jupyter-cell-tags.showAllNotebookJumpbacks",
@@ -1341,7 +1357,7 @@
 					"contextualTitle": "▶️ Executed Cells",
 					"type": "tree",
 					"icon": "$(play)",
-					"when": "jupyter-cell-tags.notebookActive"
+					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.cellExecutionTracking"
 				},
 				{
 					"id": "git-modified-cells-view",

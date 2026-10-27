@@ -8,7 +8,7 @@ import { initializeCellHighlight, disposeCellHighlight, highlightCell } from './
 import { countSelectedCells } from './util/notebookSelection';
 import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
-// import { registerCommands } from './cellExecution/cellExecutionTracking';
+import { registerCommands as registerCellExecutionCommands } from './cellExecution/cellExecutionTracking';
 import { activateNotebookCellExecutionTracking } from './cellExecution/startup';
 import { detect_conflicting_microsoft_extension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
@@ -79,6 +79,7 @@ export async function activate(context: vscode.ExtensionContext) {
 	updateContext();
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
+    registerCellExecutionCommands(context);
     if (isFeatureEnabled('cellExecutionTracking')) {
         activateNotebookCellExecutionTracking(context);
     }

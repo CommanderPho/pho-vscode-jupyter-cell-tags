@@ -30,7 +30,7 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	ringMeJupyter: true,
 	durableKernel: true,
 	cellHistory: false,
-	cellExecutionTracking: false,
+	cellExecutionTracking: true,
 };
 
 /** Deprecated setting key → Features key (relative to `jupyter-cell-tags`). */
