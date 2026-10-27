@@ -1,0 +1,20 @@
+{
+	"jupyter-cell-tags.features.jumpbacks": true,
+	"jupyter-cell-tags.features.errorNavigation": true,
+	"jupyter-cell-tags.features.outlineSync": true,
+	"jupyter-cell-tags.features.customOutline": true,
+	"jupyter-cell-tags.features.scrollbarDecorators": true,
+	"jupyter-cell-tags.features.jupyterEnhancements": true,
+	"jupyter-cell-tags.features.gitDiff": true,
+	"jupyter-cell-tags.features.dependencyChain": true,
+	"jupyter-cell-tags.features.notebookFilter": true,
+	"jupyter-cell-tags.features.ringMeJupyter": true,
+	"jupyter-cell-tags.features.durableKernel": true,
+	"jupyter-cell-tags.features.cellHistory": true,
+	"jupyter-cell-tags.features.cellExecutionTracking": true,
+	"jupyter-cell-tags.features.cellNavigation": true,
+	"jupyter-cell-tags.externalKernel.autoRegisterOnNotebookOpen": false,
+	"jupyter-cell-tags.jupyterEnhancements.kernel.optimizeStartup": false,
+	"jupyter-cell-tags.showDebugExecutionMessages": false,
+	"jupyter-cell-tags.debugPrint": false
+}

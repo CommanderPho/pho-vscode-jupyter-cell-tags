@@ -24,6 +24,21 @@
 				"group": "",
 				"order": 1
 			}
+		},
+		{
+			"name": "Extension Tests",
+			"type": "extensionHost",
+			"request": "launch",
+			"args": [
+				"--profile-temp",
+				"--extensionDevelopmentPath=${workspaceFolder}",
+				"--extensionTestsPath=${workspaceFolder}/out/test/mochaRunner",
+				"--enable-proposed-api=phohale.pho-vscode-jupyter-cell-tags",
+				"--disable-extension=ms-toolsai.vscode-jupyter-cell-tags",
+				"${workspaceFolder}/src/test/workspace"
+			],
+			"outFiles": ["${workspaceFolder}/out/**/*.js"],
+			"preLaunchTask": "${defaultBuildTask}"
 		}
 		// {
 		// 	"name": "Run Extension",
