@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { IOutlineSelectionSync } from './IOutlineSelectionSync';
 import { OutlineItem, NotebookTreeItem } from './models';
-import { SelectionChangeDetector } from '../outlineSync/SelectionChangeDetector';
+import { getSelectionDetector } from '../outlineSync/startup';
 import { log } from '../util/logging';
 
 /**
@@ -12,8 +12,7 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
     private currentSection: OutlineItem | undefined;
 
     constructor(
-        private readonly treeView: vscode.TreeView<NotebookTreeItem>,
-        private readonly selectionDetector: SelectionChangeDetector | undefined
+        private readonly treeView: vscode.TreeView<NotebookTreeItem>
     ) {}
 
     /**
@@ -79,8 +78,9 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
         const ranges = outlineItems.map(item => new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1));
 
         try {
-            if (this.selectionDetector) {
-                this.selectionDetector.triggerSelectionChange(editor, ranges);
+            const selectionDetector = getSelectionDetector();
+            if (selectionDetector) {
+                selectionDetector.triggerSelectionChange(editor, ranges);
             } else {
                 editor.selections = ranges;
             }

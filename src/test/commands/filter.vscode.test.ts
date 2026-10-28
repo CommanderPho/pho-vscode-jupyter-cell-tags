@@ -36,7 +36,7 @@ suite('Notebook filter commands', () => {
 			await manager.apply(editor.notebook, { tags: [EXISTING_TAG] });
 			await manager.clear(editor.notebook);
 		} finally {
-			manager.dispose();
+			await manager.dispose();
 		}
 	});
 });

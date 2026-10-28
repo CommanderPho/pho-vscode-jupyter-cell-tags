@@ -6,10 +6,27 @@ import {
 	NotebookFilterWebviewProvider
 } from './filterWebviewProvider';
 
+let filterManager: NotebookFilterManager | undefined;
+
+export function getFilterManager(): NotebookFilterManager | undefined {
+	return filterManager;
+}
+
 export function activateNotebookFilter(context: vscode.ExtensionContext): NotebookFilterManager {
 	const manager = new NotebookFilterManager();
+	filterManager = manager;
 	const webviewProvider = new NotebookFilterWebviewProvider(manager);
-	context.subscriptions.push({ dispose: () => manager.dispose() });
+	context.subscriptions.push({
+		dispose: async () => {
+			try {
+				await manager.dispose();
+			} finally {
+				if (filterManager === manager) {
+					filterManager = undefined;
+				}
+			}
+		}
+	});
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(NOTEBOOK_CELL_FILTER_VIEW_ID, webviewProvider)

@@ -51,11 +51,13 @@ export class NotebookFilterManager {
 		this.statusBar.command = 'jupyter-cell-tags.notebookFilter.clear';
 	}
 
-	dispose(): void {
-		void this.clearAll().finally(() => {
+	async dispose(): Promise<void> {
+		try {
+			await this.clearAll();
+		} finally {
 			this.decorators.dispose();
 			this.statusBar.dispose();
-		});
+		}
 	}
 
 	/**

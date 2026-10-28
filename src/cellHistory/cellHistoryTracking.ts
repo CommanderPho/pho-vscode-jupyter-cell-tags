@@ -57,15 +57,10 @@ export function trackCellHistory(context: vscode.ExtensionContext) {
         }),
         {
             dispose: () => {
-                const entries = [...pendingEdits.entries()];
-                pendingEdits.clear();
-                for (const [, pending] of entries) {
+                for (const pending of pendingEdits.values()) {
                     clearTimeout(pending.timer);
-                    const timestamp = new Date().toISOString();
-                    updateCellMetadata(pending.cell, ['custom', 'metadata', 'cellEdited'], timestamp).catch(() => {
-                        /* ignore on dispose */
-                    });
                 }
+                pendingEdits.clear();
             }
         }
     );

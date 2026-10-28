@@ -57,7 +57,7 @@ let extensionContext: vscode.ExtensionContext | undefined;
  * workspace state. Must be called once during extension activation; calls
  * before this is set will fall back to in-memory only behavior.
  */
-export function setJumpbackExtensionContext(context: vscode.ExtensionContext): void {
+export function setJumpbackExtensionContext(context: vscode.ExtensionContext | undefined): void {
     extensionContext = context;
 }
 

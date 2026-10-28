@@ -5,7 +5,6 @@ import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from './models';
 import { UpdateCoordinator } from './UpdateCoordinator';
 import { OutlineSelectionSync } from './OutlineSelectionSync';
 import { getSelectionDetector, getSyncManager } from '../outlineSync/startup';
-import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 /**
@@ -13,13 +12,7 @@ import { log } from '../util/logging';
  */
 export function registerCustomOutline(context: vscode.ExtensionContext): void {
     const customOutlineConfig = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
-    const enabled = isFeatureEnabled('customOutline');
     const debounceMs = customOutlineConfig.get<number>('updateDebounceMs', 200);
-
-    if (!enabled) {
-        log('Custom notebook outline is disabled via configuration. Skipping registration.');
-        return;
-    }
 
     log('Registering custom notebook outline view...');
 
@@ -32,10 +25,8 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
     });
     context.subscriptions.push(treeView);
 
-    const selectionDetector = getSelectionDetector();
-    const outlineSyncManager = getSyncManager();
-
     const updateCoordinator = new UpdateCoordinator(treeView, provider, debounceMs);
+    context.subscriptions.push({ dispose: () => updateCoordinator.cancelPendingUpdates() });
 
     // Initial population based on the active notebook
     updateCoordinator.scheduleUpdate();
@@ -53,23 +44,14 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Configuration change handling for customOutline.* / features.customOutline
+    // Configuration change handling for customOutline.* (feature toggle is owned by FeatureController)
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (
-                e.affectsConfiguration('jupyter-cell-tags.customOutline') ||
-                e.affectsConfiguration('jupyter-cell-tags.features.customOutline')
-            ) {
+            if (e.affectsConfiguration('jupyter-cell-tags.customOutline')) {
                 const cfg = vscode.workspace.getConfiguration('jupyter-cell-tags.customOutline');
-                const newEnabled = isFeatureEnabled('customOutline');
                 const newDebounce = cfg.get<number>('updateDebounceMs', debounceMs);
-
-                if (!newEnabled) {
-                    updateCoordinator.cancelPendingUpdates();
-                } else {
-                    updateCoordinator.setDebounceDelay(newDebounce);
-                    updateCoordinator.scheduleUpdate();
-                }
+                updateCoordinator.setDebounceDelay(newDebounce);
+                updateCoordinator.scheduleUpdate();
 
                 // showCellIndices and showExecutedCells are respected by the provider;
                 // a refresh will recreate tree items with new labels.
@@ -78,12 +60,13 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    const selectionSync = new OutlineSelectionSync(treeView, selectionDetector);
+    const selectionSync = new OutlineSelectionSync(treeView);
 
     // Sync outline -> editor when tree view selection changes
     context.subscriptions.push(
         treeView.onDidChangeSelection(async event => {
             await selectionSync.syncOutlineToEditor(event.selection);
+            const outlineSyncManager = getSyncManager();
             if (outlineSyncManager && vscode.window.activeNotebookEditor) {
                 // Keep built-in Outline pane synchronized as well
                 await outlineSyncManager.syncOutline(vscode.window.activeNotebookEditor);
@@ -91,14 +74,36 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Sync editor -> outline by reusing shared SelectionChangeDetector
-    if (selectionDetector) {
-        const disposable = selectionDetector.onSelectionChange(async (editor, _selections) => {
+    // Sync editor -> outline via shared SelectionChangeDetector when outlineSync is live,
+    // otherwise fall back to the raw notebook selection event.
+    let detectorSub: vscode.Disposable | undefined;
+    const bindDetector = () => {
+        detectorSub?.dispose();
+        detectorSub = undefined;
+        const selectionDetector = getSelectionDetector();
+        if (!selectionDetector) {
+            return;
+        }
+        detectorSub = selectionDetector.onSelectionChange(async (editor, _selections) => {
             const items = provider.getOutlineItems();
             await selectionSync.syncEditorToOutline(editor, items);
         });
-        context.subscriptions.push(disposable);
-    }
+    };
+    bindDetector();
+    context.subscriptions.push(
+        { dispose: () => detectorSub?.dispose() },
+        vscode.window.onDidChangeNotebookEditorSelection(async (e) => {
+            if (getSelectionDetector()) {
+                return;
+            }
+            await selectionSync.syncEditorToOutline(e.notebookEditor, provider.getOutlineItems());
+        }),
+        vscode.workspace.onDidChangeConfiguration((e) => {
+            if (e.affectsConfiguration('jupyter-cell-tags.features.outlineSync')) {
+                bindDetector();
+            }
+        })
+    );
 
     // Track which outline items are currently within the visible notebook range
     context.subscriptions.push(
@@ -179,12 +184,14 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
             const ranges = [range];
 
             try {
+                const selectionDetector = getSelectionDetector();
                 if (selectionDetector) {
                     selectionDetector.triggerSelectionChange(editor, ranges);
                 } else {
                     editor.selections = ranges;
                 }
 
+                const outlineSyncManager = getSyncManager();
                 if (outlineSyncManager) {
                     await outlineSyncManager.syncOutline(editor);
                 }
@@ -225,6 +232,7 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
             try {
                 // First, select the cells (using existing command logic)
                 const ranges = [range];
+                const selectionDetector = getSelectionDetector();
                 if (selectionDetector) {
                     selectionDetector.triggerSelectionChange(editor, ranges);
                 } else {

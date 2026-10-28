@@ -20,6 +20,7 @@ const scratchpadCells = new Set<string>();
 const sourceToScratchpadMap = new Map<string, string>(); 
 
 let output: vscode.OutputChannel;
+let scrollTimeout: NodeJS.Timeout | undefined;
 
 // --- HIJACK DISPOSABLES ---
 let singleHijack: vscode.Disposable | undefined;
@@ -46,10 +47,10 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	}));
 
 	// 2. Scroll Listener (Debounced)
-	let scrollTimeout: NodeJS.Timeout | undefined;
 	context.subscriptions.push(vscode.window.onDidChangeVisibleTextEditors(editors => {
 		if (scrollTimeout) clearTimeout(scrollTimeout);
 		scrollTimeout = setTimeout(() => {
+			scrollTimeout = undefined;
 			for (const editor of editors) restoreDecorationForEditor(editor);
 		}, 100); // Wait 100ms for the user to stop dragging/scrolling
 	}));
@@ -122,8 +123,13 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 }
 
 export function deactivateJupyterEnhancements() {
+	if (scrollTimeout) {
+		clearTimeout(scrollTimeout);
+		scrollTimeout = undefined;
+	}
 	disposeAllDecorations();
 	activeAnimations.forEach(stop => stop());
+	activeAnimations.clear();
 	singleHijack?.dispose();
 	allHijack?.dispose();
 	singleHijack = undefined;

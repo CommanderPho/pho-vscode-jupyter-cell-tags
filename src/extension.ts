@@ -32,10 +32,9 @@ import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
 import { activateExternalKernel } from './externalKernel/startup';
 import {
-    isFeatureEnabled,
     migrateDeprecatedFeatureSettings,
-    registerFeatureReloadPrompt,
 } from './util/featureFlags';
+import { FeatureActivators, registerFeatureHotToggle } from './util/featureLifecycle';
 // import { register as registerExecutedCellsView } from './cellExecution/ExecutedCellsTreeDataProvider';
 
 export async function activate(context: vscode.ExtensionContext) {
@@ -46,7 +45,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
     // Migrate deprecated enable* settings into features.* before gating activation
     await migrateDeprecatedFeatureSettings();
-    registerFeatureReloadPrompt(context);
 
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
@@ -54,14 +52,6 @@ export async function activate(context: vscode.ExtensionContext) {
 
 	registerCellTags(context);
     registerAllNotebookTagsView(context);
-
-    if (isFeatureEnabled('jumpbacks')) {
-        setJumpbackExtensionContext(context);
-        registerJumpbackCommand(context);
-        registerRemoveJumpbackCommand(context);
-        registerOpenJumpbackCommand(context);
-        registerJumpbackTreeDataProvider(context);
-    }
 
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.exportTags', exportTagsForNotebook),
@@ -80,48 +70,74 @@ export async function activate(context: vscode.ExtensionContext) {
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
     registerCellExecutionCommands(context);
-    if (isFeatureEnabled('cellExecutionTracking')) {
-        activateNotebookCellExecutionTracking(context);
-    }
     activateNotebookRunGroups(context);
     activateCellHeadings(context);
-    if (isFeatureEnabled('outlineSync')) {
-        activateOutlineSync(context);
-    }
-    if (isFeatureEnabled('customOutline')) {
-        registerCustomOutline(context);
-    }
     registerNavigationMenu(context);
-    if (isFeatureEnabled('cellHistory')) {
-        activateCellHistoryTracking(context);
-    }
     registerCellMetadataDisplay(context);
-    if (isFeatureEnabled('ringMeJupyter')) {
-        activateRingMeJupyter(context);
-    }
-    if (isFeatureEnabled('notebookFilter')) {
-        activateNotebookFilter(context);
-    }
-    if (isFeatureEnabled('jupyterEnhancements')) {
-        try {
-            activateJupyterEnhancementsModule(context);
-        } catch (err) {
-            log(`Jupyter enhancements failed to activate (continuing): ${err}`);
-        }
-    }
-    if (isFeatureEnabled('gitDiff')) {
-        activateGitDiffHighlighting(context);
-    }
-    if (isFeatureEnabled('dependencyChain')) {
-        activateDependencyChain(context);
-    }
-    if (isFeatureEnabled('durableKernel')) {
-        try {
-            activateExternalKernel(context);
-        } catch (err) {
-            log(`Durable external kernel feature failed to activate (continuing): ${err}`);
-        }
-    }
+
+    const optionalFeatures: FeatureActivators = {
+        jumpbacks: {
+            activate: (ctx) => {
+                setJumpbackExtensionContext(ctx);
+                registerJumpbackCommand(ctx);
+                registerRemoveJumpbackCommand(ctx);
+                registerOpenJumpbackCommand(ctx);
+                registerJumpbackTreeDataProvider(ctx);
+            },
+            onDispose: () => setJumpbackExtensionContext(undefined),
+        },
+        outlineSync: {
+            activate: activateOutlineSync,
+        },
+        customOutline: {
+            activate: registerCustomOutline,
+        },
+        jupyterEnhancements: {
+            activate: (ctx) => {
+                try {
+                    activateJupyterEnhancementsModule(ctx);
+                } catch (err) {
+                    log(`Jupyter enhancements failed to activate (continuing): ${err}`);
+                }
+            },
+            onDispose: () => {
+                try {
+                    deactivateJupyterEnhancements();
+                } catch {
+                    // Feature may not have been activated
+                }
+            },
+        },
+        gitDiff: {
+            activate: activateGitDiffHighlighting,
+        },
+        dependencyChain: {
+            activate: activateDependencyChain,
+        },
+        notebookFilter: {
+            activate: activateNotebookFilter,
+        },
+        ringMeJupyter: {
+            activate: activateRingMeJupyter,
+        },
+        durableKernel: {
+            activate: (ctx) => {
+                try {
+                    activateExternalKernel(ctx);
+                } catch (err) {
+                    log(`Durable external kernel feature failed to activate (continuing): ${err}`);
+                }
+            },
+        },
+        cellHistory: {
+            activate: activateCellHistoryTracking,
+        },
+        cellExecutionTracking: {
+            activate: activateNotebookCellExecutionTracking,
+        },
+    };
+
+    await registerFeatureHotToggle(context, optionalFeatures);
     log('Extension activated.');
 }
 

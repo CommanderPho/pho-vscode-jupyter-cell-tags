@@ -6,6 +6,9 @@ import { isFeatureEnabled } from '../util/featureFlags';
 import { log } from '../util/logging';
 
 async function navigateToPreviousErrorCell(context: vscode.ExtensionContext) {
+	if (!isFeatureEnabled('errorNavigation')) {
+		return;
+	}
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');
@@ -57,6 +60,9 @@ async function navigateToPreviousErrorCell(context: vscode.ExtensionContext) {
 }
 
 async function navigateToNextErrorCell(context: vscode.ExtensionContext) {
+	if (!isFeatureEnabled('errorNavigation')) {
+		return;
+	}
 	const editor = vscode.window.activeNotebookEditor;
 	if (!editor) {
 		vscode.window.showWarningMessage('No active notebook editor found.');

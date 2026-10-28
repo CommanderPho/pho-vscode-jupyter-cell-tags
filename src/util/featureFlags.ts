@@ -42,22 +42,6 @@ const DEPRECATED_MIGRATIONS: ReadonlyArray<{ oldKey: string; feature: FeatureKey
 	{ oldKey: 'scrollbarDecorators.enabled', feature: 'scrollbarDecorators' },
 ];
 
-/** Features that only register at activate and need a window reload after toggling. */
-const RELOAD_REQUIRED_FEATURES: ReadonlySet<FeatureKey> = new Set([
-	'jumpbacks',
-	'errorNavigation',
-	'outlineSync',
-	'customOutline',
-	'jupyterEnhancements',
-	'gitDiff',
-	'dependencyChain',
-	'notebookFilter',
-	'ringMeJupyter',
-	'durableKernel',
-	'cellHistory',
-	'cellExecutionTracking',
-]);
-
 function featuresConfigKey(feature: FeatureKey): string {
 	return `features.${feature}`;
 }
@@ -134,30 +118,3 @@ export async function migrateDeprecatedFeatureSettings(): Promise<void> {
 	}
 }
 
-/**
- * Prompt to reload the window when a Features toggle that needs re-activation changes.
- */
-export function registerFeatureReloadPrompt(context: vscode.ExtensionContext): void {
-	context.subscriptions.push(
-		vscode.workspace.onDidChangeConfiguration(async (e) => {
-			if (!e.affectsConfiguration('jupyter-cell-tags.features')) {
-				return;
-			}
-
-			const needsReload = [...RELOAD_REQUIRED_FEATURES].some((feature) =>
-				e.affectsConfiguration(`jupyter-cell-tags.features.${feature}`)
-			);
-			if (!needsReload) {
-				return;
-			}
-
-			const choice = await vscode.window.showInformationMessage(
-				'Some Jupyter Cell Tags features require a window reload to apply.',
-				'Reload Window'
-			);
-			if (choice === 'Reload Window') {
-				await vscode.commands.executeCommand('workbench.action.reloadWindow');
-			}
-		})
-	);
-}

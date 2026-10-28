@@ -96,6 +96,13 @@ export function activateOutlineSync(context: vscode.ExtensionContext): void {
         }
     });
     context.subscriptions.push(configChangeDisposable);
+
+    context.subscriptions.push({
+        dispose: () => {
+            syncManager = undefined;
+            selectionDetector = undefined;
+        }
+    });
     
     log('Outline synchronization activated successfully');
 }

@@ -8,11 +8,10 @@ import { log, showTimedInformationMessage } from '../util/logging';
 import { TagSortOrder, sortTags } from './tagSorting';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
 import { updateNotebookMetadata } from '../util/notebookMetadata';
-import { OutlineSyncManager } from '../outlineSync/OutlineSyncManager';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { ScrollbarDecoratorManager } from './scrollbarDecorators';
-import { isFeatureEnabled } from '../util/featureFlags';
+import { getSyncManager } from '../outlineSync/startup';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -291,32 +290,8 @@ export function register(context: vscode.ExtensionContext) {
     const treeDataProvider = new AllTagsTreeDataProvider();
     context.subscriptions.push(treeDataProvider);
     
-    // Read outline sync configuration from VS Code settings (features.outlineSync is the master switch)
-    const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
-    const outlineSyncConfig = {
-        enabled: isFeatureEnabled('outlineSync'),
-        debounceMs: config.get<number>('outlineSync.debounceMs', 100)
-    };
-    
-    // Create OutlineSyncManager for synchronizing outline with selections
-    const outlineSyncManager = new OutlineSyncManager(outlineSyncConfig);
-    context.subscriptions.push(outlineSyncManager);
-    
-    // Listen for configuration changes and update sync manager / hot-color fade
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(e => {
-            if (
-                e.affectsConfiguration('jupyter-cell-tags.outlineSync') ||
-                e.affectsConfiguration('jupyter-cell-tags.features.outlineSync')
-            ) {
-                const updatedConfig = vscode.workspace.getConfiguration('jupyter-cell-tags');
-                const newConfig = {
-                    enabled: isFeatureEnabled('outlineSync'),
-                    debounceMs: updatedConfig.get<number>('outlineSync.debounceMs', 100)
-                };
-                outlineSyncManager.updateConfig(newConfig);
-                log('Outline sync configuration updated:', newConfig);
-            }
             if (e.affectsConfiguration('jupyter-cell-tags.tagHotColor')) {
                 treeDataProvider.refresh();
             }
@@ -625,13 +600,16 @@ export function register(context: vscode.ExtensionContext) {
         // // Reset selections to avoid unexpected behavior
         editor.selections = [...cellRanges];
 
-        // Synchronize the Outline pane with the new selections
-        try {
-            await outlineSyncManager.syncOutline(editor);
-            log('Outline synchronized after selectAllChildCells');
-        } catch (error) {
-            log(`Failed to sync outline: ${error}`);
-            // Don't show error to user - sync failure shouldn't break the command
+        // Synchronize the Outline pane with the new selections when outlineSync is live
+        const outlineSyncManager = getSyncManager();
+        if (outlineSyncManager) {
+            try {
+                await outlineSyncManager.syncOutline(editor);
+                log('Outline synchronized after selectAllChildCells');
+            } catch (error) {
+                log(`Failed to sync outline: ${error}`);
+                // Don't show error to user - sync failure shouldn't break the command
+            }
         }
 
         showTimedInformationMessage(`Selected ${cellRefs.length} cells with tag: ${tag}`, 3000);
