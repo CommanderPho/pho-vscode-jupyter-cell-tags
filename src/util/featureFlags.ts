@@ -17,6 +17,48 @@ export type FeatureKey =
 	| 'cellHistory'
 	| 'cellExecutionTracking';
 
+/** Features settings shown in the status-bar picker, including toolbar-only flags. */
+export type FeatureSettingKey = FeatureKey | 'cellNavigation';
+
+export const FEATURE_KEYS: readonly FeatureKey[] = [
+	'jumpbacks',
+	'errorNavigation',
+	'outlineSync',
+	'customOutline',
+	'scrollbarDecorators',
+	'jupyterEnhancements',
+	'gitDiff',
+	'dependencyChain',
+	'notebookFilter',
+	'ringMeJupyter',
+	'durableKernel',
+	'cellHistory',
+	'cellExecutionTracking',
+];
+
+export const FEATURE_SETTING_KEYS: readonly FeatureSettingKey[] = [
+	...FEATURE_KEYS,
+	'cellNavigation',
+];
+
+/** Labels match `package.json` Features descriptions. */
+export const FEATURE_SETTING_LABELS: Record<FeatureSettingKey, string> = {
+	jumpbacks: '↩️ Jumpbacks: bookmark cells or text lines and jump back to them',
+	errorNavigation: 'Previous/Next Error Cell navigation commands',
+	outlineSync: 'Sync the Outline pane with programmatic cell selections',
+	customOutline: '★ Custom notebook outline view with multi-select',
+	scrollbarDecorators: '🏷️ Scrollbar markers for tag locations in the notebook',
+	jupyterEnhancements: 'Cell execution visuals (borders, flash, background) and layout helpers',
+	gitDiff: '🔀 Highlight and list cells changed vs a git commit',
+	dependencyChain: '⛓️ Show variable dependency chains between cells',
+	notebookFilter: '🔍 Collapse/filter notebook cells by criteria',
+	ringMeJupyter: 'Email notifications when tagged cells finish executing',
+	durableKernel: 'Durable Jupyter server that survives Extension Host restart',
+	cellHistory: 'Write cellCreated/cellEdited timestamps into cell metadata (can dirty the notebook while typing)',
+	cellExecutionTracking: '▶️ Track executed cells in a sidebar view and record execution history for the session',
+	cellNavigation: 'Show the 🧭 Cell Navigation toolbar button in the notebook toolbar',
+};
+
 const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	jumpbacks: false,
 	errorNavigation: false,
@@ -33,6 +75,11 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	cellExecutionTracking: true,
 };
 
+const FEATURE_SETTING_DEFAULTS: Record<FeatureSettingKey, boolean> = {
+	...FEATURE_DEFAULTS,
+	cellNavigation: false,
+};
+
 /** Deprecated setting key → Features key (relative to `jupyter-cell-tags`). */
 const DEPRECATED_MIGRATIONS: ReadonlyArray<{ oldKey: string; feature: FeatureKey }> = [
 	{ oldKey: 'enableJumpbacks', feature: 'jumpbacks' },
@@ -42,7 +89,7 @@ const DEPRECATED_MIGRATIONS: ReadonlyArray<{ oldKey: string; feature: FeatureKey
 	{ oldKey: 'scrollbarDecorators.enabled', feature: 'scrollbarDecorators' },
 ];
 
-function featuresConfigKey(feature: FeatureKey): string {
+function featuresConfigKey(feature: FeatureSettingKey): string {
 	return `features.${feature}`;
 }
 
@@ -63,8 +110,35 @@ function hasExplicitValue(
  * Whether an optional feature is enabled. Reads `jupyter-cell-tags.features.<name>`.
  */
 export function isFeatureEnabled(feature: FeatureKey): boolean {
+	return isFeatureSettingEnabled(feature);
+}
+
+export function isFeatureSettingEnabled(key: FeatureSettingKey): boolean {
 	const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
-	return config.get<boolean>(featuresConfigKey(feature), FEATURE_DEFAULTS[feature]) !== false;
+	return config.get<boolean>(featuresConfigKey(key), FEATURE_SETTING_DEFAULTS[key]) !== false;
+}
+
+export function countEnabledFeatureSettings(): { enabled: number; total: number } {
+	const total = FEATURE_SETTING_KEYS.length;
+	const enabled = FEATURE_SETTING_KEYS.filter((key) => isFeatureSettingEnabled(key)).length;
+	return { enabled, total };
+}
+
+/**
+ * Write `jupyter-cell-tags.features.<key>` to the most specific scope that
+ * already has an explicit value; otherwise Global.
+ */
+export async function updateFeatureSetting(key: FeatureSettingKey, enabled: boolean): Promise<void> {
+	const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
+	const settingKey = featuresConfigKey(key);
+	const inspect = config.inspect<boolean>(settingKey);
+	let target = vscode.ConfigurationTarget.Global;
+	if (inspect?.workspaceFolderValue !== undefined) {
+		target = vscode.ConfigurationTarget.WorkspaceFolder;
+	} else if (inspect?.workspaceValue !== undefined) {
+		target = vscode.ConfigurationTarget.Workspace;
+	}
+	await config.update(settingKey, enabled, target);
 }
 
 /**

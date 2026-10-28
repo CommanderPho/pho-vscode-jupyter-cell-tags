@@ -4,16 +4,16 @@ overview: Add a always-available status bar item that opens a multi-select Quick
 todos:
   - id: feature-flags-helpers
     content: Export FEATURE_KEYS, labels, and updateFeatureSetting (inspect-based ConfigurationTarget)
-    status: pending
+    status: completed
   - id: status-bar-picker
     content: Status bar item + createQuickPick (canSelectMany, hideOnDidAccept false, ignoreFocusOut false) + command
-    status: pending
+    status: completed
   - id: package-and-activate
     content: Contribute jupyter-cell-tags.toggleFeatures; register always-on from extension.ts
-    status: pending
+    status: completed
   - id: host-test
     content: "Host test: picker selection writes features.* and FeatureController reacts; restore settings"
-    status: pending
+    status: completed
 isProject: false
 ---
 

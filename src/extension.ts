@@ -16,6 +16,7 @@ import { registerJumpbackCommand, registerRemoveJumpbackCommand, registerOpenJum
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
 import { JumpbackDataSource, setJumpbackExtensionContext } from './cellJumpbacks/jumpbackDataSource';
 import { CellSelectionsStatusBarItem } from './statusBar';
+import { registerFeatureToggleStatusBar } from './featureToggle/featureToggleStatusBar';
 import { exportTagsForNotebook } from './exportTags/exportTags';
 import { importTagsForNotebook } from './importTags/importTags';
 import { exportExecutedCodeToPython } from './exportExecutedCode/exportExecutedCode';
@@ -49,6 +50,7 @@ export async function activate(context: vscode.ExtensionContext) {
     // Instantiate and register the new status bar item.
     const selectionStatusBar = new CellSelectionsStatusBarItem();
     context.subscriptions.push(selectionStatusBar);
+    registerFeatureToggleStatusBar(context);
 
 	registerCellTags(context);
     registerAllNotebookTagsView(context);

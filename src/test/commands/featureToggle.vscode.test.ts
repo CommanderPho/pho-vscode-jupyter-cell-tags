@@ -15,6 +15,7 @@ import {
 	selectedStarts
 } from '../helpers/notebook';
 import { waitFor } from '../helpers/waitFor';
+import { UiStubs } from '../helpers/uiStubs';
 
 const WORKSPACE = vscode.ConfigurationTarget.Workspace;
 
@@ -178,5 +179,49 @@ suite('Feature hot-toggle', () => {
 			await waitFor(() => editor.notebook.getCells().every((cell) => !isCellCollapsed(cell)));
 		}
 		assert.ok(editor.notebook.getCells().every((cell) => !isCellCollapsed(cell)));
+	});
+
+	test('toggleFeatures command is registered', async () => {
+		assert.ok(await commandRegistered('jupyter-cell-tags.toggleFeatures'));
+	});
+
+	test('feature picker selection writes features.* without hiding', async () => {
+		const stubs = new UiStubs();
+		try {
+			stubs.stubCreateQuickPickManual();
+			await vscode.commands.executeCommand('jupyter-cell-tags.toggleFeatures');
+			const pick = stubs.lastQuickPick;
+			assert.ok(pick, 'toggleFeatures should create a Quick Pick');
+			assert.strictEqual(pick.canSelectMany, true);
+			assert.strictEqual(pick.ignoreFocusOut, false);
+			assert.strictEqual(
+				(pick as vscode.QuickPick<vscode.QuickPickItem> & { hideOnDidAccept?: boolean }).hideOnDidAccept,
+				false
+			);
+
+			const jumpbacksItem = pick.items.find((item) =>
+				(item.detail ?? '').includes('features.jumpbacks')
+			);
+			assert.ok(jumpbacksItem, 'picker should list jumpbacks');
+			assert.ok(
+				pick.selectedItems.some((item) => item === jumpbacksItem),
+				'jumpbacks should start selected in the test workspace'
+			);
+
+			if (!restored.includes('jumpbacks')) {
+				restored.push('jumpbacks');
+			}
+			pick.selectedItems = pick.selectedItems.filter((item) => item !== jumpbacksItem);
+			await whenFeatureTogglesIdle();
+			await waitFor(async () => !(await commandRegistered('jupyter-cell-tags.addJumpback')));
+			assert.strictEqual(
+				vscode.workspace.getConfiguration('jupyter-cell-tags').get<boolean>('features.jumpbacks'),
+				false
+			);
+			assert.ok(pick.items.length > 0, 'picker should stay open after a toggle');
+		} finally {
+			stubs.lastQuickPick?.hide();
+			stubs.restore();
+		}
 	});
 });

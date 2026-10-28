@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.7.3",
+	"version": "0.7.4",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -703,6 +703,12 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.toggleFeatures",
+				"title": "Toggle Features…",
+				"icon": "$(extensions)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.ringMeJupyter.toggleBell",
 				"title": "Toggle Cell Bell"
 			},
@@ -831,6 +837,10 @@
 		],
 		"menus": {
 			"commandPalette": [
+				{
+					"command": "jupyter-cell-tags.toggleFeatures",
+					"group": "Jupyter Cell Tags"
+				},
 				{
 					"command": "jupyter-cell-tags.executeRunGroup",
 					"group": "Notebook Run Groups"
@@ -1470,7 +1480,7 @@
 			{
 				"command": "jupyter-cell-tags.jupyterEnhancements.runInScratchpad",
 				"key": "f11",
-				"when": "editorTextFocus && notebookEditorFocused"
+				"when": "editorTextFocus && notebookEditorFocused && config.jupyter-cell-tags.features.jupyterEnhancements"
 			}
 		]
 	},
