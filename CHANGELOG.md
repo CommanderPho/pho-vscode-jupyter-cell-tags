@@ -4,6 +4,10 @@ All notable changes to the "jupyter-cell-tags" extension will be documented in t
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## 0.7.4
+
+- Uninstall the official Microsoft Jupyter Cell Tags pack member (`ms-toolsai.vscode-jupyter-cell-tags`) after the Jupyter dependency is installed, and offer a window reload.
+
 ## 0.7.2
 
 - Feature flags under **Features** so Jumpbacks, Custom Outline, Git Diff, Dependency Chain, Notebook Filter, Durable Kernel, and related tools can be toggled independently.

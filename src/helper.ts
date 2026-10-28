@@ -8,18 +8,53 @@ import { sortObjectPropertiesRecursively, useCustomMetadata } from './util/noteb
 // myOutputChannel.appendLine("This is a log message from my extension");
 // myOutputChannel.show(true);
 
-export function detect_conflicting_microsoft_extension(): boolean {
-    const incompatible_extension = vscode.extensions.getExtension('ms-toolsai.vscode-jupyter-cell-tags');
-    if (incompatible_extension) {
-        // const pluginVersion = incompatible_extension?.packageJSON.version || 'unknown';
-        const incompatible_message = 'Official Microsoft Jupyter Cell Tags extension ("ms-toolsai.vscode-jupyter-cell-tags") detected! Please manually uninstall the official version in the VSCode Extensions tab to use the phohale version ("phohale.pho-vscode-jupyter-cell-tags")!.'
-        vscode.window.showErrorMessage(incompatible_message);
-        return true;
-    }
-    else {
-        return false;
-    }
+export const MICROSOFT_JUPYTER_CELL_TAGS_ID = 'ms-toolsai.vscode-jupyter-cell-tags';
 
+export type ConflictingExtensionResult = 'absent' | 'uninstalled' | 'failed';
+
+const RELOAD_WINDOW = 'Reload Window';
+const MANUAL_UNINSTALL_MESSAGE =
+    'Official Microsoft Jupyter Cell Tags extension ("ms-toolsai.vscode-jupyter-cell-tags") detected! Please manually uninstall the official version in the VSCode Extensions tab to use the phohale version ("phohale.pho-vscode-jupyter-cell-tags")!.';
+const UNINSTALLED_MESSAGE =
+    'Uninstalled the official Microsoft Jupyter Cell Tags extension ("ms-toolsai.vscode-jupyter-cell-tags"). It ships with Jupyter and conflicts with this fork ("phohale.pho-vscode-jupyter-cell-tags"). Reload the window to finish.';
+
+let _uninstallInFlight: Promise<ConflictingExtensionResult> | undefined;
+let _uninstalledThisSession = false;
+
+export async function uninstallConflictingMicrosoftExtension(): Promise<ConflictingExtensionResult> {
+    if (_uninstallInFlight) {
+        return _uninstallInFlight;
+    }
+    _uninstallInFlight = _uninstallConflictingMicrosoftExtension();
+    try {
+        return await _uninstallInFlight;
+    } finally {
+        _uninstallInFlight = undefined;
+    }
+}
+
+async function _uninstallConflictingMicrosoftExtension(): Promise<ConflictingExtensionResult> {
+    const incompatible_extension = vscode.extensions.getExtension(MICROSOFT_JUPYTER_CELL_TAGS_ID);
+    if (!incompatible_extension) {
+        _uninstalledThisSession = false;
+        return 'absent';
+    }
+    if (_uninstalledThisSession) {
+        return 'uninstalled';
+    }
+    try {
+        await vscode.commands.executeCommand('workbench.extensions.uninstallExtension', MICROSOFT_JUPYTER_CELL_TAGS_ID);
+        _uninstalledThisSession = true;
+        void vscode.window.showInformationMessage(UNINSTALLED_MESSAGE, RELOAD_WINDOW).then((selection) => {
+            if (selection === RELOAD_WINDOW) {
+                return vscode.commands.executeCommand('workbench.action.reloadWindow');
+            }
+        });
+        return 'uninstalled';
+    } catch {
+        vscode.window.showErrorMessage(MANUAL_UNINSTALL_MESSAGE);
+        return 'failed';
+    }
 }
 
 

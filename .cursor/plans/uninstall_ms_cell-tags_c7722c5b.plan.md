@@ -4,13 +4,13 @@ overview: Replace the “please uninstall Microsoft Jupyter Cell Tags by hand”
 todos:
   - id: helper-uninstall
     content: Replace detect_conflicting_microsoft_extension with async uninstall via workbench.extensions.uninstallExtension, plus reload toast and failure fallback
-    status: pending
+    status: completed
   - id: activate-wireup
     content: Await uninstall on activate and re-run on vscode.extensions.onDidChange with an in-flight guard
-    status: pending
+    status: completed
   - id: docs
     content: Update README install note and CHANGELOG for auto-uninstall + reload
-    status: pending
+    status: completed
 isProject: false
 ---
 

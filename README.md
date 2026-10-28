@@ -19,7 +19,7 @@ VS Marketplace Link: https://marketplace.visualstudio.com/items?itemName=PhoHale
 
 Source: https://github.com/CommanderPho/vscode-jupyter-cell-tags
 
-This extension replaces the tags extension that ships with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter). Uninstall the official Microsoft **Jupyter Cell Tags** extension (`ms-toolsai.vscode-jupyter-cell-tags`) before installing this one.
+This extension replaces the tags extension that ships with the [Jupyter extension for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=ms-toolsai.jupyter). After Jupyter is installed as a dependency, this extension uninstalls the official Microsoft **Jupyter Cell Tags** pack member (`ms-toolsai.vscode-jupyter-cell-tags`). Reload the window if prompted.
 
 ### Features
 

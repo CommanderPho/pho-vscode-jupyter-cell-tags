@@ -10,7 +10,7 @@ import { activateNotebookRunGroups } from './notebookRunGroups/startup';
 import { activateCellHeadings } from './cellHeadings/startup';
 import { registerCommands as registerCellExecutionCommands } from './cellExecution/cellExecutionTracking';
 import { activateNotebookCellExecutionTracking } from './cellExecution/startup';
-import { detect_conflicting_microsoft_extension } from './helper';
+import { uninstallConflictingMicrosoftExtension } from './helper';
 import { activateCustomLogging, log } from './util/logging';
 import { registerJumpbackCommand, registerRemoveJumpbackCommand, registerOpenJumpbackCommand } from './cellJumpbacks/commands';
 import { register as registerJumpbackTreeDataProvider } from './cellJumpbacks/JumpbackTreeDataProvider';
@@ -43,7 +43,12 @@ export async function activate(context: vscode.ExtensionContext) {
     // Activate and Register Commands
     activateCustomLogging(context);
 
-    const has_invalid_extension_installed = detect_conflicting_microsoft_extension();
+    await uninstallConflictingMicrosoftExtension();
+    context.subscriptions.push(
+        vscode.extensions.onDidChange(() => {
+            void uninstallConflictingMicrosoftExtension();
+        })
+    );
 
     // Migrate deprecated enable* settings into features.* before gating activation
     await migrateDeprecatedFeatureSettings();
