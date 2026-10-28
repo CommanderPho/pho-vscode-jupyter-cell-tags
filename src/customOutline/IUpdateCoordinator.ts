@@ -13,4 +13,7 @@ export interface IUpdateCoordinator {
 
     /** Update debounce delay at runtime */
     setDebounceDelay(delayMs: number): void;
+
+    /** Drop visibility listener and pending timers */
+    dispose(): void;
 }

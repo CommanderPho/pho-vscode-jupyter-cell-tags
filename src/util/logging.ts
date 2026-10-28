@@ -17,8 +17,8 @@ export function log(...args: any[]) {
 
     if (debugPrintEnabled) {
         console.log(...args);
+        myChannel.appendLine(line);
     }
-    myChannel.appendLine(line);
 }
 
 export async function showTimedInformationMessage(message: string, timeout: number) {

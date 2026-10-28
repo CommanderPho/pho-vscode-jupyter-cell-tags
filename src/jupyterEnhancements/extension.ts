@@ -27,10 +27,18 @@ let singleHijack: vscode.Disposable | undefined;
 let allHijack: vscode.Disposable | undefined;
 let isHijacking = false; // Flag to prevent concurrent hijack operations
 let executeGate: Promise<void> = Promise.resolve(); // Serialize native execute unwraps
+const pendingNativeExecutes = new Set<() => void>();
 let hasExecutionStateApi = false;
+/** Bumped on activate/deactivate so in-flight unwraps cannot resurrect hijacks. */
+let hijackGeneration = 0;
+let enhancementsActive = false;
 
 export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
-	output = vscode.window.createOutputChannel("Jupyter Enhancements");
+	hijackGeneration += 1;
+	enhancementsActive = true;
+	if (!output) {
+		output = vscode.window.createOutputChannel("Jupyter Enhancements");
+	}
 	output.appendLine("[INFO] Jupyter Enhancements Activated.");
 
 	reloadDecorations();
@@ -122,7 +130,14 @@ export function activateJupyterEnhancements(context: vscode.ExtensionContext) {
 	register('jupyter.runCellAndAllBelow', (args) => runSequenceHandler('below', args));
 }
 
+/** True while the notebook.cell.execute hijack is registered. Host tests use this. */
+export function isJupyterEnhancementsHijackLive(): boolean {
+	return enhancementsActive && singleHijack !== undefined;
+}
+
 export function deactivateJupyterEnhancements() {
+	hijackGeneration += 1;
+	enhancementsActive = false;
 	if (scrollTimeout) {
 		clearTimeout(scrollTimeout);
 		scrollTimeout = undefined;
@@ -130,10 +145,18 @@ export function deactivateJupyterEnhancements() {
 	disposeAllDecorations();
 	activeAnimations.forEach(stop => stop());
 	activeAnimations.clear();
+	cellStatusMap.clear();
+	lastExecutionTimes.clear();
+	scratchpadCells.clear();
+	sourceToScratchpadMap.clear();
 	singleHijack?.dispose();
 	allHijack?.dispose();
 	singleHijack = undefined;
 	allHijack = undefined;
+	for (const abort of [...pendingNativeExecutes]) {
+		abort();
+	}
+	pendingNativeExecutes.clear();
 }
 
 // --- LAYOUT SETTINGS HANDLER ---
@@ -189,6 +212,9 @@ function updateLayoutSettings() {
 // --- HIJACK SETUP ---
 /** Re-register only the notebook.cell.execute hijack (leave notebook.execute alone). */
 function registerSingleHijack() {
+	if (!enhancementsActive) {
+		return;
+	}
 	singleHijack?.dispose();
 	singleHijack = undefined;
 	singleHijack = vscode.commands.registerCommand('notebook.cell.execute', async (args) => {
@@ -198,6 +224,9 @@ function registerSingleHijack() {
 }
 
 function registerHijacks() {
+	if (!enhancementsActive) {
+		return;
+	}
 	// Prevent concurrent hijack operations
 	if (isHijacking) {
 		output.appendLine("[WARN] Hijack registration already in progress, skipping");
@@ -222,6 +251,7 @@ function registerHijacks() {
 
 /** Run native notebook.cell.execute with hijack temporarily removed; serialized. */
 async function withNativeCellExecute<T>(fn: () => Promise<T>): Promise<T> {
+	const generation = hijackGeneration;
 	const previous = executeGate;
 	let release!: () => void;
 	executeGate = new Promise<void>(resolve => {
@@ -233,11 +263,13 @@ async function withNativeCellExecute<T>(fn: () => Promise<T>): Promise<T> {
 	try {
 		return await fn();
 	} finally {
-		try {
-			registerSingleHijack();
-		} catch (e) {
-			output.appendLine(`[ERROR] Failed to re-register notebook.cell.execute hijack: ${e}`);
-			registerHijacks();
+		if (enhancementsActive && generation === hijackGeneration) {
+			try {
+				registerSingleHijack();
+			} catch (e) {
+				output.appendLine(`[ERROR] Failed to re-register notebook.cell.execute hijack: ${e}`);
+				registerHijacks();
+			}
 		}
 		release();
 	}
@@ -326,6 +358,76 @@ function isNotebookCellArg(args: any): args is vscode.NotebookCell {
 		&& !args.ranges;
 }
 
+function uriFromUnknown(value: unknown): vscode.Uri | undefined {
+	if (!value) {
+		return undefined;
+	}
+	if (value instanceof vscode.Uri) {
+		return value;
+	}
+	if (typeof value === 'string') {
+		try {
+			return vscode.Uri.parse(value);
+		} catch {
+			return undefined;
+		}
+	}
+	if (typeof value === 'object' && value !== null && 'scheme' in value && 'path' in value) {
+		try {
+			return vscode.Uri.from(value as vscode.Uri);
+		} catch {
+			return undefined;
+		}
+	}
+	return undefined;
+}
+
+function notebookUriFromArgs(args: any): vscode.Uri | undefined {
+	const fromNamed = uriFromUnknown(args?.notebookUri) ?? uriFromUnknown(args?.document);
+	if (fromNamed) {
+		return fromNamed;
+	}
+	if (isNotebookCellArg(args)) {
+		return args.notebook.uri;
+	}
+	return undefined;
+}
+
+function findNotebookEditor(uri: vscode.Uri): vscode.NotebookEditor | undefined {
+	const target = uri.toString();
+	const active = vscode.window.activeNotebookEditor;
+	if (active && active.notebook.uri.toString() === target) {
+		return active;
+	}
+	return vscode.window.visibleNotebookEditors.find(
+		(editor) => editor.notebook.uri.toString() === target
+	);
+}
+
+function findNotebookDocument(uri: vscode.Uri): vscode.NotebookDocument | undefined {
+	const target = uri.toString();
+	return vscode.workspace.notebookDocuments.find((notebook) => notebook.uri.toString() === target);
+}
+
+function resolveNotebookContext(args?: any): {
+	editor: vscode.NotebookEditor | undefined;
+	notebook: vscode.NotebookDocument | undefined;
+} {
+	const uri = notebookUriFromArgs(args);
+	if (uri) {
+		const editor = findNotebookEditor(uri);
+		return { editor, notebook: editor?.notebook ?? findNotebookDocument(uri) };
+	}
+	const editor = vscode.window.activeNotebookEditor;
+	return { editor, notebook: editor?.notebook };
+}
+
+async function forwardNativeCellExecute(args?: any): Promise<void> {
+	await withNativeCellExecute(async () => {
+		await vscode.commands.executeCommand('notebook.cell.execute', args);
+	});
+}
+
 const executeOneEnhancedCell = async (
 	cell: vscode.NotebookCell,
 	stopOnErrorMessage: boolean,
@@ -355,10 +457,13 @@ const executeOneEnhancedCell = async (
 };
 
 const runSingleHandler = async (args?: any) => {
-	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) return;
+	const { editor, notebook } = resolveNotebookContext(args);
+	if (!notebook) {
+		output.appendLine('[WARN] No notebook for execute; forwarding to native notebook.cell.execute');
+		await forwardNativeCellExecute(args);
+		return;
+	}
 
-	const notebook = editor.notebook;
 	let cells: vscode.NotebookCell[] = [];
 
 	// Prefer ranges first: native / our helpers pass `{ ranges, document: Uri }` which also has `.document`
@@ -370,7 +475,7 @@ const runSingleHandler = async (args?: any) => {
 		cells = [args];
 	}
 	// Fallback: all current selections (native multi-select execute)
-	else if (editor.selections.length > 0) {
+	else if (editor && editor.selections.length > 0) {
 		cells = cellIndexesFromRanges(
 			editor.selections.map((s) => ({ start: s.start, end: s.end })),
 			notebook.cellCount
@@ -399,8 +504,10 @@ const runSingleHandler = async (args?: any) => {
 	await withNativeCellExecute(async () => {
 		for (const cell of codeCells) {
 			const range = new vscode.NotebookRange(cell.index, cell.index + 1);
-			editor.selections = [range];
-			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+			if (editor) {
+				editor.selections = [range];
+				editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+			}
 
 			const success = await executeOneEnhancedCell(cell, true, true);
 			if (!success) {
@@ -413,13 +520,16 @@ const runSingleHandler = async (args?: any) => {
 // --- RUN SEQUENCE HANDLER ---
 const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) => {
 	output.appendLine(`[Sequence] Mode: ${mode}`);
-	const editor = vscode.window.activeNotebookEditor;
-	if (!editor) return;
+	const { editor, notebook } = resolveNotebookContext(args);
+	if (!notebook) {
+		output.appendLine('[WARN] No notebook for sequence execute; forwarding to native notebook.cell.execute');
+		await forwardNativeCellExecute(args);
+		return;
+	}
 
-	const notebook = editor.notebook;
 	let loopStart = 0; 
 	let loopEnd = notebook.cellCount;
-	let anchorIndex = editor.selections[0]?.start ?? 0;
+	let anchorIndex = editor?.selections[0]?.start ?? 0;
 
 	if (args && typeof args.index === 'number') {
 		anchorIndex = args.index;
@@ -462,8 +572,10 @@ const runSequenceHandler = async (mode: 'below' | 'above' | 'all', args?: any) =
 			restoreDecorationForCell(cell);
 
 			const range = new vscode.NotebookRange(i, i + 1);
-			editor.selections = [range];
-			editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+			if (editor) {
+				editor.selections = [range];
+				editor.revealRange(range, vscode.NotebookEditorRevealType.InCenterIfOutsideViewport);
+			}
 
 			const stopAnim = startAnimationLoopForCell(cell);
 			let success = false;
@@ -503,12 +615,14 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 		let stateSub: vscode.Disposable | undefined;
 		let docSub: vscode.Disposable | undefined;
 		let poller: ReturnType<typeof setInterval> | undefined;
+		let abort: () => void = () => undefined;
 
 		const cleanup = () => {
 			if (settled) {
 				return;
 			}
 			settled = true;
+			pendingNativeExecutes.delete(abort);
 			stateSub?.dispose();
 			docSub?.dispose();
 			if (poller) {
@@ -518,11 +632,17 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 		};
 
 		const finish = (success: boolean) => {
+			if (settled) {
+				return;
+			}
 			cleanup();
 			resolve(success);
 		};
 
 		const fail = (err: unknown) => {
+			if (settled) {
+				return;
+			}
 			cleanup();
 			reject(err);
 		};
@@ -530,6 +650,9 @@ async function executeCellAndWaitNative(cell: vscode.NotebookCell): Promise<bool
 		const timeout = setTimeout(() => {
 			fail(new Error(`Cell ${cell.index} execution timed out after 5 minutes`));
 		}, 5 * 60 * 1000);
+
+		abort = () => fail(new Error('Jupyter enhancements disabled during execute'));
+		pendingNativeExecutes.add(abort);
 
 		const isSameCell = (other: vscode.NotebookCell) =>
 			other.document.uri.toString() === cellUri;

@@ -12,6 +12,7 @@ import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { ScrollbarDecoratorManager } from './scrollbarDecorators';
 import { getSyncManager } from '../outlineSync/startup';
+import { isValidCellIndex, notebookStillActive } from '../util/notebookSelection';
 
 // Predefined color options for quick selection
 const COLOR_OPTIONS: { label: string; color: string; description?: string }[] = [
@@ -366,7 +367,7 @@ export function register(context: vscode.ExtensionContext) {
     // Register a command to open and highlight a cell
     context.subscriptions.push(vscode.commands.registerCommand('jupyter-cell-tags.openNotebookCell', async (cellIndex: number) => {
         const editor = vscode.window.activeNotebookEditor;
-        if (editor) {
+        if (editor && isValidCellIndex(editor.notebook, cellIndex)) {
             const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
             editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
             // editor.selections = [new vscode.NotebookRange(cellIndex, cellIndex + 1)];  // Highlight the cell
@@ -447,11 +448,11 @@ export function register(context: vscode.ExtensionContext) {
         // vscode.window.showErrorMessage('Pho -- executeRunCell not yet implemented.');
         // 2025-03-08 - https://github.com/microsoft/vscode-extension-samples/blob/main/jupyter-kernel-execution-sample/src/extension.ts
 
-        const cell = editor.notebook.cellAt(cellIndex);
-        if (!cell) {
+        if (!isValidCellIndex(editor.notebook, cellIndex)) {
             vscode.window.showErrorMessage(`Cell at index ${cellIndex} not found.`);
             return;
         }
+        const cell = editor.notebook.cellAt(cellIndex);
 
         // Reveal and highlight the cell.
         const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);
@@ -666,16 +667,22 @@ export function register(context: vscode.ExtensionContext) {
                 }
             };
 
+            const notebookUri = editor.notebook.uri;
             const input = await vscode.window.showInputBox(inputOptions);
             if (input === undefined) {
                 return; // User cancelled
+            }
+
+            const current = requireSameNotebook(notebookUri);
+            if (!current) {
+                return;
             }
 
             const priority = parseInt(input, 10);
 
 
             // First get the current tagProperties
-            const currentMetadata = editor.notebook.metadata || {};
+            const currentMetadata = current.notebook.metadata || {};
             const tagProperties = currentMetadata['tagProperties'] || {};
 
             // Update the priority for this tag
@@ -685,7 +692,7 @@ export function register(context: vscode.ExtensionContext) {
             };
 
             // Use updateNotebookMetadata to update the notebook metadata
-            await updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
+            await updateNotebookMetadata(current.notebook, ['tagProperties'], tagProperties);
 
 
             // // Get the current metadata - create a deep copy to avoid readonly issues
@@ -735,6 +742,7 @@ export function register(context: vscode.ExtensionContext) {
                 }
             };
 
+            const notebookUri = editor.notebook.uri;
             const newTagName = await vscode.window.showInputBox(inputOptions);
             if (newTagName === undefined) {
                 return; // User cancelled
@@ -742,6 +750,11 @@ export function register(context: vscode.ExtensionContext) {
 
             if (newTagName === tagName) {
                 vscode.window.showInformationMessage('Tag name unchanged');
+                return;
+            }
+
+            const current = requireSameNotebook(notebookUri);
+            if (!current) {
                 return;
             }
 
@@ -758,8 +771,8 @@ export function register(context: vscode.ExtensionContext) {
 
             // Process each cell that contains this tag
             for (const cellRef of cellRefs) {
-                if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
-                    const cell = editor.notebook.cellAt(cellRef.index);
+                if (isValidCellIndex(current.notebook, cellRef.index)) {
+                    const cell = current.notebook.cellAt(cellRef.index);
                     if (cell) {
                         const tags = getCellTags(cell);
                         const newTags = tags.map(tag => tag === tagName ? newTagName : tag);
@@ -775,7 +788,7 @@ export function register(context: vscode.ExtensionContext) {
             }
 
             // Update tag properties if they exist
-            const currentMetadata = editor.notebook.metadata || {};
+            const currentMetadata = current.notebook.metadata || {};
             if (currentMetadata['tagProperties'] && currentMetadata['tagProperties'][tagName]) {
                 const tagProperties = { ...currentMetadata['tagProperties'] };
                 // Copy the properties from old tag to new tag
@@ -784,7 +797,7 @@ export function register(context: vscode.ExtensionContext) {
                 delete tagProperties[tagName];
 
                 // Update the notebook metadata
-                await updateNotebookMetadata(editor.notebook, ['tagProperties'], tagProperties);
+                await updateNotebookMetadata(current.notebook, ['tagProperties'], tagProperties);
             }
 
             // Apply all edits at once
@@ -806,6 +819,7 @@ export function register(context: vscode.ExtensionContext) {
                 return;
             }
 
+            const notebookUri = editor.notebook.uri;
             // Show quick pick with color options
             const selection = await vscode.window.showQuickPick(COLOR_OPTIONS, { placeHolder: `Select a color for tag "${tagName}"`, matchOnDescription: true });
 
@@ -830,12 +844,17 @@ export function register(context: vscode.ExtensionContext) {
                 selectedColor = customColor;
             }
 
+            const current = requireSameNotebook(notebookUri);
+            if (!current) {
+                return;
+            }
+
             // Get existing properties and update with new color
-            const existingProperties = TagPropertiesManager.getTagProperties(editor.notebook, tagName);
+            const existingProperties = TagPropertiesManager.getTagProperties(current.notebook, tagName);
             const updatedProperties: TagProperties = { ...existingProperties, color: selectedColor };
 
             // Save the updated properties
-            await TagPropertiesManager.setTagProperties(editor.notebook, tagName, updatedProperties);
+            await TagPropertiesManager.setTagProperties(current.notebook, tagName, updatedProperties);
 
             // Refresh the tree view
             treeDataProvider.refresh();
@@ -881,19 +900,24 @@ export function register(context: vscode.ExtensionContext) {
                 return;
             }
 
+            const notebookUri = editor.notebook.uri;
             // Show confirmation dialog
             const confirmation = await vscode.window.showWarningMessage(`Remove tag "${tagName}" from all ${cellRefs.length} cells?`, { modal: true }, 'Confirm', 'Cancel');
 
             // Only proceed if user clicked "Confirm"
             if (confirmation === 'Confirm') {
+                const current = requireSameNotebook(notebookUri);
+                if (!current) {
+                    return;
+                }
                 // Create workspace edit
                 const edit = new vscode.WorkspaceEdit();
                 var nbEditList = [];
 
                 // Process each cell that contains this tag
                 for (const cellRef of cellRefs) {
-                    if (cellRef.index >= 0 && cellRef.index < editor.notebook.cellCount) {
-                        const cell = editor.notebook.cellAt(cellRef.index);
+                    if (isValidCellIndex(current.notebook, cellRef.index)) {
+                        const cell = current.notebook.cellAt(cellRef.index);
                         if (cell) {
                             const tags = getCellTags(cell).filter(tag => tag !== tagName);
 
@@ -937,4 +961,12 @@ function notebookChangeMayAffectTags(e: vscode.NotebookDocumentChangeEvent): boo
         }
     }
     return false;
+}
+
+function requireSameNotebook(uri: vscode.Uri): vscode.NotebookEditor | undefined {
+    const editor = notebookStillActive(uri);
+    if (!editor) {
+        vscode.window.showWarningMessage('Notebook is no longer active; cancelled the tag change.');
+    }
+    return editor;
 }

@@ -28,12 +28,29 @@ export class DependencyChainHighlighter {
 	private cellHops = new Map<string, number>();
 
 	activate(context: vscode.ExtensionContext): void {
+		let scrollTimeout: NodeJS.Timeout | undefined;
 		context.subscriptions.push(
 			vscode.window.onDidChangeVisibleTextEditors((editors) => {
-				for (const editor of editors) {
-					this.restoreEditor(editor);
+				if (this.cellHops.size === 0) {
+					return;
 				}
-			})
+				if (scrollTimeout) {
+					clearTimeout(scrollTimeout);
+				}
+				scrollTimeout = setTimeout(() => {
+					scrollTimeout = undefined;
+					for (const editor of editors) {
+						this.restoreEditor(editor);
+					}
+				}, 100);
+			}),
+			{
+				dispose: () => {
+					if (scrollTimeout) {
+						clearTimeout(scrollTimeout);
+					}
+				}
+			}
 		);
 		context.subscriptions.push({ dispose: () => this.clearDecorations() });
 	}
@@ -100,6 +117,9 @@ export class DependencyChainHighlighter {
 	}
 
 	private restoreEditor(editor: vscode.TextEditor): void {
+		if (this.cellHops.size === 0) {
+			return;
+		}
 		if (editor.document.uri.scheme !== 'vscode-notebook-cell') {
 			return;
 		}

@@ -37,6 +37,7 @@ export class OutlineItem extends vscode.TreeItem {
         collapsibleState: vscode.TreeItemCollapsibleState
     ) {
         super(heading.text, collapsibleState);
+        this.id = `outline:${cellIndex}:${heading.level}:${heading.lineNumber}`;
         this.baseLabel = heading.text;
 
         // Respect configuration for showing cell indices in the outline
@@ -134,6 +135,7 @@ export class ExecutedCellLineItem extends vscode.TreeItem {
         color: string
     ) {
         super('', vscode.TreeItemCollapsibleState.None);
+        this.id = `executed:${cellIndex}`;
         this.description = `Cell ${cellIndex}`;
         this.tooltip = `Executed cell ${cellIndex}`;
         this.contextValue = 'executedCellLineItem';

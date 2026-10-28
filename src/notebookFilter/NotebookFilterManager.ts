@@ -132,7 +132,7 @@ export class NotebookFilterManager {
 					if (cellHasOutputs(cell)) {
 						expandOutputIndices.push(cell.index);
 					}
-				} else {
+				} else if (!isCellInputCollapsed(cell)) {
 					collapseIndices.push(cell.index);
 					if (cellHasOutputs(cell)) {
 						collapseOutputIndices.push(cell.index);
@@ -228,4 +228,21 @@ export class NotebookFilterManager {
 			this.decorators.clear();
 		}
 	}
+}
+
+/** True if the cell input was already collapsed before this filter apply. */
+function isCellInputCollapsed(cell: vscode.NotebookCell): boolean {
+	const anyCell = cell as vscode.NotebookCell & {
+		isInputCollapsed?: boolean;
+		internalMetadata?: { inputCollapsed?: boolean };
+	};
+	if (anyCell.isInputCollapsed === true || anyCell.internalMetadata?.inputCollapsed === true) {
+		return true;
+	}
+	const meta = (cell.metadata ?? {}) as Record<string, unknown>;
+	if (meta.inputCollapsed === true || meta.collapsed === true) {
+		return true;
+	}
+	const jupyter = meta.jupyter as { collapsed?: boolean } | undefined;
+	return jupyter?.collapsed === true;
 }

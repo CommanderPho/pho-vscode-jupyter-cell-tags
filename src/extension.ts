@@ -33,6 +33,7 @@ import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
 import { activateExternalKernel } from './externalKernel/startup';
 import {
+    isFeatureEnabled,
     migrateDeprecatedFeatureSettings,
 } from './util/featureFlags';
 import { FeatureActivators, registerFeatureHotToggle } from './util/featureLifecycle';
@@ -99,7 +100,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 try {
                     activateJupyterEnhancementsModule(ctx);
                 } catch (err) {
-                    log(`Jupyter enhancements failed to activate (continuing): ${err}`);
+                    log(`Jupyter enhancements failed to activate: ${err}`);
+                    throw err;
                 }
             },
             onDispose: () => {
@@ -127,7 +129,8 @@ export async function activate(context: vscode.ExtensionContext) {
                 try {
                     activateExternalKernel(ctx);
                 } catch (err) {
-                    log(`Durable external kernel feature failed to activate (continuing): ${err}`);
+                    log(`Durable external kernel feature failed to activate: ${err}`);
+                    throw err;
                 }
             },
         },
@@ -182,7 +185,7 @@ function updateContext() {
         _setContextIfChanged('jupyter-cell-tags.multipleCellsSelected', false);
 
         let hasJumpback = false;
-        if (isPlainTextEditor && textEditor) {
+        if (isFeatureEnabled('jumpbacks') && isPlainTextEditor && textEditor) {
             const ds = JumpbackDataSource.loadFromTextDocument(textEditor.document);
             hasJumpback = ds.hasTextJumpbackOnLine(textEditor.selection.active.line);
         }
@@ -197,7 +200,7 @@ function updateContext() {
 
     // Check if the currently selected cell has a jumpback
     let hasJumpback = false;
-    if (selections.length > 0 && total_num_selected_cells === 1) {
+    if (isFeatureEnabled('jumpbacks') && selections.length > 0 && total_num_selected_cells === 1) {
         const selectedCellIndex = selections[0].start;
         const jumpbackDS = JumpbackDataSource.loadFromNotebook(editor.notebook);
         hasJumpback = jumpbackDS.hasNotebookJumpback(selectedCellIndex);

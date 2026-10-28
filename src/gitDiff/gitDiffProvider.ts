@@ -306,9 +306,14 @@ export class GitDiffCellHighlighter {
 	private scrollDisposable: vscode.Disposable | undefined;
 	private configDisposable: vscode.Disposable | undefined;
 	private activeEditorDisposable: vscode.Disposable | undefined;
+	private notebookChangeDisposable: vscode.Disposable | undefined;
+	private refreshDebounce: NodeJS.Timeout | undefined;
+	private refreshGeneration = 0;
 
 	/** Currently active comparison commit (short hash), or undefined */
 	private activeCommitShort: string | undefined;
+	private comparedCommitHash: string | undefined;
+	private comparedNotebook: vscode.NotebookDocument | undefined;
 
 	constructor() {
 		this.statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 50);
@@ -322,10 +327,20 @@ export class GitDiffCellHighlighter {
 		this.reloadDecorations();
 
 		// Re-apply when cells scroll into view
+		let scrollTimeout: NodeJS.Timeout | undefined;
 		this.scrollDisposable = vscode.window.onDidChangeVisibleTextEditors(editors => {
-			for (const editor of editors) {
-				this.restoreDecorationForEditor(editor);
+			if (this.cellStatusMap.size === 0) {
+				return;
 			}
+			if (scrollTimeout) {
+				clearTimeout(scrollTimeout);
+			}
+			scrollTimeout = setTimeout(() => {
+				scrollTimeout = undefined;
+				for (const editor of editors) {
+					this.restoreDecorationForEditor(editor);
+				}
+			}, 100);
 		});
 		context.subscriptions.push(this.scrollDisposable);
 
@@ -349,6 +364,23 @@ export class GitDiffCellHighlighter {
 		});
 		context.subscriptions.push(this.configDisposable);
 
+		this.notebookChangeDisposable = vscode.workspace.onDidChangeNotebookDocument(e => {
+			if (!this.isActive() || !this.comparedNotebook) {
+				return;
+			}
+			if (e.notebook.uri.toString() !== this.comparedNotebook.uri.toString()) {
+				return;
+			}
+			const contentRelevant =
+				e.contentChanges.length > 0 ||
+				e.cellChanges.some(c => c.document !== undefined || c.metadata !== undefined);
+			if (!contentRelevant) {
+				return;
+			}
+			this.scheduleHighlightRefresh();
+		});
+		context.subscriptions.push(this.notebookChangeDisposable);
+
 		context.subscriptions.push(this.statusBarItem);
 	}
 
@@ -359,7 +391,24 @@ export class GitDiffCellHighlighter {
 		this.scrollDisposable?.dispose();
 		this.configDisposable?.dispose();
 		this.activeEditorDisposable?.dispose();
+		this.notebookChangeDisposable?.dispose();
 		this.statusBarItem.dispose();
+	}
+
+	private scheduleHighlightRefresh(): void {
+		if (this.refreshDebounce) {
+			clearTimeout(this.refreshDebounce);
+		}
+		this.refreshDebounce = setTimeout(() => {
+			this.refreshDebounce = undefined;
+			const notebook = this.comparedNotebook;
+			const hash = this.comparedCommitHash;
+			const short = this.activeCommitShort;
+			if (!notebook || notebook.isClosed || !hash || !short) {
+				return;
+			}
+			void this.compareWithCommit(hash, short, notebook);
+		}, 800);
 	}
 
 	// ── Decoration Management ──────────────────────────
@@ -402,6 +451,7 @@ export class GitDiffCellHighlighter {
 	}
 
 	private restoreDecorationForEditor(editor: vscode.TextEditor): void {
+		if (this.cellStatusMap.size === 0) { return; }
 		if (editor.document.uri.scheme !== 'vscode-notebook-cell') { return; }
 		if (!this.modifiedDec || !this.addedDec) { return; }
 
@@ -430,14 +480,22 @@ export class GitDiffCellHighlighter {
 
 	// ── Core Operations ────────────────────────────────
 
-	async compareWithCommit(commitHash: string, commitShortHash: string): Promise<void> {
-		const notebookEditor = vscode.window.activeNotebookEditor;
-		if (!notebookEditor) {
+	async compareWithCommit(
+		commitHash: string,
+		commitShortHash: string,
+		notebook?: vscode.NotebookDocument
+	): Promise<void> {
+		const target = notebook ?? vscode.window.activeNotebookEditor?.notebook;
+		if (!target || target.isClosed) {
 			vscode.window.showWarningMessage('No active notebook editor.');
 			return;
 		}
 
-		const outcome = await diffNotebookVsCommit(notebookEditor.notebook, commitHash, commitShortHash);
+		const generation = ++this.refreshGeneration;
+		const outcome = await diffNotebookVsCommit(target, commitHash, commitShortHash);
+		if (generation !== this.refreshGeneration) {
+			return;
+		}
 		if (!outcome.ok) {
 			if (outcome.reason === 'notFile') {
 				vscode.window.showWarningMessage(outcome.message);
@@ -448,14 +506,14 @@ export class GitDiffCellHighlighter {
 			return;
 		}
 
-		const { diff, notebook } = outcome;
+		const { diff, notebook: compared } = outcome;
 
 		// Clear previous state
 		this.cellStatusMap.clear();
 
 		// Populate status map using cell document URIs
-		for (let idx = 0; idx < notebook.cellCount; idx++) {
-			const cell = notebook.cellAt(idx);
+		for (let idx = 0; idx < compared.cellCount; idx++) {
+			const cell = compared.cellAt(idx);
 			const cellUri = cell.document.uri.toString();
 			if (diff.modified.has(idx)) {
 				this.cellStatusMap.set(cellUri, 'modified');
@@ -465,6 +523,8 @@ export class GitDiffCellHighlighter {
 		}
 
 		this.activeCommitShort = commitShortHash;
+		this.comparedCommitHash = commitHash;
+		this.comparedNotebook = compared;
 		this.restoreAllVisibleDecorations();
 
 		// Update status bar
@@ -485,8 +545,15 @@ export class GitDiffCellHighlighter {
 	}
 
 	clearHighlights(): void {
+		if (this.refreshDebounce) {
+			clearTimeout(this.refreshDebounce);
+			this.refreshDebounce = undefined;
+		}
+		this.refreshGeneration++;
 		this.cellStatusMap.clear();
 		this.activeCommitShort = undefined;
+		this.comparedCommitHash = undefined;
+		this.comparedNotebook = undefined;
 
 		// Clear decorations on all visible editors
 		if (this.modifiedDec && this.addedDec) {
@@ -518,7 +585,8 @@ export async function pickCommitAndHighlight(highlighter: GitDiffCellHighlighter
 		return;
 	}
 
-	const notebookUri = notebookEditor.notebook.uri;
+	const notebook = notebookEditor.notebook;
+	const notebookUri = notebook.uri;
 	if (notebookUri.scheme !== 'file') {
 		vscode.window.showWarningMessage('Git diff highlighting only works on notebooks saved to disk.');
 		return;
@@ -553,8 +621,13 @@ export async function pickCommitAndHighlight(highlighter: GitDiffCellHighlighter
 
 	if (!picked) { return; } // User cancelled
 
+	if (notebook.isClosed) {
+		vscode.window.showWarningMessage('Notebook is no longer open; cancelled git diff.');
+		return;
+	}
+
 	const selectedCommit = commits[items.indexOf(picked)];
-	await highlighter.compareWithCommit(selectedCommit.hash, selectedCommit.shortHash);
+	await highlighter.compareWithCommit(selectedCommit.hash, selectedCommit.shortHash, notebook);
 }
 
 export async function highlightVsHead(highlighter: GitDiffCellHighlighter): Promise<void> {
@@ -564,5 +637,5 @@ export async function highlightVsHead(highlighter: GitDiffCellHighlighter): Prom
 		return;
 	}
 
-	await highlighter.compareWithCommit('HEAD', 'HEAD');
+	await highlighter.compareWithCommit('HEAD', 'HEAD', notebookEditor.notebook);
 }

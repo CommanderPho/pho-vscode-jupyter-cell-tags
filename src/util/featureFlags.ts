@@ -61,17 +61,17 @@ export const FEATURE_SETTING_LABELS: Record<FeatureSettingKey, string> = {
 
 const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	jumpbacks: false,
-	errorNavigation: false,
+	errorNavigation: true,
 	outlineSync: true,
 	customOutline: true,
-	scrollbarDecorators: true,
-	jupyterEnhancements: true,
+	scrollbarDecorators: false,
+	jupyterEnhancements: false,
 	gitDiff: true,
 	dependencyChain: true,
 	notebookFilter: true,
-	ringMeJupyter: true,
+	ringMeJupyter: false,
 	durableKernel: true,
-	cellHistory: false,
+	cellHistory: true,
 	cellExecutionTracking: true,
 };
 

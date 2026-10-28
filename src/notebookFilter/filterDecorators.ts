@@ -13,15 +13,31 @@ export class FilterScrollbarDecorators implements vscode.Disposable {
 	private matchedIndices: number[] = [];
 	private notebook: vscode.NotebookDocument | undefined;
 	private readonly disposables: vscode.Disposable[] = [];
+	private scrollTimeout: NodeJS.Timeout | undefined;
 
 	constructor() {
 		this.decorationType = this.createDecorationType();
 		this.disposables.push(
 			vscode.window.onDidChangeVisibleTextEditors(() => {
-				if (this.notebook && this.matchedIndices.length > 0) {
-					this.applyToVisibleEditors();
+				if (!this.notebook || this.matchedIndices.length === 0) {
+					return;
 				}
-			})
+				if (this.scrollTimeout) {
+					clearTimeout(this.scrollTimeout);
+				}
+				this.scrollTimeout = setTimeout(() => {
+					this.scrollTimeout = undefined;
+					this.applyToVisibleEditors();
+				}, 100);
+			}),
+			{
+				dispose: () => {
+					if (this.scrollTimeout) {
+						clearTimeout(this.scrollTimeout);
+						this.scrollTimeout = undefined;
+					}
+				}
+			}
 		);
 	}
 

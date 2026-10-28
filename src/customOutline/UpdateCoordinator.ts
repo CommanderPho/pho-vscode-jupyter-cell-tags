@@ -11,6 +11,7 @@ export class UpdateCoordinator implements IUpdateCoordinator {
     private debounceDelayMs: number;
     private updateTimer: NodeJS.Timeout | undefined;
     private pendingWhileHidden: boolean = false;
+    private readonly visibilityDisposable: vscode.Disposable;
 
     constructor(
         private readonly treeView: vscode.TreeView<NotebookTreeItem>,
@@ -20,7 +21,7 @@ export class UpdateCoordinator implements IUpdateCoordinator {
         this.debounceDelayMs = debounceDelayMs;
 
         // When the view becomes visible, apply any pending updates
-        this.treeView.onDidChangeVisibility(e => {
+        this.visibilityDisposable = this.treeView.onDidChangeVisibility(e => {
             if (e.visible && this.pendingWhileHidden) {
                 this.pendingWhileHidden = false;
                 this.scheduleUpdate();
@@ -55,6 +56,11 @@ export class UpdateCoordinator implements IUpdateCoordinator {
             this.updateTimer = undefined;
         }
         this.pendingWhileHidden = false;
+    }
+
+    dispose(): void {
+        this.cancelPendingUpdates();
+        this.visibilityDisposable.dispose();
     }
 
     isViewVisible(): boolean {

@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { diffNotebookVsCommit, NotebookDiffErrorReason } from './gitDiffProvider';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { log } from '../util/logging';
+import { findNotebookEditor, isValidCellIndex } from '../util/notebookSelection';
 
 export type ModifiedCellStatus = 'modified' | 'added';
 
@@ -41,7 +42,7 @@ export class GitModifiedCellTreeItem extends vscode.TreeItem {
 		this.command = {
 			command: 'jupyter-cell-tags.gitDiff.selectModifiedCell',
 			title: 'Select Cell',
-			arguments: [modifiedCell.cellIndex],
+			arguments: [modifiedCell.cellIndex, notebook.uri],
 		};
 	}
 }
@@ -226,9 +227,9 @@ export function registerGitModifiedCellsView(context: vscode.ExtensionContext): 
 	context.subscriptions.push(
 		vscode.commands.registerCommand(
 			'jupyter-cell-tags.gitDiff.selectModifiedCell',
-			async (cellIndex: number) => {
-				const editor = vscode.window.activeNotebookEditor;
-				if (!editor || cellIndex < 0 || cellIndex >= editor.notebook.cellCount) {
+			async (cellIndex: number, notebookUri?: vscode.Uri) => {
+				const editor = findNotebookEditor(notebookUri);
+				if (!editor || !isValidCellIndex(editor.notebook, cellIndex)) {
 					return;
 				}
 				const range = new vscode.NotebookRange(cellIndex, cellIndex + 1);

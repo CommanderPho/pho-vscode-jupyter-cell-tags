@@ -107,6 +107,35 @@ function getAllCellsFromActiveNotebook() {
 
 
 
+export function isValidCellIndex(notebook: vscode.NotebookDocument, index: number): boolean {
+    return Number.isInteger(index) && index >= 0 && index < notebook.cellCount;
+}
+
+/** Active notebook editor only if it is still the same document and open. */
+export function notebookStillActive(uri: vscode.Uri): vscode.NotebookEditor | undefined {
+    const editor = vscode.window.activeNotebookEditor;
+    if (!editor || editor.notebook.isClosed) {
+        return undefined;
+    }
+    if (editor.notebook.uri.toString() !== uri.toString()) {
+        return undefined;
+    }
+    return editor;
+}
+
+export function findNotebookEditor(uri?: vscode.Uri): vscode.NotebookEditor | undefined {
+    if (uri) {
+        const match = vscode.window.visibleNotebookEditors.find(
+            editor => editor.notebook.uri.toString() === uri.toString()
+        );
+        if (match) {
+            return match;
+        }
+        return notebookStillActive(uri);
+    }
+    return vscode.window.activeNotebookEditor;
+}
+
 export function getActiveCell() {
     // find active cell
     const editor = vscode.window.activeNotebookEditor;

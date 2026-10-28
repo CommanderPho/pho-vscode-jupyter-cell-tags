@@ -2,6 +2,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { OutlineItem } from '../../customOutline/models';
 import { getFilterManager } from '../../notebookFilter/startup';
+import { isJupyterEnhancementsHijackLive } from '../../jupyterEnhancements/extension';
 import { FeatureKey } from '../../util/featureFlags';
 import { FeatureController, whenFeatureTogglesIdle } from '../../util/featureLifecycle';
 import {
@@ -223,5 +224,75 @@ suite('Feature hot-toggle', () => {
 			stubs.lastQuickPick?.hide();
 			stubs.restore();
 		}
+	});
+
+	test('disabling jupyterEnhancements during execute does not resurrect the hijack', async () => {
+		const editor = await openFixtureNotebook();
+		await toggle('jupyterEnhancements', true);
+		await waitFor(() => isJupyterEnhancementsHijackLive());
+
+		const executePromise = vscode.commands.executeCommand('notebook.cell.execute', {
+			ranges: [{ start: Fixture.defineX, end: Fixture.defineX + 1 }],
+			document: editor.notebook.uri,
+			notebookUri: editor.notebook.uri
+		});
+		await toggle('jupyterEnhancements', false);
+		await executePromise.then(
+			() => undefined,
+			() => undefined
+		);
+		await waitFor(async () => !(await commandRegistered('jupyter-cell-tags.jupyterEnhancements.execute')));
+		assert.strictEqual(
+			isJupyterEnhancementsHijackLive(),
+			false,
+			'execute hijack must not re-register after jupyterEnhancements is disabled'
+		);
+
+		await Promise.race([
+			vscode.commands.executeCommand('notebook.cell.execute', {
+				ranges: [{ start: Fixture.defineX, end: Fixture.defineX + 1 }],
+				document: editor.notebook.uri,
+				notebookUri: editor.notebook.uri
+			}).then(
+				() => undefined,
+				() => undefined
+			),
+			new Promise((resolve) => setTimeout(resolve, 5000))
+		]);
+	});
+
+	test('notebook.cell.execute with args.ranges runs without an active editor', async () => {
+		const editor = await openFixtureNotebook();
+		await toggle('jupyterEnhancements', true);
+		await waitFor(() => isJupyterEnhancementsHijackLive());
+
+		const notebookUri = editor.notebook.uri;
+		const ranges = [{ start: Fixture.defineX, end: Fixture.defineX + 1 }];
+		const textDoc = await vscode.workspace.openTextDocument({ content: 'not a notebook' });
+		await vscode.window.showTextDocument(textDoc, { preview: false });
+		await waitFor(() => !vscode.window.activeNotebookEditor);
+
+		let settled = false;
+		const exec = vscode.commands.executeCommand('notebook.cell.execute', {
+			ranges,
+			document: notebookUri,
+			notebookUri
+		}).then(
+			() => {
+				settled = true;
+			},
+			() => {
+				settled = true;
+			}
+		);
+		await new Promise((resolve) => setTimeout(resolve, 400));
+		assert.strictEqual(
+			settled,
+			false,
+			'hijack should resolve the notebook from args.ranges instead of returning immediately'
+		);
+
+		await toggle('jupyterEnhancements', false);
+		await exec;
 	});
 });

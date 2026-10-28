@@ -6,6 +6,7 @@ import { UpdateCoordinator } from './UpdateCoordinator';
 import { OutlineSelectionSync } from './OutlineSelectionSync';
 import { getSelectionDetector, getSyncManager } from '../outlineSync/startup';
 import { log } from '../util/logging';
+import { isValidCellIndex } from '../util/notebookSelection';
 
 /**
  * Register the custom notebook outline view, commands, and synchronization.
@@ -26,7 +27,7 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
     context.subscriptions.push(treeView);
 
     const updateCoordinator = new UpdateCoordinator(treeView, provider, debounceMs);
-    context.subscriptions.push({ dispose: () => updateCoordinator.cancelPendingUpdates() });
+    context.subscriptions.push({ dispose: () => updateCoordinator.dispose() });
 
     // Initial population based on the active notebook
     updateCoordinator.scheduleUpdate();
@@ -62,15 +63,14 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
 
     const selectionSync = new OutlineSelectionSync(treeView);
 
-    // Sync outline -> editor when tree view selection changes
+    // Sync outline -> editor when tree view selection changes.
+    // Skip reveal-driven selection so editor-to-outline sync cannot steal focus.
     context.subscriptions.push(
         treeView.onDidChangeSelection(async event => {
-            await selectionSync.syncOutlineToEditor(event.selection);
-            const outlineSyncManager = getSyncManager();
-            if (outlineSyncManager && vscode.window.activeNotebookEditor) {
-                // Keep built-in Outline pane synchronized as well
-                await outlineSyncManager.syncOutline(vscode.window.activeNotebookEditor);
+            if (selectionSync.isSyncingFromEditor()) {
+                return;
             }
+            await selectionSync.syncOutlineToEditor(event.selection);
         })
     );
 
@@ -105,42 +105,63 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         })
     );
 
-    // Track which outline items are currently within the visible notebook range
+    // Track which outline items are currently within the visible notebook range.
+    // Coalesce rapid scroll/caret visible-range events into one tree update.
+    let visibleRangeTimer: NodeJS.Timeout | undefined;
+    const applyVisibleItems = (editor: vscode.NotebookEditor) => {
+        if (!treeView.visible) {
+            return;
+        }
+        const outlineItems = provider.getOutlineItems();
+        if (!outlineItems.length) {
+            provider.updateVisibleItems(new Set());
+            return;
+        }
+
+        const visibleRanges = editor.visibleRanges ?? [];
+        if (!visibleRanges.length) {
+            provider.updateVisibleItems(new Set());
+            return;
+        }
+
+        // Mark headings whose *heading cell* is currently within any visible
+        // notebook range. This tends to match user expectation better than
+        // using the full child range, and avoids gaps between items.
+        const visibleItems = new Set<OutlineItem>();
+        for (const item of outlineItems) {
+            const cellIndex = item.cellIndex;
+            const isHeadingCellVisible = visibleRanges.some(v =>
+                v.start <= cellIndex && cellIndex < v.end
+            );
+            if (isHeadingCellVisible) {
+                visibleItems.add(item);
+            }
+        }
+
+        provider.updateVisibleItems(visibleItems);
+    };
     context.subscriptions.push(
-        vscode.window.onDidChangeNotebookEditorVisibleRanges(async event => {
+        vscode.window.onDidChangeNotebookEditorVisibleRanges(event => {
             const editor = event.notebookEditor;
-            if (!editor || editor !== vscode.window.activeNotebookEditor) {
+            if (!editor || editor !== vscode.window.activeNotebookEditor || !treeView.visible) {
                 return;
             }
-
-            const outlineItems = provider.getOutlineItems();
-            if (!outlineItems.length) {
-                provider.updateVisibleItems(new Set());
-                return;
+            if (visibleRangeTimer) {
+                clearTimeout(visibleRangeTimer);
             }
-
-            const visibleRanges = editor.visibleRanges ?? [];
-            if (!visibleRanges.length) {
-                provider.updateVisibleItems(new Set());
-                return;
-            }
-
-            // Mark headings whose *heading cell* is currently within any visible
-            // notebook range. This tends to match user expectation better than
-            // using the full child range, and avoids gaps between items.
-            const visibleItems = new Set<OutlineItem>();
-            for (const item of outlineItems) {
-                const cellIndex = item.cellIndex;
-                const isHeadingCellVisible = visibleRanges.some(v =>
-                    v.start <= cellIndex && cellIndex < v.end
-                );
-                if (isHeadingCellVisible) {
-                    visibleItems.add(item);
+            visibleRangeTimer = setTimeout(() => {
+                visibleRangeTimer = undefined;
+                applyVisibleItems(editor);
+            }, debounceMs);
+        }),
+        {
+            dispose: () => {
+                if (visibleRangeTimer) {
+                    clearTimeout(visibleRangeTimer);
+                    visibleRangeTimer = undefined;
                 }
             }
-
-            provider.updateVisibleItems(visibleItems);
-        })
+        }
     );
 
     // Command: click on outline item selects its heading cell;
@@ -154,7 +175,7 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
             if (item instanceof ExecutedCellLineItem) {
                 // Navigate to the executed cell
                 const editor = vscode.window.activeNotebookEditor;
-                if (editor) {
+                if (editor && isValidCellIndex(editor.notebook, item.cellIndex)) {
                     const range = new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1);
                     editor.selections = [range];
                     editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
@@ -165,7 +186,7 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
             // OutlineItem: select the heading cell
             await selectionSync.syncOutlineToEditor([item]);
             const editor = vscode.window.activeNotebookEditor;
-            if (editor) {
+            if (editor && isValidCellIndex(editor.notebook, item.cellIndex)) {
                 const range = new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1);
                 editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
             }

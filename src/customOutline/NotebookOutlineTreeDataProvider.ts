@@ -254,12 +254,13 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
     updateVisibleItems(visibleItems: Set<OutlineItem>): void {
         const previous = this.visibleItems;
         this.visibleItems = visibleItems;
+        let changed = false;
 
         // Clear \"in view\" state for items that are no longer visible
         for (const item of previous) {
-            if (!visibleItems.has(item)) {
+            if (!visibleItems.has(item) && item.isInView()) {
                 item.setInView(false);
-                this._onDidChangeTreeData.fire(item);
+                changed = true;
             }
         }
 
@@ -267,8 +268,12 @@ export class NotebookOutlineTreeDataProvider implements INotebookOutlineTreeData
         for (const item of visibleItems) {
             if (!item.isInView()) {
                 item.setInView(true);
-                this._onDidChangeTreeData.fire(item);
+                changed = true;
             }
+        }
+
+        if (changed) {
+            this._onDidChangeTreeData.fire();
         }
     }
 

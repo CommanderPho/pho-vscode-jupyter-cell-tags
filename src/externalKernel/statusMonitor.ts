@@ -9,6 +9,7 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	private kernelStatusSub: vscode.Disposable | undefined;
 	private lastKernelStatus = '';
 	private attachedKernel: Kernel | undefined;
+	private refreshChain: Promise<void> = Promise.resolve();
 
 	constructor(private readonly manager: DurableServerManager) {
 		this.statusBar = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 95);
@@ -40,6 +41,14 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	}
 
 	async refresh(): Promise<void> {
+		this.refreshChain = this.refreshChain.then(
+			() => this.refreshOnce(),
+			() => this.refreshOnce()
+		);
+		return this.refreshChain;
+	}
+
+	private async refreshOnce(): Promise<void> {
 		this.ensurePolling();
 		const kernelLabel = await this.resolveKernelStatusLabel();
 		await this.syncNotebookHasKernelContext(!!this.attachedKernel);
@@ -156,8 +165,11 @@ export class DurableKernelStatusMonitor implements vscode.Disposable {
 	dispose(): void {
 		if (this.pollTimer) {
 			clearInterval(this.pollTimer);
+			this.pollTimer = undefined;
 		}
 		this.detachKernelListener();
+		void this.syncHealthyContext(false);
+		void this.syncNotebookHasKernelContext(false);
 		for (const d of this.disposables) {
 			d.dispose();
 		}

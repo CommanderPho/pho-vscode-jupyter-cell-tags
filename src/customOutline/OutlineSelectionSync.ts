@@ -9,11 +9,16 @@ import { log } from '../util/logging';
  * the custom notebook outline view, reusing SelectionChangeDetector.
  */
 export class OutlineSelectionSync implements IOutlineSelectionSync {
-    private currentSection: OutlineItem | undefined;
+    private currentSectionKey: string | undefined;
+    private syncingFromEditor = false;
 
     constructor(
         private readonly treeView: vscode.TreeView<NotebookTreeItem>
     ) {}
+
+    isSyncingFromEditor(): boolean {
+        return this.syncingFromEditor;
+    }
 
     /**
      * Sync notebook editor position to outline view items.
@@ -43,19 +48,28 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
             }
         }
 
-        if (!bestMatch || bestMatch === this.currentSection) {
+        if (!bestMatch) {
             return;
         }
 
-        this.currentSection = bestMatch;
+        const matchKey = outlineItemKey(bestMatch);
+        if (matchKey === this.currentSectionKey) {
+            return;
+        }
 
+        this.currentSectionKey = matchKey;
+        this.syncingFromEditor = true;
         try {
             // Scroll the custom outline so the current section is visible.
             // We intentionally do not change selection here to avoid
-            // interfering with multi-select behavior.
+            // interfering with multi-select behavior. Same-section caret
+            // moves skip reveal entirely (stable key), so expand is only
+            // for navigating into a new heading.
             await this.treeView.reveal(bestMatch, { select: false, focus: false, expand: true });
         } catch (error) {
             log(`Failed to sync editor selections to custom outline: ${error}`);
+        } finally {
+            this.syncingFromEditor = false;
         }
     }
 
@@ -88,4 +102,8 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
             log(`Failed to sync custom outline selection to editor: ${error}`);
         }
     }
+}
+
+function outlineItemKey(item: OutlineItem): string {
+    return `${item.cellIndex}:${item.heading.level}:${item.heading.lineNumber}`;
 }
