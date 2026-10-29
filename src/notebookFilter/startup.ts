@@ -5,28 +5,46 @@ import {
 	NOTEBOOK_CELL_FILTER_VIEW_ID,
 	NotebookFilterWebviewProvider
 } from './filterWebviewProvider';
+import { isFilteredNotebook } from './filteredNotebookScheme';
+import {
+	FilteredNotebookSessionManager,
+	parseOpenTabArg
+} from './filteredNotebookSession';
 
 let filterManager: NotebookFilterManager | undefined;
+let filteredSessionManager: FilteredNotebookSessionManager | undefined;
 
 export function getFilterManager(): NotebookFilterManager | undefined {
 	return filterManager;
 }
 
+export function getFilteredSessionManager(): FilteredNotebookSessionManager | undefined {
+	return filteredSessionManager;
+}
+
 export function activateNotebookFilter(context: vscode.ExtensionContext): NotebookFilterManager {
 	const manager = new NotebookFilterManager();
 	filterManager = manager;
-	const webviewProvider = new NotebookFilterWebviewProvider(manager);
-	context.subscriptions.push({
-		dispose: async () => {
-			try {
-				await manager.dispose();
-			} finally {
-				if (filterManager === manager) {
-					filterManager = undefined;
+	const sessions = new FilteredNotebookSessionManager();
+	filteredSessionManager = sessions;
+	const webviewProvider = new NotebookFilterWebviewProvider(manager, sessions);
+	context.subscriptions.push(
+		sessions,
+		{
+			dispose: async () => {
+				try {
+					await manager.dispose();
+				} finally {
+					if (filterManager === manager) {
+						filterManager = undefined;
+					}
+					if (filteredSessionManager === sessions) {
+						filteredSessionManager = undefined;
+					}
 				}
 			}
 		}
-	});
+	);
 
 	context.subscriptions.push(
 		vscode.window.registerWebviewViewProvider(NOTEBOOK_CELL_FILTER_VIEW_ID, webviewProvider)
@@ -36,6 +54,9 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 	let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 
 	const scheduleReapply = (notebook: vscode.NotebookDocument, e?: vscode.NotebookDocumentChangeEvent) => {
+		if (isFilteredNotebook(notebook)) {
+			return;
+		}
 		if (!manager.isActive(notebook)) {
 			return;
 		}
@@ -88,6 +109,11 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 				vscode.window.showWarningMessage('Open a Jupyter notebook to clear the cell filter.');
 				return;
 			}
+			if (isFilteredNotebook(editor.notebook)) {
+				await sessions.applyCriteria(editor.notebook.uri, {});
+				webviewProvider.postState(editor.notebook);
+				return;
+			}
 			await manager.clear(editor.notebook);
 			vscode.window.setStatusBarMessage('Notebook cell filter cleared', 2000);
 			webviewProvider.postState(editor.notebook);
@@ -95,7 +121,23 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 	);
 
 	context.subscriptions.push(
+		vscode.commands.registerCommand('jupyter-cell-tags.notebookFilter.openTab', async (arg?: unknown) => {
+			const source = sessions.resolveSourceNotebook();
+			if (!source) {
+				vscode.window.showWarningMessage('Open a Jupyter notebook to show filtered cells in a new tab.');
+				return;
+			}
+			const seeded = parseOpenTabArg(arg) ?? manager.getCriteria(source) ?? {};
+			await sessions.open(source, seeded);
+		})
+	);
+
+	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument(e => {
+			if (isFilteredNotebook(e.notebook)) {
+				void sessions.stripOutputsIfPresent(e.notebook);
+				return;
+			}
 			scheduleReapply(e.notebook, e);
 			if (vscode.window.activeNotebookEditor?.notebook === e.notebook) {
 				scheduleWebviewRefresh(e.notebook);
@@ -107,7 +149,9 @@ export function activateNotebookFilter(context: vscode.ExtensionContext): Notebo
 		}),
 		vscode.workspace.onDidCloseNotebookDocument(notebook => {
 			void (async () => {
-				await manager.clear(notebook);
+				if (!isFilteredNotebook(notebook)) {
+					await manager.clear(notebook);
+				}
 				webviewProvider.postState();
 			})();
 		}),

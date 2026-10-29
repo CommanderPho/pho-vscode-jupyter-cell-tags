@@ -1,9 +1,12 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { NotebookFilterManager } from '../../notebookFilter/NotebookFilterManager';
+import { FILTERED_NOTEBOOK_SCHEME } from '../../notebookFilter/filteredNotebookScheme';
+import { getFilterManager, getFilteredSessionManager } from '../../notebookFilter/startup';
 import {
 	EXISTING_TAG,
 	Fixture,
+	RUN_GROUP_TAG,
 	activateExtension,
 	closeEditors,
 	openFixtureNotebook
@@ -67,6 +70,39 @@ suite('Notebook filter commands', () => {
 		} finally {
 			await manager.dispose();
 		}
+	});
+
+	test('openTab copies matching cells without outputs and leaves the source intact', async () => {
+		const source = editor.notebook;
+		const sourceCount = source.cellCount;
+		await vscode.commands.executeCommand('jupyter-cell-tags.notebookFilter.openTab', {
+			tags: [EXISTING_TAG]
+		});
+		const filtered = await waitFor((): vscode.NotebookDocument => {
+			const doc = vscode.workspace.notebookDocuments.find(
+				n =>
+					n.uri.toString() !== source.uri.toString() &&
+					n.cellCount === 2
+			);
+			if (!doc) {
+				throw new Error('waiting for filtered notebook');
+			}
+			return doc;
+		});
+		assert.strictEqual(source.cellCount, sourceCount);
+		assert.strictEqual(filtered.uri.scheme, FILTERED_NOTEBOOK_SCHEME);
+		assert.ok(
+			filtered.getCells().every(cell => cell.outputs.length === 0),
+			'filtered tab must omit cell outputs'
+		);
+		assert.ok(!getFilterManager()?.isActive(source), 'openTab must not collapse-filter the source');
+
+		const sessions = getFilteredSessionManager();
+		assert.ok(sessions, 'filtered session manager should be live');
+		await sessions.applyCriteria(filtered.uri, { tags: [RUN_GROUP_TAG] });
+		await waitFor(() => filtered.cellCount === 1);
+		assert.strictEqual(filtered.cellCount, 1);
+		assert.ok(filtered.getCells().every(cell => cell.outputs.length === 0));
 	});
 });
 

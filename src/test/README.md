@@ -26,7 +26,7 @@ Host matrix (`npm test`):
 
 - Registration of every `contributes.commands` id
 - Tag CRUD, selection, headings, export/import
-- Outline, jumpbacks, navigation, filter, git-diff, dependency-chain
+- Outline, jumpbacks, navigation, filter, filtered-tab snapshot, git-diff, dependency-chain
 - Durable-kernel `copyUrl` / `showLog` / status menu (does not start a server)
 - Existing outline-sync host tests, now using the shared fixture
 

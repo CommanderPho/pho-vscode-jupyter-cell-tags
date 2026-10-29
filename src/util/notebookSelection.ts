@@ -164,31 +164,33 @@ export function getActiveCells(): vscode.NotebookCell[] | undefined {
     return cells.length > 0 ? cells : undefined;
 }
 
+export function getTagsFromNotebook(notebook: vscode.NotebookDocument): string[] {
+    const all_tags: string[] = [];
+    for (let i = 0; i < notebook.cellCount; i++) {
+        const cell = notebook.cellAt(i);
+        if (!cell) {
+            continue;
+        }
+        for (const tag of getCellTags(cell)) {
+            if (!all_tags.includes(tag)) {
+                all_tags.push(tag);
+            }
+        }
+    }
+    return all_tags;
+}
+
 export function getAllTagsFromActiveNotebook() {
     // Get the active notebook editor
     const activeNotebookEditor = vscode.window.activeNotebookEditor;
-    // _tags: Array<string> = new Array();
-    const all_tags: string[] = new Array();
     // Check if there is an active notebook editor
     if (activeNotebookEditor) {
         // Get the notebook document from the editor
         const notebookDocument = activeNotebookEditor.notebook;
         if (notebookDocument) {
-            for (let i = 0; i < activeNotebookEditor.notebook.cellCount; i++) {
-                const cell = activeNotebookEditor.notebook.cellAt(i);
-                if (!cell) {
-                    continue;
-                }
-                const tags = getCellTags(cell);
-                tags.forEach(tag => {
-                    // all_tags.includes(tag) ? null : all_tags.push(tag);
-                    if (!all_tags.includes(tag)) {
-                        all_tags.push(tag);
-                    }
-                });
-            }
+            const all_tags = getTagsFromNotebook(notebookDocument);
             log('All tags:', all_tags);
-            return all_tags; // This will return an array of NotebookCell objects
+            return all_tags;
         }
         else {
             log('No active notebook editor document found');

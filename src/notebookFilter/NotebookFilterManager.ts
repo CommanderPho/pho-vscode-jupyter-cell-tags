@@ -14,6 +14,7 @@ import {
 	expandCellOutputs
 } from './collapseCommands';
 import { FilterScrollbarDecorators } from './filterDecorators';
+import { isFilteredNotebook } from './filteredNotebookScheme';
 
 type NotebookFilterState = {
 	criteria: NotebookFilterCriteria;
@@ -112,6 +113,9 @@ export class NotebookFilterManager {
 	}
 
 	async apply(notebook: vscode.NotebookDocument, criteria: NotebookFilterCriteria): Promise<{ matchCount: number; totalCount: number }> {
+		if (isFilteredNotebook(notebook)) {
+			return { matchCount: notebook.cellCount, totalCount: notebook.cellCount };
+		}
 		if (!isFilterActive(criteria)) {
 			await this.clear(notebook);
 			return { matchCount: notebook.cellCount, totalCount: notebook.cellCount };

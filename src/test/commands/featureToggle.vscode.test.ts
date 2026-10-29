@@ -176,6 +176,7 @@ suite('Feature hot-toggle', () => {
 		await toggle('notebookFilter', false);
 		await waitFor(() => getFilterManager() === undefined);
 		await waitFor(async () => !(await commandRegistered('jupyter-cell-tags.notebookFilter.set')));
+		await waitFor(async () => !(await commandRegistered('jupyter-cell-tags.notebookFilter.openTab')));
 		if (collapsedBefore.length > 0) {
 			await waitFor(() => editor.notebook.getCells().every((cell) => !isCellCollapsed(cell)));
 		}

@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
-import { getAllTagsFromActiveNotebook } from '../util/notebookSelection';
+import { getAllTagsFromActiveNotebook, getTagsFromNotebook } from '../util/notebookSelection';
 import { isFilterActive, NotebookFilterCriteria } from './filterCriteria';
 import { FILTER_ACCENT_CSS } from './filterDecorators';
 import { NotebookFilterManager } from './NotebookFilterManager';
+import { isFilteredNotebook } from './filteredNotebookScheme';
+import { FilteredNotebookSessionManager } from './filteredNotebookSession';
 
 export const NOTEBOOK_CELL_FILTER_VIEW_ID = 'notebook-cell-filter-view';
 
@@ -24,12 +26,20 @@ type WebviewClearMessage = {
 	type: 'clear';
 };
 
-type WebviewToExtensionMessage = WebviewApplyMessage | WebviewClearMessage;
+type WebviewOpenTabMessage = {
+	type: 'openTab';
+	criteria: NotebookFilterCriteria;
+};
+
+type WebviewToExtensionMessage = WebviewApplyMessage | WebviewClearMessage | WebviewOpenTabMessage;
 
 export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider {
 	private view?: vscode.WebviewView;
 
-	constructor(private readonly manager: NotebookFilterManager) {}
+	constructor(
+		private readonly manager: NotebookFilterManager,
+		private readonly sessions: FilteredNotebookSessionManager
+	) {}
 
 	resolveWebviewView(
 		webviewView: vscode.WebviewView,
@@ -43,6 +53,16 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		webviewView.webview.html = this.getHtml(webviewView.webview);
 
 		webviewView.webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
+			if (message.type === 'openTab') {
+				const source = this.sessions.resolveSourceNotebook();
+				if (!source) {
+					vscode.window.showWarningMessage('Open a Jupyter notebook to show filtered cells in a new tab.');
+					return;
+				}
+				await this.sessions.open(source, message.criteria);
+				return;
+			}
+
 			const editor = vscode.window.activeNotebookEditor;
 			if (!editor) {
 				vscode.window.showWarningMessage('Open a Jupyter notebook to filter cells.');
@@ -54,6 +74,11 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 					vscode.window.showInformationMessage('No filter criteria selected.');
 					return;
 				}
+				if (isFilteredNotebook(editor.notebook)) {
+					await this.sessions.applyCriteria(editor.notebook.uri, message.criteria);
+					this.postState(editor.notebook);
+					return;
+				}
 				const { matchCount, totalCount } = await this.manager.apply(editor.notebook, message.criteria);
 				vscode.window.setStatusBarMessage(`Showing ${matchCount}/${totalCount} cells`, 3000);
 				this.postState(editor.notebook);
@@ -61,6 +86,11 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 			}
 
 			if (message.type === 'clear') {
+				if (isFilteredNotebook(editor.notebook)) {
+					await this.sessions.applyCriteria(editor.notebook.uri, {});
+					this.postState(editor.notebook);
+					return;
+				}
 				await this.manager.clear(editor.notebook);
 				vscode.window.setStatusBarMessage('Notebook cell filter cleared', 2000);
 				this.postState(editor.notebook);
@@ -81,13 +111,32 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		if (!this.view) {
 			return;
 		}
-		const snapshot = this.manager.getUiSnapshot(notebook);
-		const tags = [...new Set((getAllTagsFromActiveNotebook() ?? []).flat())].sort((a, b) =>
-			a.localeCompare(b)
-		);
+		const active = notebook ?? vscode.window.activeNotebookEditor?.notebook;
+		if (active && isFilteredNotebook(active)) {
+			const session = this.sessions.getByFilteredUri(active.uri);
+			const source = this.sessions.getSourceNotebook(active.uri);
+			const tags = source
+				? getTagsFromNotebook(source)
+				: [...new Set((getAllTagsFromActiveNotebook() ?? []).flat())];
+			const message: WebviewStateMessage = {
+				type: 'state',
+				tags: [...tags].sort((a, b) => a.localeCompare(b)),
+				criteria: session?.criteria ?? {},
+				matchCount: session?.matchCount,
+				totalCount: session?.totalCount,
+				filterActive: !!session && isFilterActive(session.criteria)
+			};
+			void this.view.webview.postMessage(message);
+			return;
+		}
+
+		const snapshot = this.manager.getUiSnapshot(active);
+		const tags = active
+			? getTagsFromNotebook(active)
+			: [...new Set((getAllTagsFromActiveNotebook() ?? []).flat())];
 		const message: WebviewStateMessage = {
 			type: 'state',
-			tags,
+			tags: [...new Set(tags)].sort((a, b) => a.localeCompare(b)),
 			criteria: snapshot.criteria,
 			matchCount: snapshot.matchCount,
 			totalCount: snapshot.totalCount,
@@ -251,6 +300,7 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 	<div class="actions">
 		<button class="primary" id="applyBtn" data-testid="notebook-filter-apply">Filter</button>
 		<button class="secondary" id="clearBtn" data-testid="notebook-filter-clear" disabled>Clear Filter</button>
+		<button class="secondary" id="openTabBtn" data-testid="notebook-filter-open-tab">Open in tab</button>
 	</div>
 	<div class="status" id="status"></div>
 	<script nonce="${nonce}">
@@ -259,6 +309,7 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		const statusEl = document.getElementById('status');
 		const clearBtn = document.getElementById('clearBtn');
 		const applyBtn = document.getElementById('applyBtn');
+		const openTabBtn = document.getElementById('openTabBtn');
 
 		function setRadio(name, value) {
 			const el = document.querySelector('input[name="' + name + '"][value="' + value + '"]');
@@ -338,6 +389,9 @@ export class NotebookFilterWebviewProvider implements vscode.WebviewViewProvider
 		});
 		clearBtn.addEventListener('click', () => {
 			vscode.postMessage({ type: 'clear' });
+		});
+		openTabBtn.addEventListener('click', () => {
+			vscode.postMessage({ type: 'openTab', criteria: collectCriteria() });
 		});
 
 		window.addEventListener('message', event => {

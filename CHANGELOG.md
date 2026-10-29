@@ -4,6 +4,10 @@ All notable changes to the "jupyter-cell-tags" extension will be documented in t
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## Unreleased
+
+- Open matching cells from the active notebook in a read-only filtered tab (no outputs) with a criteria bar on top.
+
 ## 0.7.4
 
 - Uninstall the official Microsoft Jupyter Cell Tags pack member (`ms-toolsai.vscode-jupyter-cell-tags`) after the Jupyter dependency is installed, and offer a window reload.

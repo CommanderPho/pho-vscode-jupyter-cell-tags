@@ -73,6 +73,7 @@
 		"onView:dependency-chain-view",
 		"onCommand:jupyter-cell-tags.notebookFilter.set",
 		"onCommand:jupyter-cell-tags.notebookFilter.clear",
+		"onCommand:jupyter-cell-tags.notebookFilter.openTab",
 		"onView:notebook-cell-filter-view",
 		"onCommand:jupyter-cell-tags.externalKernel.start",
 		"onCommand:jupyter-cell-tags.externalKernel.stop",
@@ -764,6 +765,12 @@
 				"category": "Jupyter Cell Tags"
 			},
 			{
+				"command": "jupyter-cell-tags.notebookFilter.openTab",
+				"title": "🔍 Open Filtered Cells in New Tab",
+				"icon": "$(notebook)",
+				"category": "Jupyter Cell Tags"
+			},
+			{
 				"command": "jupyter-cell-tags.dependencyChain.showDependentCells",
 				"title": "⛓️ Dependency Chain: Show Dependant Cells",
 				"icon": "$(type-hierarchy)",
@@ -934,12 +941,17 @@
 				{
 					"command": "jupyter-cell-tags.notebookFilter.set",
 					"group": "Jupyter Cell Tags",
-					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && config.jupyter-cell-tags.features.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.notebookFilter.clear",
 					"group": "Jupyter Cell Tags",
-					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.openTab",
+					"group": "Jupyter Cell Tags",
+					"when": "notebookType == jupyter-notebook && config.jupyter-cell-tags.features.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
@@ -1095,6 +1107,11 @@
 					"group": "inline"
 				},
 				{
+					"command": "jupyter-cell-tags.notebookFilter.openTab",
+					"when": "view == all-notebook-tags-view && viewItem == tagItem && config.jupyter-cell-tags.features.notebookFilter",
+					"group": "navigation"
+				},
+				{
 					"command": "jupyter-cell-tags.setTagPriority",
 					"when": "view == all-notebook-tags-view && viewItem == tagItem",
 					"group": "1_modification"
@@ -1172,22 +1189,32 @@
 				{
 					"command": "jupyter-cell-tags.notebookFilter.set",
 					"group": "navigation/execute@9",
-					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.notebookFilter.clear",
 					"group": "navigation/execute@9",
-					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.openTab",
+					"group": "navigation/execute@9",
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && config.jupyter-cell-tags.features.notebookFilter && config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.notebookFilter.set",
 					"group": "z_notebookFilter@1",
-					"when": "notebookType == jupyter-notebook && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && !jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.notebookFilter.clear",
 					"group": "z_notebookFilter@1",
-					"when": "notebookType == jupyter-notebook && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && jupyter-cell-tags.notebookFilter.active && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
+				},
+				{
+					"command": "jupyter-cell-tags.notebookFilter.openTab",
+					"group": "z_notebookFilter@2",
+					"when": "notebookType == jupyter-notebook && resourceScheme != pho-filtered && config.jupyter-cell-tags.features.notebookFilter && !config.jupyter-cell-tags.toolbar.notebookFilter"
 				},
 				{
 					"command": "jupyter-cell-tags.externalKernel.selectKernel",
@@ -1491,7 +1518,7 @@
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
-		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/outlineSync/test/setup.test.js\"",
+		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\"",
 		"test:gui": "npm run compile && node src/test/gui/runGui.cjs"
 	},
 	"devDependencies": {

@@ -33,7 +33,7 @@ This extension replaces the tags extension that ships with the [Jupyter extensio
 - **Executed Cells** lists cells run in this session
 - **Git Modified Cells** lists cells changed vs HEAD (or a chosen commit) and can highlight them
 - **Dependency Chain** finds upstream Python cells required to run the current cell
-- **Notebook Cell Filter** collapses cells that do not match chosen criteria
+- **Notebook Cell Filter** collapses cells that do not match chosen criteria, or opens matching cells (without outputs) in a read-only tab
 - **Durable Jupyter** starts a local Jupyter server that survives Extension Host restart
 - Each of these can be turned on or off under **Features** in settings
 
