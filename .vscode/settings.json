@@ -17,7 +17,7 @@
     "actionButtons": {
         "commands": [
             {
-                "name": "VS Code Dev",
+                "name": "VSCode Extension Dev Launch",
                 "color": "#99CCFF",
                 "tooltip": "Open this workspace in regular VS Code for extension development",
                 "command": "code --new-window \"${workspaceFolder}\\vscode-jupyter-cell-tags.code-workspace\"",
