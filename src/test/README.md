@@ -51,4 +51,4 @@ These still need notebook cell page objects that neither WebdriverIO nor ExTeste
 - Workspace settings (all feature flags on): `src/test/workspace/.vscode/settings.json`
 - Host tests: `src/**/*.vscode.test.ts` (includes tag-sorting tests because `tagSorting.ts` imports `vscode`)
 - GUI smokes: `src/test/gui/*.gui.ts` (not compiled by the extension `tsc`)
-- Node unit tests: `src/dependencyChain/buildChain.test.ts` and `src/outlineSync/test/setup.test.ts`
+- Node unit tests: `src/dependencyChain/buildChain.test.ts`, `src/outlineSync/test/setup.test.ts`, `src/notebookFilter/filteredCellSnapshot.test.ts`, and `src/noteAllTags/tagColorCellBorders.test.ts`

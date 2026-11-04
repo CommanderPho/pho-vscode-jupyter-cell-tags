@@ -28,6 +28,7 @@ This extension replaces the tags extension that ships with the [Jupyter extensio
 - Edit notebook tag metadata as JSON (**Edit Cell Tags (JSON)**) ![Cell tags json](images/cell-tags-json.png)
 - **Execute Tag Run Group** runs every cell that has a chosen tag. Tags that start with `run-` appear first in the list.
 - Color, rename, sort, and remove tags from all cells in the All Notebook Tags view
+- Optional **tag color cell borders** draw a thin box around a cell for the first tag with a set color, plus extra left/right stripes for additional colored tags (off by default under **Features**)
 - **Jumpbacks** bookmark a cell or text line and jump back to it
 - **Custom NB Outline** lists markdown headings with multi-select
 - **Executed Cells** lists cells run in this session

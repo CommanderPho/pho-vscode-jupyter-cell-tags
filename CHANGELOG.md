@@ -7,6 +7,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## Unreleased
 
 - Open matching cells from the active notebook in a read-only filtered tab (no outputs) with a criteria bar on top.
+- Optional tag color cell borders (`features.tagColorCellBorders`, default off): a thin box around a cell for the first tag with a set color, plus extra left/right stripes for additional colored tags.
 
 ## 0.7.4
 

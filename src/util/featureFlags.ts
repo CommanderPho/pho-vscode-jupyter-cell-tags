@@ -8,6 +8,7 @@ export type FeatureKey =
 	| 'outlineSync'
 	| 'customOutline'
 	| 'scrollbarDecorators'
+	| 'tagColorCellBorders'
 	| 'jupyterEnhancements'
 	| 'gitDiff'
 	| 'dependencyChain'
@@ -26,6 +27,7 @@ export const FEATURE_KEYS: readonly FeatureKey[] = [
 	'outlineSync',
 	'customOutline',
 	'scrollbarDecorators',
+	'tagColorCellBorders',
 	'jupyterEnhancements',
 	'gitDiff',
 	'dependencyChain',
@@ -48,6 +50,7 @@ export const FEATURE_SETTING_LABELS: Record<FeatureSettingKey, string> = {
 	outlineSync: 'Sync the Outline pane with programmatic cell selections',
 	customOutline: '★ Custom notebook outline view with multi-select',
 	scrollbarDecorators: '🏷️ Scrollbar markers for tag locations in the notebook',
+	tagColorCellBorders: "🎨 Thin cell borders from each cell's tag colors",
 	jupyterEnhancements: 'Cell execution visuals (borders, flash, background) and layout helpers',
 	gitDiff: '🔀 Highlight and list cells changed vs a git commit',
 	dependencyChain: '⛓️ Show variable dependency chains between cells',
@@ -65,6 +68,7 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	outlineSync: true,
 	customOutline: true,
 	scrollbarDecorators: false,
+	tagColorCellBorders: false,
 	jupyterEnhancements: false,
 	gitDiff: true,
 	dependencyChain: true,

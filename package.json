@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.7.4",
+	"version": "0.7.5",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -119,6 +119,11 @@
 						"type": "boolean",
 						"default": false,
 						"description": "🏷️ Scrollbar markers for tag locations in the notebook"
+					},
+					"jupyter-cell-tags.features.tagColorCellBorders": {
+						"type": "boolean",
+						"default": false,
+						"description": "🎨 Thin cell borders from each cell's tag colors"
 					},
 					"jupyter-cell-tags.features.jupyterEnhancements": {
 						"type": "boolean",
@@ -1518,7 +1523,7 @@
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
-		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\"",
+		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\" \"./out/noteAllTags/tagColorCellBorders.test.js\"",
 		"test:gui": "npm run compile && node src/test/gui/runGui.cjs"
 	},
 	"devDependencies": {

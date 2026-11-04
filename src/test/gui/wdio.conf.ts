@@ -9,6 +9,7 @@ const featureSettings = {
 	'jupyter-cell-tags.features.outlineSync': true,
 	'jupyter-cell-tags.features.customOutline': true,
 	'jupyter-cell-tags.features.scrollbarDecorators': true,
+	'jupyter-cell-tags.features.tagColorCellBorders': true,
 	'jupyter-cell-tags.features.jupyterEnhancements': true,
 	'jupyter-cell-tags.features.gitDiff': true,
 	'jupyter-cell-tags.features.dependencyChain': true,

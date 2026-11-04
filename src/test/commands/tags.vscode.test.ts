@@ -113,6 +113,15 @@ suite('Tag and metadata commands', () => {
 		await waitFor(() => !TagPropertiesManager.getTagProperties(editor.notebook, EXISTING_TAG).color);
 	});
 
+	test('setTagColor does not throw with tag color cell borders enabled', async () => {
+		const enabled = vscode.workspace.getConfiguration('jupyter-cell-tags').get('features.tagColorCellBorders');
+		assert.strictEqual(enabled, true);
+		stubs.stubShowQuickPick('Red');
+		await vscode.commands.executeCommand('jupyter-cell-tags.setTagColor', EXISTING_TAG);
+		await waitFor(() => TagPropertiesManager.getTagProperties(editor.notebook, EXISTING_TAG).color === '#e74c3c');
+		await new Promise((resolve) => setTimeout(resolve, 250));
+	});
+
 	test('setTagPriority writes a numeric priority', async () => {
 		stubs.stubInputBox('3');
 		await vscode.commands.executeCommand('jupyter-cell-tags.setTagPriority', EXISTING_TAG);

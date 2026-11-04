@@ -11,6 +11,7 @@ import { updateNotebookMetadata } from '../util/notebookMetadata';
 import { TagProperties } from '../models/tagProperties';
 import { highlightCell } from '../util/cellVisualHighlight';
 import { ScrollbarDecoratorManager } from './scrollbarDecorators';
+import { TagColorCellBorderDecoratorManager } from './tagColorCellBorderDecorators';
 import { getSyncManager } from '../outlineSync/startup';
 import { isValidCellIndex, notebookStillActive } from '../util/notebookSelection';
 
@@ -302,6 +303,9 @@ export function register(context: vscode.ExtensionContext) {
     // Create ScrollbarDecoratorManager for tag decorations
     const scrollbarDecoratorManager = new ScrollbarDecoratorManager(context);
     context.subscriptions.push(scrollbarDecoratorManager);
+
+    const tagColorCellBorderManager = new TagColorCellBorderDecoratorManager(context);
+    context.subscriptions.push(tagColorCellBorderManager);
 
     // Expose the provider globally for debugging
     // if (!globalThis._debug) {
@@ -858,6 +862,7 @@ export function register(context: vscode.ExtensionContext) {
 
             // Refresh the tree view
             treeDataProvider.refresh();
+            tagColorCellBorderManager.scheduleUpdate();
             showTimedInformationMessage(`Color for tag "${tagName}" set to ${selectedColor}`, 3000);
         })
     );
@@ -880,6 +885,7 @@ export function register(context: vscode.ExtensionContext) {
 
             // Refresh the tree view
             treeDataProvider.refresh();
+            tagColorCellBorderManager.scheduleUpdate();
             showTimedInformationMessage(`Color for tag "${tagName}" cleared`, 3000);
         })
     );
