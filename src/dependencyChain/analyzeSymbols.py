@@ -7,6 +7,7 @@ magic (%%) or a syntax error is reported as parseError instead of guessing.
 
 import ast
 import json
+import re
 import sys
 
 MUTATING_METHODS = {
@@ -546,20 +547,34 @@ def analyze_cell(source):
     }
 
 
+# High without low, or low without high (mirrors unicodeInterop.ts).
+_LONE_SURROGATE_RE = re.compile(
+    r"[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]"
+)
+
+
+def _strip_lone_surrogates(text):
+    """Replace unpaired UTF-16 surrogates with U+FFFD (JSON/UTF-8 safe)."""
+    return _LONE_SURROGATE_RE.sub("\uFFFD", text)
+
+
 def main():
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        raw = sys.stdin.buffer.read().decode("utf-8", errors="replace")
+        payload = json.loads(raw or "{}")
         cells = payload.get("cells", [])
         if not isinstance(cells, list):
             raise ValueError("Expected {\"cells\": [string, ...]}")
         result = []
         for source in cells:
-            result.append(analyze_cell(source if isinstance(source, str) else ""))
+            text = source if isinstance(source, str) else ""
+            result.append(analyze_cell(_strip_lone_surrogates(text)))
         ## END for source in cells....
 
-        json.dump({"cells": result}, sys.stdout)
+        out = json.dumps({"cells": result}, ensure_ascii=False)
+        sys.stdout.buffer.write(out.encode("utf-8", errors="replace"))
     except Exception as exc:
-        sys.stderr.write(str(exc))
+        sys.stderr.buffer.write(str(exc).encode("utf-8", errors="replace"))
         sys.exit(1)
 
 

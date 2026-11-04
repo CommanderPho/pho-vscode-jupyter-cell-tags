@@ -3,6 +3,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { CellSymbolInfo, emptySymbols } from './buildChain';
+import { stripLoneSurrogates } from './unicodeInterop';
 
 interface RawCell {
 	defines?: unknown;
@@ -57,7 +58,7 @@ export async function analyzeNotebookSymbols(
 			cell.kind === vscode.NotebookCellKind.Code &&
 			cell.document.languageId === 'python'
 		) {
-			sources.push(cell.document.getText());
+			sources.push(stripLoneSurrogates(cell.document.getText()));
 			indexes.push(i);
 		}
 	}
@@ -85,7 +86,11 @@ function runAnalyzer(sources: string[], extensionPath: string): Promise<RawCell[
 		const child = execFile(
 			python,
 			[script],
-			{ maxBuffer: 32 * 1024 * 1024, windowsHide: true },
+			{
+				maxBuffer: 32 * 1024 * 1024,
+				windowsHide: true,
+				env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+			},
 			(err, stdout, stderr) => {
 				if (err) {
 					const detail = (stderr || err.message || '').trim();
