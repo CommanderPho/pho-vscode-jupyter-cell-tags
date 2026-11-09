@@ -4,10 +4,22 @@ import * as vscode from 'vscode';
 import { RunGroup } from './enums';
 import { getCellRunGroupMetadata } from './util/cellMetadataHelpers';
 
+let _updateContextKeysTimer: ReturnType<typeof setTimeout> | undefined;
+
 // Note, this scans all open notebook editors when run, the operation should be very quick so this feels clean
 // and it's only triggered on more explicit user actions (doc open, metadata update) but can always
 // revisit for perf inefficency
 export function updateContextKeys() {
+    if (_updateContextKeysTimer) {
+        clearTimeout(_updateContextKeysTimer);
+    }
+    _updateContextKeysTimer = setTimeout(() => {
+        _updateContextKeysTimer = undefined;
+        _updateContextKeys();
+    }, 100);
+}
+
+function _updateContextKeys() {
     // Create our groups for what cells are in each run group
     const group1Cells: Set<vscode.Uri> = new Set<vscode.Uri>();
     const group2Cells: Set<vscode.Uri> = new Set<vscode.Uri>();
