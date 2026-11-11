@@ -157,27 +157,27 @@ export function getActiveCells(): vscode.NotebookCell[] | undefined {
         return;
     }
 
-    let cells: vscode.NotebookCell[] = [];
+    const cells: vscode.NotebookCell[] = [];
     for (const selection of editor.selections) {
-        cells = cells.concat(editor.notebook.getCells(selection));
+        // avoid intermediate array allocations created by Array.prototype.concat
+        cells.push(...editor.notebook.getCells(selection));
     }
     return cells.length > 0 ? cells : undefined;
 }
 
 export function getTagsFromNotebook(notebook: vscode.NotebookDocument): string[] {
-    const all_tags: string[] = [];
+    const all_tags = new Set<string>();
     for (let i = 0; i < notebook.cellCount; i++) {
         const cell = notebook.cellAt(i);
         if (!cell) {
             continue;
         }
         for (const tag of getCellTags(cell)) {
-            if (!all_tags.includes(tag)) {
-                all_tags.push(tag);
-            }
+            // Set ensures uniqueness with O(1) insertion, improving performance over Array.prototype.includes
+            all_tags.add(tag);
         }
     }
-    return all_tags;
+    return Array.from(all_tags);
 }
 
 export function getAllTagsFromActiveNotebook() {
