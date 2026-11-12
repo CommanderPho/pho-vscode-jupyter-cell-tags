@@ -1,5 +1,10 @@
 .vscode
-node_modules
+# Pack production `dependencies` (notably `typescript` for live console).
+# A blanket `node_modules` exclude dropped runtime deps from the VSIX and
+# made activation fail with "Cannot find module 'typescript'".
+node_modules/**
+!node_modules/typescript/
+!node_modules/typescript/**
 # out/
 tsconfig.json
 webpack.config.js

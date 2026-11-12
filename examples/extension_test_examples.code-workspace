@@ -92,7 +92,7 @@
 		"jupyter-cell-tags.features.gitDiff": false,
 		"jupyter-cell-tags.features.ringMeJupyter": false,
 		"jupyter-cell-tags.customOutline.showExecutedCells": true,
-		"jupyter-cell-tags.features.durableKernel": true
+		"jupyter-cell-tags.features.durableKernel": false
 	},
 	"extensions": {
 		"recommendations": [

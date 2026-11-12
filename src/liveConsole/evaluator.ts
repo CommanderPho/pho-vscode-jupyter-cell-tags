@@ -1,6 +1,11 @@
 import * as util from 'util';
-import * as ts from 'typescript';
 import type { LiveConsoleApi } from './consoleApi';
+import type * as ts from 'typescript';
+
+/** Lazy so merely loading this module does not require the `typescript` package. */
+function loadTypeScript(): typeof ts {
+	return require('typescript') as typeof ts;
+}
 
 export type EvalLogLevel = 'log' | 'info' | 'warn' | 'error' | 'debug';
 
@@ -45,11 +50,12 @@ export function coerceReturn(source: string): string {
 }
 
 export function transpileTypeScript(source: string): string {
+	const tsApi = loadTypeScript();
 	const prepared = coerceReturn(source);
-	const result = ts.transpileModule(prepared, {
+	const result = tsApi.transpileModule(prepared, {
 		compilerOptions: {
-			module: ts.ModuleKind.None,
-			target: ts.ScriptTarget.ES2022,
+			module: tsApi.ModuleKind.None,
+			target: tsApi.ScriptTarget.ES2022,
 			strict: false,
 			esModuleInterop: true,
 			skipLibCheck: true,
@@ -59,12 +65,12 @@ export function transpileTypeScript(source: string): string {
 	});
 
 	const errors = (result.diagnostics ?? []).filter(
-		(d) => d.category === ts.DiagnosticCategory.Error
+		(d) => d.category === tsApi.DiagnosticCategory.Error
 	);
 	if (errors.length > 0) {
 		const message = errors
 			.map((d) => {
-				const text = ts.flattenDiagnosticMessageText(d.messageText, '\n');
+				const text = tsApi.flattenDiagnosticMessageText(d.messageText, '\n');
 				if (d.file && d.start !== undefined) {
 					const { line, character } = d.file.getLineAndCharacterOfPosition(d.start);
 					return `TS${d.code} (${line + 1},${character + 1}): ${text}`;

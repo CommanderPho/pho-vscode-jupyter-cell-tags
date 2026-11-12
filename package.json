@@ -2,7 +2,7 @@
 	"name": "pho-vscode-jupyter-cell-tags",
 	"displayName": "Pho Jupyter Cell Tags",
 	"description": "Extended Jupyter Cell Tags support for VS Code",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"publisher": "phohale",
 	"preview": true,
 	"icon": "icon.png",
@@ -1562,7 +1562,7 @@
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
-		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/dependencyChain/sanitizeUnicode.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\" \"./out/noteAllTags/tagColorCellBorders.test.js\" \"./out/liveConsole/evaluator.test.js\" \"./out/cellMemory/format.test.js\"",
+		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/dependencyChain/sanitizeUnicode.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\" \"./out/noteAllTags/tagColorCellBorders.test.js\" \"./out/liveConsole/evaluator.test.js\" \"./out/liveConsole/isolation.test.js\" \"./out/util/featureLifecycle.test.js\" \"./out/cellMemory/format.test.js\"",
 		"test:gui": "npm run compile && node src/test/gui/runGui.cjs"
 	},
 	"devDependencies": {

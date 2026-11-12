@@ -32,7 +32,6 @@ import { activateGitDiffHighlighting } from './gitDiff/startup';
 import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
 import { activateExternalKernel } from './externalKernel/startup';
-import { activateLiveConsole } from './liveConsole/startup';
 import { activateCellMemoryBreakdown } from './cellMemory/startup';
 import {
     isFeatureEnabled,
@@ -156,7 +155,13 @@ export async function activate(context: vscode.ExtensionContext) {
             activate: activateNotebookCellExecutionTracking,
         },
         liveConsole: {
-            activate: activateLiveConsole,
+            // Lazy-load so a missing `typescript` dep cannot break activation
+            // when Live Console is disabled (default). FeatureController also
+            // catches enable failures so a bad enable cannot block other features.
+            activate: (ctx) => {
+                const { activateLiveConsole } = require('./liveConsole/startup') as typeof import('./liveConsole/startup');
+                activateLiveConsole(ctx);
+            },
         },
     };
 

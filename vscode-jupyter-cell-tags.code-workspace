@@ -19,14 +19,33 @@
             "notebook.outputContainerBorderColor": "#10ff10"
         },
         "actionButtons": {
+
             "commands": [
+                    {
+					"name": "Back",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateBack"
+				},
+				{
+					"name": "Forward",
+					"color": "white",
+					"useVsCodeApi": true,
+					"command": "workbench.action.navigateForward"
+				},
                 {
                     "name": "VSCode Extension Dev Launch",
-                    "color": "#99CCFF",
+                    "color": "#779922",
                     "tooltip": "Open this workspace in regular VS Code for extension development",
                     "command": "code --profile=PhoExtensionDev2025 --new-window \"${workspaceFolder}\\vscode-jupyter-cell-tags.code-workspace\"",
                     "singleInstance": true
-                }
+                },
+                {
+                    "name": "VSCode Dev Consoler",
+                    "color": "#99CCFF",
+                    "useVsCodeApi": true,
+                    "command": "workbench.action.toggleDevTools"
+                },
             ],
             "defaultColor": "white",
             "reloadButton": "↻",
