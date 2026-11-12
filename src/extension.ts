@@ -33,6 +33,7 @@ import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
 import { activateExternalKernel } from './externalKernel/startup';
 import { activateLiveConsole } from './liveConsole/startup';
+import { activateCellMemoryBreakdown } from './cellMemory/startup';
 import {
     isFeatureEnabled,
     migrateDeprecatedFeatureSettings,
@@ -78,6 +79,14 @@ export async function activate(context: vscode.ExtensionContext) {
 	updateContext();
     initializeCellHighlight();
     context.subscriptions.push({ dispose: disposeCellHighlight });
+    // Cell memory store must exist before Executed Cells view registers (it reads the store).
+    if (isFeatureEnabled('cellMemoryBreakdown')) {
+        try {
+            activateCellMemoryBreakdown(context);
+        } catch (err) {
+            log(`Cell memory breakdown failed to activate (continuing): ${err}`);
+        }
+    }
     registerCellExecutionCommands(context);
     activateNotebookRunGroups(context);
     activateCellHeadings(context);

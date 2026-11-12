@@ -171,6 +171,11 @@
 						"default": true,
 						"description": "▶️ Track executed cells in a sidebar view and record execution history for the session"
 					},
+					"jupyter-cell-tags.features.cellMemoryBreakdown": {
+						"type": "boolean",
+						"default": false,
+						"description": "🧠 Sample Jupyter kernel RSS before/after each cell and show approximate memory deltas (reload required)"
+					},
 					"jupyter-cell-tags.features.liveConsole": {
 						"type": "boolean",
 						"default": false,
@@ -180,6 +185,23 @@
 						"type": "boolean",
 						"default": false,
 						"description": "Show the 🧭 Cell Navigation toolbar button in the notebook toolbar"
+					}
+				}
+			},
+			{
+				"id": "jupyter-cell-tags-cell-memory",
+				"title": "Cell Memory",
+				"order": 3,
+				"properties": {
+					"jupyter-cell-tags.cellMemory.showInExecutedCells": {
+						"type": "boolean",
+						"default": true,
+						"description": "Show approximate kernel memory deltas in the Executed Cells sidebar (requires features.cellMemoryBreakdown)"
+					},
+					"jupyter-cell-tags.cellMemory.showInStatusBar": {
+						"type": "boolean",
+						"default": false,
+						"description": "Show approximate kernel memory deltas on each cell's status bar (requires features.cellMemoryBreakdown)"
 					}
 				}
 			},
@@ -1540,7 +1562,7 @@
 		"package": "npm run compile && vsce package --no-yarn",
 		"pretest": "npm run compile",
 		"test": "node ./out/test/runTest.js",
-		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/dependencyChain/sanitizeUnicode.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\" \"./out/noteAllTags/tagColorCellBorders.test.js\" \"./out/liveConsole/evaluator.test.js\"",
+		"test:unit": "mocha --ui tdd --timeout 10000 --color \"./out/dependencyChain/buildChain.test.js\" \"./out/dependencyChain/sanitizeUnicode.test.js\" \"./out/outlineSync/test/setup.test.js\" \"./out/notebookFilter/filteredCellSnapshot.test.js\" \"./out/noteAllTags/tagColorCellBorders.test.js\" \"./out/liveConsole/evaluator.test.js\" \"./out/cellMemory/format.test.js\"",
 		"test:gui": "npm run compile && node src/test/gui/runGui.cjs"
 	},
 	"devDependencies": {

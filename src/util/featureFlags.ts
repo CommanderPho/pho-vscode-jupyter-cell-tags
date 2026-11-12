@@ -17,6 +17,7 @@ export type FeatureKey =
 	| 'durableKernel'
 	| 'cellHistory'
 	| 'cellExecutionTracking'
+	| 'cellMemoryBreakdown'
 	| 'liveConsole';
 
 /** Features settings shown in the status-bar picker, including toolbar-only flags. */
@@ -37,6 +38,7 @@ export const FEATURE_KEYS: readonly FeatureKey[] = [
 	'durableKernel',
 	'cellHistory',
 	'cellExecutionTracking',
+	'cellMemoryBreakdown',
 	'liveConsole',
 ];
 
@@ -61,6 +63,7 @@ export const FEATURE_SETTING_LABELS: Record<FeatureSettingKey, string> = {
 	durableKernel: 'Durable Jupyter server that survives Extension Host restart',
 	cellHistory: 'Write cellCreated/cellEdited timestamps into cell metadata (can dirty the notebook while typing)',
 	cellExecutionTracking: '▶️ Track executed cells in a sidebar view and record execution history for the session',
+	cellMemoryBreakdown: '🧠 Sample Jupyter kernel RSS before/after each cell and show approximate memory deltas (reload required)',
 	liveConsole: '🛠️ Live TypeScript console (extension-host REPL; runs with full extension privileges)',
 	cellNavigation: 'Show the 🧭 Cell Navigation toolbar button in the notebook toolbar',
 };
@@ -80,6 +83,7 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	durableKernel: true,
 	cellHistory: true,
 	cellExecutionTracking: true,
+	cellMemoryBreakdown: false,
 	liveConsole: false,
 };
 
