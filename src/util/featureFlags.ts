@@ -15,7 +15,8 @@ export type FeatureKey =
 	| 'ringMeJupyter'
 	| 'durableKernel'
 	| 'cellHistory'
-	| 'cellExecutionTracking';
+	| 'cellExecutionTracking'
+	| 'cellMemoryBreakdown';
 
 const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	jumpbacks: false,
@@ -31,6 +32,7 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	durableKernel: true,
 	cellHistory: false,
 	cellExecutionTracking: false,
+	cellMemoryBreakdown: false,
 };
 
 /** Deprecated setting key → Features key (relative to `jupyter-cell-tags`). */
@@ -56,6 +58,7 @@ const RELOAD_REQUIRED_FEATURES: ReadonlySet<FeatureKey> = new Set([
 	'durableKernel',
 	'cellHistory',
 	'cellExecutionTracking',
+	'cellMemoryBreakdown',
 ]);
 
 function featuresConfigKey(feature: FeatureKey): string {
