@@ -18,6 +18,7 @@ const featureSettings = {
 	'jupyter-cell-tags.features.durableKernel': true,
 	'jupyter-cell-tags.features.cellHistory': true,
 	'jupyter-cell-tags.features.cellExecutionTracking': true,
+	'jupyter-cell-tags.features.liveConsole': true,
 	'jupyter-cell-tags.features.cellNavigation': true,
 	'jupyter-cell-tags.externalKernel.autoRegisterOnNotebookOpen': false,
 	'jupyter-cell-tags.jupyterEnhancements.kernel.optimizeStartup': false,

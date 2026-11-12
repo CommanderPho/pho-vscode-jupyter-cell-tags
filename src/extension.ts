@@ -32,6 +32,7 @@ import { activateGitDiffHighlighting } from './gitDiff/startup';
 import { activateDependencyChain } from './dependencyChain/startup';
 import { activateNotebookFilter } from './notebookFilter/startup';
 import { activateExternalKernel } from './externalKernel/startup';
+import { activateLiveConsole } from './liveConsole/startup';
 import {
     isFeatureEnabled,
     migrateDeprecatedFeatureSettings,
@@ -144,6 +145,9 @@ export async function activate(context: vscode.ExtensionContext) {
         },
         cellExecutionTracking: {
             activate: activateNotebookCellExecutionTracking,
+        },
+        liveConsole: {
+            activate: activateLiveConsole,
         },
     };
 
