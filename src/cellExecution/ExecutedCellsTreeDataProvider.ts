@@ -1,12 +1,17 @@
 import * as vscode from 'vscode';
 import { getExecutedCellsForCurrentSessionWithStatus, ExecutionStatus } from './cellExecutionTracking';
 import { log } from '../util/logging';
+import { getMemoryBreakdownStore } from '../cellMemory/store';
+import { formatMemoryDelta } from '../cellMemory/format';
+import { isExecutedCellsDisplayEnabled } from '../cellMemory/statusBarProvider';
+import { MemoryBreakdown } from '../cellMemory/types';
 
 export interface ExecutedCellItem {
 	cellIndex: number;
 	status: ExecutionStatus;
 	executionOrder: number;
 	executionTime: string;
+	memoryLabel?: string;
 }
 
 export class ExecutedCellTreeItem extends vscode.TreeItem {
@@ -18,12 +23,18 @@ export class ExecutedCellTreeItem extends vscode.TreeItem {
 		const cellPreview = cell ? cell.document.getText().substring(0, 50).replace(/\n/g, ' ') : '';
 		const statusIcon = executedCell.status === 'error' ? '$(error)' : executedCell.status === 'success' ? '$(check)' : '$(question)';
 		const statusText = executedCell.status === 'error' ? 'Error' : executedCell.status === 'success' ? 'Success' : 'Unknown';
-		
-		super(`Cell ${executedCell.cellIndex}: ${statusIcon} ${statusText}`, vscode.TreeItemCollapsibleState.None);
-		
-		this.tooltip = `Cell ${executedCell.cellIndex}\nStatus: ${statusText}\nExecuted: ${new Date(executedCell.executionTime).toLocaleString()}\nPreview: ${cellPreview}${cellPreview.length >= 50 ? '...' : ''}`;
-		this.description = cellPreview;
-		
+		const memorySuffix = executedCell.memoryLabel ? ` ${executedCell.memoryLabel}` : '';
+
+		super(`Cell ${executedCell.cellIndex}: ${statusIcon} ${statusText}${memorySuffix}`, vscode.TreeItemCollapsibleState.None);
+
+		const memoryTooltip = executedCell.memoryLabel
+			? `\nMemory (approx kernel RSS): ${executedCell.memoryLabel}`
+			: '';
+		this.tooltip = `Cell ${executedCell.cellIndex}\nStatus: ${statusText}\nExecuted: ${new Date(executedCell.executionTime).toLocaleString()}${memoryTooltip}\nPreview: ${cellPreview}${cellPreview.length >= 50 ? '...' : ''}`;
+		this.description = executedCell.memoryLabel
+			? `${executedCell.memoryLabel} · ${cellPreview}`
+			: cellPreview;
+
 		// Set icon based on status
 		if (executedCell.status === 'error') {
 			this.iconPath = new vscode.ThemeIcon('error', new vscode.ThemeColor('errorForeground'));
@@ -32,7 +43,7 @@ export class ExecutedCellTreeItem extends vscode.TreeItem {
 		} else {
 			this.iconPath = new vscode.ThemeIcon('question');
 		}
-		
+
 		this.contextValue = 'executedCellItem';
 		this.command = {
 			command: 'jupyter-cell-tags.executedCells.selectCell',
@@ -40,6 +51,54 @@ export class ExecutedCellTreeItem extends vscode.TreeItem {
 			arguments: [executedCell.cellIndex]
 		};
 	}
+}
+
+/**
+ * Match chronological memory samples to session execution records per cell URI.
+ */
+function attachMemoryLabels(
+	notebook: vscode.NotebookDocument,
+	executedCells: ExecutedCellItem[]
+): ExecutedCellItem[] {
+	if (!isExecutedCellsDisplayEnabled()) {
+		return executedCells;
+	}
+	const store = getMemoryBreakdownStore();
+	if (!store) {
+		return executedCells;
+	}
+
+	const queues = new Map<string, MemoryBreakdown[]>();
+	for (const sample of store.getAll()) {
+		const list = queues.get(sample.cellUri) ?? [];
+		list.push(sample);
+		queues.set(sample.cellUri, list);
+	}
+
+	const chronological = [...executedCells].sort((a, b) => a.executionOrder - b.executionOrder);
+	const labels = new Map<number, string>();
+
+	for (const record of chronological) {
+		const cell = notebook.cellAt(record.cellIndex);
+		if (!cell) {
+			continue;
+		}
+		const uri = cell.document.uri.toString();
+		const queue = queues.get(uri);
+		if (!queue || queue.length === 0) {
+			continue;
+		}
+		const sample = queue.shift()!;
+		const label = formatMemoryDelta(sample.deltaBytes, sample.peakBytes);
+		if (label) {
+			labels.set(record.executionOrder, label);
+		}
+	}
+
+	return executedCells.map((item) => ({
+		...item,
+		memoryLabel: labels.get(item.executionOrder),
+	}));
 }
 
 export class ExecutedCellsTreeDataProvider implements vscode.TreeDataProvider<ExecutedCellTreeItem> {
@@ -58,9 +117,11 @@ export class ExecutedCellsTreeDataProvider implements vscode.TreeDataProvider<Ex
 		if (notebook) {
 			this.currentNotebook = notebook;
 			const notebookUri = notebook.uri;
-			this.executedCells = getExecutedCellsForCurrentSessionWithStatus(this.context, notebookUri, notebook);
+			const raw = getExecutedCellsForCurrentSessionWithStatus(this.context, notebookUri, notebook);
+			this.executedCells = attachMemoryLabels(notebook, raw);
 		} else if (this.currentNotebook) {
-			this.executedCells = getExecutedCellsForCurrentSessionWithStatus(this.context, this.currentNotebook.uri, this.currentNotebook);
+			const raw = getExecutedCellsForCurrentSessionWithStatus(this.context, this.currentNotebook.uri, this.currentNotebook);
+			this.executedCells = attachMemoryLabels(this.currentNotebook, raw);
 		} else {
 			this.executedCells = [];
 		}
@@ -75,7 +136,7 @@ export class ExecutedCellsTreeDataProvider implements vscode.TreeDataProvider<Ex
 		if (!this.currentNotebook) {
 			return Promise.resolve([]);
 		}
-		
+
 		if (element) {
 			// Executed cell items have no children
 			return Promise.resolve([]);
@@ -90,12 +151,12 @@ export class ExecutedCellsTreeDataProvider implements vscode.TreeDataProvider<Ex
 
 export function register(context: vscode.ExtensionContext) {
 	const provider = new ExecutedCellsTreeDataProvider(context);
-	
+
 	const treeView = vscode.window.createTreeView<ExecutedCellTreeItem>('executed-cells-view', {
 		treeDataProvider: provider,
 		showCollapseAll: false
 	});
-	
+
 	context.subscriptions.push(treeView);
 
 	// Update view when active notebook changes
@@ -142,6 +203,19 @@ export function register(context: vscode.ExtensionContext) {
 				return;
 			}
 			scheduleUpdateView();
+		})
+	);
+
+	// Refresh when memory samples arrive or display setting changes
+	const store = getMemoryBreakdownStore();
+	if (store) {
+		context.subscriptions.push(store.onDidChange(() => scheduleUpdateView()));
+	}
+	context.subscriptions.push(
+		vscode.workspace.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration('jupyter-cell-tags.cellMemory.showInExecutedCells')) {
+				scheduleUpdateView();
+			}
 		})
 	);
 
