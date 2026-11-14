@@ -26,14 +26,14 @@ suite('FeatureController isolation', () => {
 	}
 
 	test('disabled feature activator is never called', async () => {
-		let liveConsoleCalled = false;
+		let ringMeCalled = false;
 		let gitDiffCalled = false;
 		const controller = new FeatureController(
 			fakeParent(),
 			{
-				liveConsole: {
+				ringMeJupyter: {
 					activate: () => {
-						liveConsoleCalled = true;
+						ringMeCalled = true;
 					},
 				},
 				gitDiff: {
@@ -47,20 +47,20 @@ suite('FeatureController isolation', () => {
 
 		await controller.start();
 
-		assert.strictEqual(liveConsoleCalled, false);
+		assert.strictEqual(ringMeCalled, false);
 		assert.strictEqual(gitDiffCalled, true);
-		assert.strictEqual(controller.isLive('liveConsole'), false);
+		assert.strictEqual(controller.isLive('ringMeJupyter'), false);
 		assert.strictEqual(controller.isLive('gitDiff'), true);
 	});
 
-	test('liveConsole activate failure does not block other features', async () => {
+	test('feature activate failure does not block other features', async () => {
 		let gitDiffCalled = false;
 		const controller = new FeatureController(
 			fakeParent(),
 			{
-				liveConsole: {
+				ringMeJupyter: {
 					activate: () => {
-						throw new Error("Cannot find module 'typescript'");
+						throw new Error('simulated activate failure');
 					},
 				},
 				gitDiff: {
@@ -74,19 +74,19 @@ suite('FeatureController isolation', () => {
 
 		await controller.start();
 
-		assert.strictEqual(controller.isLive('liveConsole'), false);
+		assert.strictEqual(controller.isLive('ringMeJupyter'), false);
 		assert.strictEqual(gitDiffCalled, true);
 		assert.strictEqual(controller.isLive('gitDiff'), true);
 	});
 
-	test('liveConsole require-time failure does not block other features', async () => {
+	test('feature require-time failure does not block other features', async () => {
 		let gitDiffCalled = false;
 		const controller = new FeatureController(
 			fakeParent(),
 			{
-				liveConsole: {
+				ringMeJupyter: {
 					activate: () => {
-						throw new Error("Cannot find module './liveConsole/startup'");
+						throw new Error("Cannot find module './ringMeJupyter/startup'");
 					},
 				},
 				gitDiff: {
@@ -100,7 +100,7 @@ suite('FeatureController isolation', () => {
 
 		await controller.start();
 
-		assert.strictEqual(controller.isLive('liveConsole'), false);
+		assert.strictEqual(controller.isLive('ringMeJupyter'), false);
 		assert.strictEqual(gitDiffCalled, true);
 		assert.strictEqual(controller.isLive('gitDiff'), true);
 	});

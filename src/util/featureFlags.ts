@@ -17,8 +17,7 @@ export type FeatureKey =
 	| 'durableKernel'
 	| 'cellHistory'
 	| 'cellExecutionTracking'
-	| 'cellMemoryBreakdown'
-	| 'liveConsole';
+	| 'cellMemoryBreakdown';
 
 /** Features settings shown in the status-bar picker, including toolbar-only flags. */
 export type FeatureSettingKey = FeatureKey | 'cellNavigation';
@@ -39,7 +38,6 @@ export const FEATURE_KEYS: readonly FeatureKey[] = [
 	'cellHistory',
 	'cellExecutionTracking',
 	'cellMemoryBreakdown',
-	'liveConsole',
 ];
 
 export const FEATURE_SETTING_KEYS: readonly FeatureSettingKey[] = [
@@ -64,7 +62,6 @@ export const FEATURE_SETTING_LABELS: Record<FeatureSettingKey, string> = {
 	cellHistory: 'Write cellCreated/cellEdited timestamps into cell metadata (can dirty the notebook while typing)',
 	cellExecutionTracking: '▶️ Track executed cells in a sidebar view and record execution history for the session',
 	cellMemoryBreakdown: '🧠 Sample Jupyter kernel RSS before/after each cell and show approximate memory deltas (reload required)',
-	liveConsole: '🛠️ Live TypeScript console (extension-host REPL; runs with full extension privileges)',
 	cellNavigation: 'Show the 🧭 Cell Navigation toolbar button in the notebook toolbar',
 };
 
@@ -84,7 +81,6 @@ const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	cellHistory: true,
 	cellExecutionTracking: true,
 	cellMemoryBreakdown: false,
-	liveConsole: false,
 };
 
 const FEATURE_SETTING_DEFAULTS: Record<FeatureSettingKey, boolean> = {

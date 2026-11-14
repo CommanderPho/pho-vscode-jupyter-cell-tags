@@ -154,15 +154,6 @@ export async function activate(context: vscode.ExtensionContext) {
         cellExecutionTracking: {
             activate: activateNotebookCellExecutionTracking,
         },
-        liveConsole: {
-            // Lazy-load so a missing `typescript` dep cannot break activation
-            // when Live Console is disabled (default). FeatureController also
-            // catches enable failures so a bad enable cannot block other features.
-            activate: (ctx) => {
-                const { activateLiveConsole } = require('./liveConsole/startup') as typeof import('./liveConsole/startup');
-                activateLiveConsole(ctx);
-            },
-        },
     };
 
     await registerFeatureHotToggle(context, optionalFeatures);
