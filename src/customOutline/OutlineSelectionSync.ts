@@ -1,8 +1,41 @@
 import * as vscode from 'vscode';
 import { IOutlineSelectionSync } from './IOutlineSelectionSync';
-import { OutlineItem, NotebookTreeItem } from './models';
+import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from './models';
 import { getSelectionDetector } from '../outlineSync/startup';
+import { isValidCellIndex } from '../util/notebookSelection';
 import { log } from '../util/logging';
+
+/**
+ * Map selected outline tree rows to deduplicated single-cell notebook ranges.
+ * Headings and executed-cell markers each contribute their cell index.
+ */
+export function notebookRangesFromOutlineSelection(
+    selectedItems: readonly vscode.TreeItem[]
+): vscode.NotebookRange[] {
+    const seen = new Set<number>();
+    const ranges: vscode.NotebookRange[] = [];
+
+    for (const item of selectedItems) {
+        let cellIndex: number | undefined;
+        if (item instanceof OutlineItem || item instanceof ExecutedCellLineItem) {
+            cellIndex = item.cellIndex;
+        }
+        if (cellIndex === undefined || seen.has(cellIndex)) {
+            continue;
+        }
+        seen.add(cellIndex);
+        ranges.push(new vscode.NotebookRange(cellIndex, cellIndex + 1));
+    }
+
+    return ranges;
+}
+
+function cellIndexOfTreeItem(item: vscode.TreeItem): number | undefined {
+    if (item instanceof OutlineItem || item instanceof ExecutedCellLineItem) {
+        return item.cellIndex;
+    }
+    return undefined;
+}
 
 /**
  * Implements bidirectional synchronization between editor selections and
@@ -75,8 +108,8 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
 
     /**
      * Sync outline item selections to the notebook editor.
-     * Selecting items in the outline selects their heading cells in the editor.
-     * ExecutedCellLineItem navigates to the executed cell instead.
+     * Each selected heading or executed-cell row selects its cell.
+     * Reveals the last selected item so plain click still navigates.
      */
     async syncOutlineToEditor(selectedItems: readonly vscode.TreeItem[]): Promise<void> {
         const editor = vscode.window.activeNotebookEditor;
@@ -84,12 +117,10 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
             return;
         }
 
-        const outlineItems = selectedItems.filter((i): i is OutlineItem => i instanceof OutlineItem);
-        if (!outlineItems.length) {
+        const ranges = notebookRangesFromOutlineSelection(selectedItems);
+        if (!ranges.length) {
             return;
         }
-
-        const ranges = outlineItems.map(item => new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1));
 
         try {
             const selectionDetector = getSelectionDetector();
@@ -97,6 +128,13 @@ export class OutlineSelectionSync implements IOutlineSelectionSync {
                 selectionDetector.triggerSelectionChange(editor, ranges);
             } else {
                 editor.selections = ranges;
+            }
+
+            const lastItem = selectedItems[selectedItems.length - 1];
+            const revealIndex = cellIndexOfTreeItem(lastItem);
+            if (revealIndex !== undefined && isValidCellIndex(editor.notebook, revealIndex)) {
+                const revealRange = new vscode.NotebookRange(revealIndex, revealIndex + 1);
+                editor.revealRange(revealRange, vscode.NotebookEditorRevealType.AtTop);
             }
         } catch (error) {
             log(`Failed to sync custom outline selection to editor: ${error}`);

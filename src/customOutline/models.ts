@@ -54,13 +54,8 @@ export class OutlineItem extends vscode.TreeItem {
         // Set icon based on heading level and keep a base copy
         this.baseIcon = new vscode.ThemeIcon(this.getIconForLevel(heading.level));
         this.iconPath = this.baseIcon;
-        
-        // Set command to execute when clicked (navigate to cell)
-        this.command = {
-            command: 'jupyter-cell-tags.customOutline.selectCell',
-            title: 'Select Cell',
-            arguments: [this]
-        };
+        // Intentionally no TreeItem.command: click selection is owned by
+        // TreeView onDidChangeSelection so Ctrl/Shift multi-select works.
     }
 
     /**
@@ -140,11 +135,8 @@ export class ExecutedCellLineItem extends vscode.TreeItem {
         this.tooltip = `Executed cell ${cellIndex}`;
         this.contextValue = 'executedCellLineItem';
         this.iconPath = ExecutedCellLineItem.createLineIcon(color);
-        this.command = {
-            command: 'jupyter-cell-tags.customOutline.selectCell',
-            title: 'Select Cell',
-            arguments: [this]
-        };
+        // Intentionally no TreeItem.command: selection sync owns navigation
+        // so Ctrl/Shift multi-select is not collapsed by a single-item command.
     }
 
     private static createLineIcon(color: string): vscode.Uri {

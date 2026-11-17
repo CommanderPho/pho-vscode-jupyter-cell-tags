@@ -1,6 +1,10 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
-import { OutlineItem } from '../../customOutline/models';
+import {
+	OutlineSelectionSync,
+	notebookRangesFromOutlineSelection
+} from '../../customOutline/OutlineSelectionSync';
+import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from '../../customOutline/models';
 import {
 	Fixture,
 	activateExtension,
@@ -67,5 +71,39 @@ suite('Custom outline commands', () => {
 		selectCells(editor, Fixture.childHeading);
 		await vscode.commands.executeCommand('jupyter-cell-tags.customOutline.deleteCellsUnderHeading', item);
 		assert.ok(editor.notebook.cellCount <= before);
+	});
+
+	test('outline tree items omit TreeItem.command so multi-select is not collapsed', () => {
+		const heading = headingItem(Fixture.heading, 'Heading', editor.notebook.cellCount);
+		const executed = new ExecutedCellLineItem(Fixture.taggedA, '#00ff00');
+		assert.strictEqual(heading.command, undefined);
+		assert.strictEqual(executed.command, undefined);
+	});
+
+	test('notebookRangesFromOutlineSelection maps headings and executed cells, deduping', () => {
+		const headingA = headingItem(Fixture.heading, 'Heading', editor.notebook.cellCount);
+		const headingB = headingItem(Fixture.childHeading, 'Child', Fixture.taggedA + 1);
+		const executed = new ExecutedCellLineItem(Fixture.taggedA, '#00ff00');
+		const duplicateHeading = headingItem(Fixture.heading, 'Heading again', editor.notebook.cellCount);
+
+		const ranges = notebookRangesFromOutlineSelection([headingA, headingB, executed, duplicateHeading]);
+		assert.deepStrictEqual(
+			ranges.map((r) => r.start),
+			[Fixture.heading, Fixture.childHeading, Fixture.taggedA]
+		);
+		assert.ok(ranges.every((r) => r.end === r.start + 1));
+	});
+
+	test('syncOutlineToEditor selects multiple outline rows including executed children', async () => {
+		const treeView = {
+			reveal: async () => undefined
+		} as unknown as vscode.TreeView<NotebookTreeItem>;
+		const sync = new OutlineSelectionSync(treeView);
+
+		const heading = headingItem(Fixture.heading, 'Heading', editor.notebook.cellCount);
+		const executed = new ExecutedCellLineItem(Fixture.taggedB, '#00ff00');
+		await sync.syncOutlineToEditor([heading, executed]);
+
+		assert.deepStrictEqual(selectedStarts(editor), [Fixture.heading, Fixture.taggedB].sort((a, b) => a - b));
 	});
 });

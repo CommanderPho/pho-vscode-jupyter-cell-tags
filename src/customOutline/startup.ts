@@ -1,12 +1,11 @@
 import * as vscode from 'vscode';
 import { HeadingParser } from './HeadingParser';
 import { NotebookOutlineTreeDataProvider } from './NotebookOutlineTreeDataProvider';
-import { OutlineItem, ExecutedCellLineItem, NotebookTreeItem } from './models';
+import { OutlineItem, NotebookTreeItem } from './models';
 import { UpdateCoordinator } from './UpdateCoordinator';
 import { OutlineSelectionSync } from './OutlineSelectionSync';
 import { getSelectionDetector, getSyncManager } from '../outlineSync/startup';
 import { log } from '../util/logging';
-import { isValidCellIndex } from '../util/notebookSelection';
 
 /**
  * Register the custom notebook outline view, commands, and synchronization.
@@ -164,32 +163,15 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
         }
     );
 
-    // Command: click on outline item selects its heading cell;
-    // clicking an ExecutedCellLineItem navigates to that executed cell.
+    // Programmatic/palette select for a single outline row.
+    // Tree clicks use onDidChangeSelection instead (no TreeItem.command)
+    // so Ctrl/Shift multi-select is not collapsed to one item.
     context.subscriptions.push(
         vscode.commands.registerCommand('jupyter-cell-tags.customOutline.selectCell', async (item: NotebookTreeItem) => {
             if (!item) {
                 return;
             }
-
-            if (item instanceof ExecutedCellLineItem) {
-                // Navigate to the executed cell
-                const editor = vscode.window.activeNotebookEditor;
-                if (editor && isValidCellIndex(editor.notebook, item.cellIndex)) {
-                    const range = new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1);
-                    editor.selections = [range];
-                    editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
-                }
-                return;
-            }
-
-            // OutlineItem: select the heading cell
             await selectionSync.syncOutlineToEditor([item]);
-            const editor = vscode.window.activeNotebookEditor;
-            if (editor && isValidCellIndex(editor.notebook, item.cellIndex)) {
-                const range = new vscode.NotebookRange(item.cellIndex, item.cellIndex + 1);
-                editor.revealRange(range, vscode.NotebookEditorRevealType.AtTop);
-            }
         })
     );
 
