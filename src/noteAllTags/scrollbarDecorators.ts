@@ -131,12 +131,14 @@ export class ScrollbarDecoratorManager implements vscode.Disposable {
         return decorationType;
     }
 
-    private getColorForTag(tag: string): string {
+    private getColorForTag(tag: string, allProperties?: Record<string, { color?: string }>): string {
         if (!this.currentNotebook) {
             return this.hashStringToColor(tag);
         }
 
-        const properties = TagPropertiesManager.getTagProperties(this.currentNotebook, tag);
+        const properties = allProperties
+            ? allProperties[tag]
+            : TagPropertiesManager.getTagProperties(this.currentNotebook, tag);
         if (properties?.color) {
             return properties.color;
         }
@@ -236,8 +238,13 @@ export class ScrollbarDecoratorManager implements vscode.Disposable {
             });
         }
 
+        const allProperties = TagPropertiesManager.getAllTagProperties(notebook);
+        const uriToEditor = new Map(
+            vscode.window.visibleTextEditors.map(e => [e.document.uri.toString(), e] as const)
+        );
+
         tagToCells.forEach((cellIndices, tag) => {
-            this.updateDecorationsForTag(tag, cellIndices);
+            this.updateDecorationsForTag(tag, cellIndices, allProperties, uriToEditor);
         });
 
         const currentTags = Array.from(tagToCells.keys());
@@ -248,18 +255,20 @@ export class ScrollbarDecoratorManager implements vscode.Disposable {
         });
     }
 
-    private updateDecorationsForTag(tag: string, cellIndices: number[]): void {
+    private updateDecorationsForTag(
+        tag: string,
+        cellIndices: number[],
+        allProperties: Record<string, { color?: string }>,
+        uriToEditor: Map<string, vscode.TextEditor>
+    ): void {
         if (!this.currentNotebook) {
             return;
         }
 
-        const color = this.getColorForTag(tag);
+        const color = this.getColorForTag(tag, allProperties);
         const decorationType = this.getOrCreateDecorationType(tag, color);
 
         const notebook = this.currentNotebook;
-        const uriToEditor = new Map(
-            vscode.window.visibleTextEditors.map(e => [e.document.uri.toString(), e] as const)
-        );
 
         cellIndices.forEach(cellIndex => {
             const cell = notebook.cellAt(cellIndex);

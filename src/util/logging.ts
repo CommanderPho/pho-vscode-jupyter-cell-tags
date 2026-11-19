@@ -6,18 +6,18 @@ import * as vscode from 'vscode';
 
 let myChannel: vscode.OutputChannel;
 
-// Function for logging
+// Function for logging — no-op on hot paths unless debugPrint is enabled
 export function log(...args: any[]) {
     if (!myChannel) {
         return;
     }
     const config = vscode.workspace.getConfiguration('jupyter-cell-tags');
     const debugPrintEnabled = config.get<boolean>('debugPrint', false);
-    const line = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
-
-    if (debugPrintEnabled) {
-        console.log(...args);
+    if (!debugPrintEnabled) {
+        return;
     }
+    const line = args.map(arg => (typeof arg === 'object' ? JSON.stringify(arg) : String(arg))).join(' ');
+    console.log(...args);
     myChannel.appendLine(line);
 }
 
@@ -58,9 +58,6 @@ export async function showTimedInformationMessage(message: string, timeout: numb
 export function activateCustomLogging(context: vscode.ExtensionContext) {
     // must be called first before any logging
     myChannel = vscode.window.createOutputChannel('PhoLogger');
+    // One-time activation line (not gated) so the channel exists; hot-path log() stays quiet unless debugPrint
     myChannel.appendLine('Extension activated.');
-    // myChannel.show(true);
-    // myChannel.show(false);
-    log('Extension activated.');
-
 }

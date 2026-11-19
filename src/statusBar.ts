@@ -5,6 +5,9 @@ import { notebookRangesToIndices } from './util/notebookSelection';
 export class CellSelectionsStatusBarItem {
     private statusBarItem: vscode.StatusBarItem;
     private disposables: vscode.Disposable[] = [];
+    private updateTimer: ReturnType<typeof setTimeout> | undefined;
+    private static readonly UPDATE_DEBOUNCE_MS = 50;
+    private lastText: string | undefined;
 
     constructor() {
         this.statusBarItem = vscode.window.createStatusBarItem(
@@ -16,51 +19,28 @@ export class CellSelectionsStatusBarItem {
     }
 
     private registerEventListeners() {
-        // Update whenever the active notebook editor changes.
         this.disposables.push(
             vscode.window.onDidChangeActiveNotebookEditor(() => this.update())
         );
-        // Update when the selection within a notebook editor changes.
         this.disposables.push(
-            vscode.window.onDidChangeNotebookEditorSelection(() => this.update())
+            vscode.window.onDidChangeNotebookEditorSelection(() => this.scheduleUpdate())
         );
-
-        // // Update when the selection within a notebook editor changes.
-        // this.disposables.push(
-        //     vscode.window.onDidChangeNotebookEditorVisibleRanges(() => this.updateVisibleRanges())
-        // );
-        
-
-        
-
     }
 
-
-    // private updateVisibleRanges() {
-    //     // This needs to be faster than update() as it happens any time the notebook is scrolled or adjusted
-    //     const extension = vscode.extensions.getExtension('phohale.pho-vscode-jupyter-cell-tags');
-    //     const pluginVersion = extension?.packageJSON.version || 'unknown';
-    //     const vscodeVersion = vscode.version;
-
-    //     let selectionIndicator = '';
-    //     const activeNotebookEditor = vscode.window.activeNotebookEditor;
-    //     if (activeNotebookEditor && activeNotebookEditor.selections && activeNotebookEditor.selections.length > 0) {
-    //         // For this example, we assume each cell in the selection has an "index" property.
-    //         // const selectedCellIds = activeNotebookEditor.selections.map(cell => cell.index).join(', ');
-    //         const selectedCellIds = activeNotebookEditor.selections.map(range => range.start).join(', ');
-    //         selectionIndicator = ` | Selected Cells: ${selectedCellIds}`;
-    //     }
-
-    //     this.statusBarItem.text = `$(heart) $(preview) VSCode: ${vscodeVersion} | Plugin: ${pluginVersion}${selectionIndicator}`;
-    //     this.statusBarItem.tooltip = 'Jupyter Cell Tags Version Info';
-    // }
-
-
-
+    private scheduleUpdate(): void {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+        }
+        this.updateTimer = setTimeout(() => {
+            this.updateTimer = undefined;
+            this.update();
+        }, CellSelectionsStatusBarItem.UPDATE_DEBOUNCE_MS);
+    }
 
     private update() {
         const activeNotebookEditor = vscode.window.activeNotebookEditor;
         if (!activeNotebookEditor) {
+            this.lastText = undefined;
             this.statusBarItem.hide();
             return;
         }
@@ -71,12 +51,21 @@ export class CellSelectionsStatusBarItem {
         } else {
             selectionIndicator = '<No Notebook Cell Selections>';
         }
-        this.statusBarItem.text = `$(heart) $(preview) ${selectionIndicator}`;
+        const text = `$(heart) $(preview) ${selectionIndicator}`;
+        if (text === this.lastText) {
+            return;
+        }
+        this.lastText = text;
+        this.statusBarItem.text = text;
         this.statusBarItem.tooltip = 'Jupyter Cell Tags - Selected Notebook Cells Info';
         this.statusBarItem.show();
     }
 
     public dispose() {
+        if (this.updateTimer) {
+            clearTimeout(this.updateTimer);
+            this.updateTimer = undefined;
+        }
         this.disposables.forEach(d => d.dispose());
         this.statusBarItem.dispose();
     }

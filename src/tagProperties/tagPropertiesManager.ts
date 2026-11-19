@@ -6,10 +6,12 @@ import { updateNotebookMetadata } from '../util/notebookMetadata';
 export class TagPropertiesManager {
     private static readonly METADATA_KEY = 'tagProperties';
     
-    // Get properties for a specific tag
+    // Get properties for a specific tag (no full-map clone)
     public static getTagProperties(notebook: vscode.NotebookDocument, tagName: string): TagProperties {
-        const properties = this.getAllTagProperties(notebook);
-        return properties[tagName] || {};
+        const metadata = notebook.metadata || {};
+        const props = (metadata[this.METADATA_KEY] || {}) as Record<string, TagProperties>;
+        const existing = props[tagName];
+        return existing ? { ...existing } : {};
     }
     
     // Set properties for a specific tag
