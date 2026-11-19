@@ -119,12 +119,25 @@ export class ExecutedCellsTreeDataProvider implements vscode.TreeDataProvider<Ex
 			const notebookUri = notebook.uri;
 			const raw = getExecutedCellsForCurrentSessionWithStatus(this.context, notebookUri, notebook);
 			this.executedCells = attachMemoryLabels(notebook, raw);
-		} else if (this.currentNotebook) {
-			const raw = getExecutedCellsForCurrentSessionWithStatus(this.context, this.currentNotebook.uri, this.currentNotebook);
-			this.executedCells = attachMemoryLabels(this.currentNotebook, raw);
 		} else {
+			// No notebook argument means clear: do not keep refreshing stale session data
+			// after the active notebook editor goes away.
+			this.currentNotebook = undefined;
 			this.executedCells = [];
 		}
+		this._onDidChangeTreeData.fire(null);
+	}
+
+	/** Re-read executed cells for the notebook currently bound to this view (if any). */
+	refreshCurrent(): void {
+		if (!this.currentNotebook) {
+			this.executedCells = [];
+			this._onDidChangeTreeData.fire(null);
+			return;
+		}
+		const notebook = this.currentNotebook;
+		const raw = getExecutedCellsForCurrentSessionWithStatus(this.context, notebook.uri, notebook);
+		this.executedCells = attachMemoryLabels(notebook, raw);
 		this._onDidChangeTreeData.fire(null);
 	}
 
@@ -163,6 +176,9 @@ export function register(context: vscode.ExtensionContext) {
 	const updateView = () => {
 		const notebookEditor = vscode.window.activeNotebookEditor;
 		if (notebookEditor) {
+			if (!treeView.visible) {
+				return;
+			}
 			provider.refresh(notebookEditor.notebook);
 		} else {
 			provider.refresh();
@@ -171,6 +187,9 @@ export function register(context: vscode.ExtensionContext) {
 
 	let refreshTimer: ReturnType<typeof setTimeout> | undefined;
 	const scheduleUpdateView = () => {
+		if (!treeView.visible || !vscode.window.activeNotebookEditor) {
+			return;
+		}
 		if (refreshTimer) {
 			clearTimeout(refreshTimer);
 		}
@@ -183,6 +202,11 @@ export function register(context: vscode.ExtensionContext) {
 	// Listen to notebook changes
 	context.subscriptions.push(
 		vscode.window.onDidChangeActiveNotebookEditor(() => updateView()),
+		treeView.onDidChangeVisibility((e) => {
+			if (e.visible) {
+				updateView();
+			}
+		}),
 		{
 			dispose: () => {
 				if (refreshTimer) {
@@ -209,7 +233,12 @@ export function register(context: vscode.ExtensionContext) {
 	// Refresh when memory samples arrive or display setting changes
 	const store = getMemoryBreakdownStore();
 	if (store) {
-		context.subscriptions.push(store.onDidChange(() => scheduleUpdateView()));
+		context.subscriptions.push(store.onDidChange(() => {
+			if (!treeView.visible) {
+				return;
+			}
+			provider.refreshCurrent();
+		}));
 	}
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeConfiguration((e) => {

@@ -106,8 +106,19 @@ export class AllTagsTreeDataProvider implements vscode.TreeDataProvider<string |
 
     private async registerEditorListeners(editor: vscode.NotebookEditor | undefined) {
         this._editorDisposables.forEach(d => d.dispose());
+        this._editorDisposables = [];
 
-        if (!editor || editor.notebook.notebookType !== 'jupyter-notebook') {
+        if (this._updateTagsTimer) {
+            clearTimeout(this._updateTagsTimer);
+            this._updateTagsTimer = undefined;
+        }
+
+        if (!editor || (editor.notebook.notebookType !== 'jupyter-notebook' && editor.notebook.notebookType !== 'pho-notebook')) {
+            // Drop cached tag maps so we do not hold notebook cell data while idle.
+            if (this._tags.size > 0) {
+                this._tags.clear();
+                this._onDidChangeTreeData.fire();
+            }
             return;
         }
         log('Setting jupyter:showAllTagsExplorer context');

@@ -1363,7 +1363,7 @@
 					"contextualTitle": "▶️ Executed Cells",
 					"type": "tree",
 					"icon": "$(play)",
-					"when": "jupyter-cell-tags.notebookActive"
+					"when": "jupyter-cell-tags.notebookActive && config.jupyter-cell-tags.features.cellExecutionTracking"
 				},
 				{
 					"id": "git-modified-cells-view",

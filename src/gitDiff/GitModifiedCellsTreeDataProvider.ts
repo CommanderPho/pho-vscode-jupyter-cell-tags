@@ -88,10 +88,9 @@ export class GitModifiedCellsTreeDataProvider
 
 	async refresh(notebook?: vscode.NotebookDocument): Promise<void> {
 		const generation = ++this.refreshGeneration;
-		const target =
-			notebook ??
-			vscode.window.activeNotebookEditor?.notebook ??
-			this.currentNotebook;
+		// Prefer an explicit notebook, else the active editor. Do not fall back to a
+		// stale currentNotebook — calling refresh() with no args means "clear / idle".
+		const target = notebook ?? vscode.window.activeNotebookEditor?.notebook;
 
 		if (!target) {
 			this.currentNotebook = undefined;
@@ -189,19 +188,31 @@ export function registerGitModifiedCellsView(context: vscode.ExtensionContext): 
 
 	const updateView = () => {
 		const notebookEditor = vscode.window.activeNotebookEditor;
-		if (notebookEditor) {
-			void provider.refresh(notebookEditor.notebook);
-		} else {
+		if (!notebookEditor) {
 			void provider.refresh();
+			return;
 		}
+		// Skip expensive git LCS work while the view is hidden (e.g. when-clause off).
+		if (!treeView.visible) {
+			return;
+		}
+		void provider.refresh(notebookEditor.notebook);
 	};
 
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveNotebookEditor(() => updateView())
+		vscode.window.onDidChangeActiveNotebookEditor(() => updateView()),
+		treeView.onDidChangeVisibility((e) => {
+			if (e.visible) {
+				updateView();
+			}
+		})
 	);
 
 	context.subscriptions.push(
 		vscode.workspace.onDidChangeNotebookDocument(e => {
+			if (!treeView.visible) {
+				return;
+			}
 			if (e.notebook !== vscode.window.activeNotebookEditor?.notebook) {
 				return;
 			}
