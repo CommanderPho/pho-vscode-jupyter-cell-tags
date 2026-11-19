@@ -40,15 +40,26 @@ export function registerCustomOutline(context: vscode.ExtensionContext): void {
     // Initial population based on the active notebook
     updateCoordinator.scheduleUpdate();
 
-    // Listen to notebook editor and document changes
+    // Listen to notebook editor and document changes.
+    // When no notebook is active, clear cached outline state immediately so we do not
+    // retain parsed headings in memory while the view is hidden by its when-clause.
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveNotebookEditor(() => {
+        vscode.window.onDidChangeActiveNotebookEditor((editor) => {
+            if (!editor) {
+                updateCoordinator.cancelPendingUpdates();
+                provider.refresh();
+                return;
+            }
             updateCoordinator.scheduleUpdate();
         })
     );
 
     context.subscriptions.push(
-        vscode.workspace.onDidChangeNotebookDocument(() => {
+        vscode.workspace.onDidChangeNotebookDocument((e) => {
+            const active = vscode.window.activeNotebookEditor;
+            if (!active || e.notebook !== active.notebook) {
+                return;
+            }
             updateCoordinator.scheduleUpdate();
         })
     );
