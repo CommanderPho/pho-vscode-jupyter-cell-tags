@@ -69,12 +69,13 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.commands.registerCommand('jupyter-cell-tags.importTags', importTagsForNotebook),
         vscode.commands.registerCommand('jupyter-cell-tags.exportExecutedCodeToPython', exportExecutedCodeToPython)
     );
-	// Update context when the active editor or selection changes
+	// Debounce all context updates — selection fires rapidly while arrowing cells
 	context.subscriptions.push(
-		vscode.window.onDidChangeActiveNotebookEditor(() => updateContext()),
-		vscode.window.onDidChangeNotebookEditorSelection(() => updateContext()),
-		vscode.window.onDidChangeActiveTextEditor(() => updateContext()),
+		vscode.window.onDidChangeActiveNotebookEditor(() => _scheduleUpdateContext()),
+		vscode.window.onDidChangeNotebookEditorSelection(() => _scheduleUpdateContext()),
+		vscode.window.onDidChangeActiveTextEditor(() => _scheduleUpdateContext()),
 		vscode.window.onDidChangeTextEditorSelection(() => _scheduleUpdateContext()),
+		{ dispose: () => { if (_updateContextTimer) { clearTimeout(_updateContextTimer); } } },
 	);
 
 	updateContext();
@@ -163,16 +164,17 @@ function updateContext() {
     const editor = vscode.window.activeNotebookEditor;
     _setContextIfChanged('jupyter-cell-tags.notebookActive', !!editor);
 
+    const jumpbacksEnabled = isFeatureEnabled('jumpbacks');
     const textEditor = vscode.window.activeTextEditor;
     const isPlainTextEditor = !!textEditor && textEditor.document.uri.scheme !== 'vscode-notebook-cell';
-    _setContextIfChanged('jupyter-cell-tags.jumpbackTargetActive', !!editor || isPlainTextEditor);
+    _setContextIfChanged('jupyter-cell-tags.jumpbackTargetActive', jumpbacksEnabled && (!!editor || isPlainTextEditor));
 
     if (!editor) {
         _setContextIfChanged('jupyter-cell-tags.singleCellSelected', false);
         _setContextIfChanged('jupyter-cell-tags.multipleCellsSelected', false);
 
         let hasJumpback = false;
-        if (isPlainTextEditor && textEditor) {
+        if (jumpbacksEnabled && isPlainTextEditor && textEditor) {
             const ds = JumpbackDataSource.loadFromTextDocument(textEditor.document);
             hasJumpback = ds.hasTextJumpbackOnLine(textEditor.selection.active.line);
         }
@@ -180,14 +182,13 @@ function updateContext() {
         return;
     }
     const selections: readonly vscode.NotebookRange[] = editor.selections;
-    const selectedRangesCount = selections.length;
     const total_num_selected_cells = countSelectedCells(selections, editor.notebook);
     _setContextIfChanged('jupyter-cell-tags.singleCellSelected', total_num_selected_cells === 1);
     _setContextIfChanged('jupyter-cell-tags.multipleCellsSelected', total_num_selected_cells > 1);
 
-    // Check if the currently selected cell has a jumpback
+    // Skip metadata parse when jumpbacks feature is off
     let hasJumpback = false;
-    if (selections.length > 0 && total_num_selected_cells === 1) {
+    if (jumpbacksEnabled && selections.length > 0 && total_num_selected_cells === 1) {
         const selectedCellIndex = selections[0].start;
         const jumpbackDS = JumpbackDataSource.loadFromNotebook(editor.notebook);
         hasJumpback = jumpbackDS.hasNotebookJumpback(selectedCellIndex);

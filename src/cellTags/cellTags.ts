@@ -6,7 +6,7 @@ import * as json from '../json';
 import { getCellTags, updateCellTags } from '../helper';
 // import { getAllTagsFromActiveNotebook } from './allNotebookTagsTreeDataProvider';
 import { quickPickAllTags } from '../notebookRunGroups/util/cellActionHelpers';
-import { getAllTagsFromActiveNotebook, reviveCell } from '../util/notebookSelection';
+import { reviveCell } from '../util/notebookSelection';
 import { getActiveCell, getActiveCells } from '../util/notebookSelection';
 import { log } from '../util/logging';
 import { TagPropertiesManager } from '../tagProperties/tagPropertiesManager';
@@ -144,10 +144,6 @@ export function register(context: vscode.ExtensionContext) {
             }
         )
     );
-
-    // Test getAllTagsFromActiveNotebook function
-    const tags = getAllTagsFromActiveNotebook();
-    log('Retrieved tags:', tags);
 
     context.subscriptions.push(
         vscode.commands.registerCommand(

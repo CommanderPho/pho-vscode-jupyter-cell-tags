@@ -18,18 +18,19 @@ export type FeatureKey =
 	| 'cellExecutionTracking'
 	| 'cellMemoryBreakdown';
 
+/** Fallback defaults when a Features key is missing from contributes (package.json is authoritative). */
 const FEATURE_DEFAULTS: Record<FeatureKey, boolean> = {
 	jumpbacks: false,
-	errorNavigation: false,
+	errorNavigation: true,
 	outlineSync: true,
 	customOutline: true,
-	scrollbarDecorators: true,
-	jupyterEnhancements: true,
-	gitDiff: true,
-	dependencyChain: true,
-	notebookFilter: true,
-	ringMeJupyter: true,
-	durableKernel: true,
+	scrollbarDecorators: false,
+	jupyterEnhancements: false,
+	gitDiff: false,
+	dependencyChain: false,
+	notebookFilter: false,
+	ringMeJupyter: false,
+	durableKernel: false,
 	cellHistory: false,
 	cellExecutionTracking: false,
 	cellMemoryBreakdown: false,

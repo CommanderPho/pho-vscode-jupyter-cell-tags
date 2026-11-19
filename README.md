@@ -30,13 +30,10 @@ This extension replaces the tags extension that ships with the [Jupyter extensio
 - Color, rename, sort, and remove tags from all cells in the All Notebook Tags view
 - **Jumpbacks** bookmark a cell or text line and jump back to it
 - **Custom NB Outline** lists markdown headings with multi-select
-- **Executed Cells** lists cells run in this session
+- **Executed Cells** lists cells run in this session (off by default)
 - **Cell Memory Breakdown** (off by default) samples approximate Jupyter kernel RSS before/after each cell and shows deltas in the Executed Cells view (status bar optional)
-- **Git Modified Cells** lists cells changed vs HEAD (or a chosen commit) and can highlight them
-- **Dependency Chain** finds upstream Python cells required to run the current cell
-- **Notebook Cell Filter** collapses cells that do not match chosen criteria
-- **Durable Jupyter** starts a local Jupyter server that survives Extension Host restart
-- Each of these can be turned on or off under **Features** in settings
+- **Git Modified Cells**, **Dependency Chain**, **Notebook Cell Filter**, and **Durable Jupyter** are available under **Features** (off by default to keep idle CPU/memory low)
+- Each optional feature can be turned on or off under **Features** in settings; the extension activates when a notebook opens rather than at VS Code startup
 
 ### License
 

@@ -20,11 +20,8 @@
 		"Notebooks"
 	],
 	"activationEvents": [
-		"onStartupFinished",
 		"onNotebook:jupyter-notebook",
 		"onNotebook:pho-notebook",
-		"onNotebookEditor:editor.selection",
-		"onNotebookEditor:editor.onDidChangeActiveNotebookEditor",
 		"onCommand:jupyter-cell-tags.removeTag",
 		"onCommand:jupyter-cell-tags.addTag",
 		"onCommand:jupyter-cell-tags.editTagsInJSON",
@@ -126,17 +123,17 @@
 					},
 					"jupyter-cell-tags.features.gitDiff": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "🔀 Highlight and list cells changed vs a git commit"
 					},
 					"jupyter-cell-tags.features.dependencyChain": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "⛓️ Show variable dependency chains between cells"
 					},
 					"jupyter-cell-tags.features.notebookFilter": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "🔍 Collapse/filter notebook cells by criteria"
 					},
 					"jupyter-cell-tags.toolbar.notebookFilter": {
@@ -151,17 +148,17 @@
 					},
 					"jupyter-cell-tags.features.durableKernel": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "Durable Jupyter server that survives Extension Host restart"
 					},
 					"jupyter-cell-tags.features.cellHistory": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "Write cellCreated/cellEdited timestamps into cell metadata (can dirty the notebook while typing)"
 					},
 					"jupyter-cell-tags.features.cellExecutionTracking": {
 						"type": "boolean",
-						"default": true,
+						"default": false,
 						"description": "▶️ Track executed cells in a sidebar view and record execution history for the session"
 					},
 					"jupyter-cell-tags.features.cellMemoryBreakdown": {
