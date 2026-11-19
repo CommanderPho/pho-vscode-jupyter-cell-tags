@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 
 import * as vscode from 'vscode';
-import { sortObjectPropertiesRecursively, useCustomMetadata } from './util/notebookMetadata';
+import { metadataDeepEqual, sortObjectPropertiesRecursively, useCustomMetadata } from './util/notebookMetadata';
 
 // export const myOutputChannel = vscode.window.createOutputChannel("Pho Hale Extension - Jupyter Cell Tags");
 // myOutputChannel.appendLine("This is a log message from my extension");
@@ -29,6 +29,16 @@ export function getCellTags(cell: vscode.NotebookCell): string[] {
 }
 
 export async function updateCellTags(cell: vscode.NotebookCell, tags: string[], defer_apply: boolean = false) {
+    if (cell.notebook.isClosed) {
+        return;
+    }
+
+    const currentTags = getCellTags(cell);
+    if (currentTags.length === tags.length && currentTags.every((t, i) => t === tags[i])) {
+        // Same tags — do not re-apply sorted metadata (would dirty a clean notebook)
+        return;
+    }
+
     const metadata = JSON.parse(JSON.stringify(cell.metadata));
     if (useCustomMetadata()) {
         metadata.custom = metadata.custom || {};
@@ -44,13 +54,17 @@ export async function updateCellTags(cell: vscode.NotebookCell, tags: string[], 
             delete metadata.metadata.tags;
         }
     }
+    const sorted = sortObjectPropertiesRecursively(metadata);
+    if (!defer_apply && metadataDeepEqual(cell.metadata, sorted)) {
+        return;
+    }
     if (!defer_apply) {
         const edit = new vscode.WorkspaceEdit();
-        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sorted);
         edit.set(cell.notebook.uri, [nbEdit]);
         await vscode.workspace.applyEdit(edit);
     } else {
-        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sortObjectPropertiesRecursively(metadata));
+        const nbEdit = vscode.NotebookEdit.updateCellMetadata(cell.index, sorted);
         return nbEdit;
     }
 }

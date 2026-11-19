@@ -2,6 +2,8 @@
 // Licensed under the MIT License.
 import * as vscode from 'vscode';
 import { log } from '../../util/logging';
+import { metadataDeepEqual } from '../../util/notebookMetadata';
+
 
 // Retrieve the cell run group value
 export function getCellRunGroupMetadata(cell: vscode.NotebookCell): string {
@@ -17,13 +19,22 @@ export function getCellRunGroupMetadata(cell: vscode.NotebookCell): string {
 
 // Update cell metadata with the new run group value
 export async function updateCellRunGroupMetadata(cell: vscode.NotebookCell, newGroupValue: string): Promise<void> {
-    const newMetadata = { ...(cell.metadata || {}) };
+    if (cell.notebook.isClosed) {
+        return;
+    }
+
+    // Deep-clone so nested objects are not shared with live cell metadata
+    const newMetadata = JSON.parse(JSON.stringify(cell.metadata || {}));
     newMetadata.custom = newMetadata.custom || {};
     newMetadata.custom.metadata = newMetadata.custom.metadata || {};
     newMetadata.custom.metadata.notebookRunGroups = newMetadata.custom.metadata.notebookRunGroups || {};
 
     // Replace the actual groupValue
     newMetadata.custom.metadata.notebookRunGroups.groupValue = newGroupValue;
+
+    if (metadataDeepEqual(cell.metadata, newMetadata)) {
+        return;
+    }
 
     // Perform our actual replace and edit
     const wsEdit = new vscode.WorkspaceEdit();
