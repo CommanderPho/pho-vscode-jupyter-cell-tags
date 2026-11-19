@@ -1,4 +1,7 @@
 import * as vscode from 'vscode';
+import { metadataDeepEqual, sortObjectPropertiesRecursively } from './metadataCompare';
+
+export { metadataDeepEqual, sortObjectPropertiesRecursively } from './metadataCompare';
 
 /**
  * This should handle getting/setting/updating cell and notebook level metadata
@@ -17,28 +20,6 @@ export function useCustomMetadata(): boolean {
         }
     }
     return _useCustomMetadata;
-}
-
-/**
- * Sort the JSON to minimize unnecessary SCM changes.
- * Jupyter notbeooks/labs sorts the JSON keys in alphabetical order.
- * https://github.com/microsoft/vscode/issues/208137
- */
-export function sortObjectPropertiesRecursively(obj: any): any {
-    if (Array.isArray(obj)) {
-        return obj.map(sortObjectPropertiesRecursively);
-    }
-    if (obj !== undefined && obj !== null && typeof obj === 'object' && Object.keys(obj).length > 0) {
-        return (
-            Object.keys(obj)
-                .sort()
-                .reduce<Record<string, any>>((sortedObj, prop) => {
-                    sortedObj[prop] = sortObjectPropertiesRecursively(obj[prop]);
-                    return sortedObj;
-                }, {}) as any
-        );
-    }
-    return obj;
 }
 
 
@@ -70,6 +51,10 @@ export function getNotebookMetadata<T>(notebook: vscode.NotebookDocument, metada
  * @param value New value to set at the specified path
  */
 export async function updateNotebookMetadata<T>(notebook: vscode.NotebookDocument, metadataPath: string[], value: T): Promise<void> {
+    if (notebook.isClosed) {
+        return;
+    }
+
     // Deep-clone so nested objects are not shared with the live notebook metadata
     const newMetadata = JSON.parse(JSON.stringify(notebook.metadata || {}));
     
@@ -86,6 +71,11 @@ export async function updateNotebookMetadata<T>(notebook: vscode.NotebookDocumen
     // Set the value at the final key
     const lastKey = metadataPath[metadataPath.length - 1];
     current[lastKey] = value;
+
+    // Skip no-op writes so open/navigate/refresh paths cannot dirty a clean notebook
+    if (metadataDeepEqual(notebook.metadata, newMetadata)) {
+        return;
+    }
     
     // Apply the edit
     const wsEdit = new vscode.WorkspaceEdit();
@@ -101,6 +91,15 @@ export function getNotebookTags(notebook: vscode.NotebookDocument): string[] {
 }
 
 export async function updateNotebookTags(notebook: vscode.NotebookDocument, tags: string[], defer_apply: boolean = false) {
+    if (notebook.isClosed) {
+        return;
+    }
+
+    const currentTags = getNotebookTags(notebook);
+    if (currentTags.length === tags.length && currentTags.every((t, i) => t === tags[i])) {
+        return;
+    }
+
     const metadata = JSON.parse(JSON.stringify(notebook.metadata));
     if (useCustomMetadata()) {
         metadata.custom = metadata.custom || {};
@@ -116,14 +115,18 @@ export async function updateNotebookTags(notebook: vscode.NotebookDocument, tags
             delete metadata.metadata.tags;
         }
     }
+    const sorted = sortObjectPropertiesRecursively(metadata);
+    if (!defer_apply && metadataDeepEqual(notebook.metadata, sorted)) {
+        return;
+    }
     if (!defer_apply) {
         // Apply the edit
         const wsEdit = new vscode.WorkspaceEdit();
-        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sortObjectPropertiesRecursively(metadata));
+        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sorted);
         wsEdit.set(notebook.uri, [notebookEdit]);
         await vscode.workspace.applyEdit(wsEdit);
     } else {
-        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sortObjectPropertiesRecursively(metadata));
+        const notebookEdit = vscode.NotebookEdit.updateNotebookMetadata(sorted);
         return notebookEdit;
     }
 }
@@ -158,6 +161,10 @@ export function getCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: stri
  * @param value New value to set at the specified path
  */
 export async function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataPath: string[], value: T): Promise<void> {
+    if (cell.notebook.isClosed) {
+        return;
+    }
+
     // Deep-clone so nested objects are not shared with the live cell metadata
     const newMetadata = JSON.parse(JSON.stringify(cell.metadata || {}));
     
@@ -174,6 +181,11 @@ export async function updateCellMetadata<T>(cell: vscode.NotebookCell, metadataP
     // Set the value at the final key
     const lastKey = metadataPath[metadataPath.length - 1];
     current[lastKey] = value;
+
+    // Skip no-op writes so background trackers cannot dirty a clean notebook
+    if (metadataDeepEqual(cell.metadata, newMetadata)) {
+        return;
+    }
     
     // Apply the edit
     const wsEdit = new vscode.WorkspaceEdit();

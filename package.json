@@ -156,8 +156,8 @@
 					},
 					"jupyter-cell-tags.features.cellHistory": {
 						"type": "boolean",
-						"default": true,
-						"description": "Write cellCreated/cellEdited timestamps into cell metadata (can dirty the notebook while typing)"
+						"default": false,
+						"description": "Write cellCreated/cellEdited timestamps into cell metadata when cells are added or edited (dirties the notebook; off by default so opening/navigating never marks it unsaved)"
 					},
 					"jupyter-cell-tags.features.cellExecutionTracking": {
 						"type": "boolean",

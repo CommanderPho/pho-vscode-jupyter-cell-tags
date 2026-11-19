@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { updateNotebookMetadata } from '../util/notebookMetadata';
+import { metadataDeepEqual, updateNotebookMetadata } from '../util/notebookMetadata';
 
 /**
  * Workspace-state key prefix for jumpbacks attached to plain text documents.
@@ -137,7 +137,15 @@ export class JumpbackDataSource {
      */
     public async persist(): Promise<void> {
         if (this.target.kind === 'notebook') {
-            await updateNotebookMetadata(this.target.notebook, ['jumpbackList'], this.jumpbacks);
+            const notebook = this.target.notebook;
+            if (notebook.isClosed) {
+                return;
+            }
+            const current = ((notebook.metadata || {}) as { jumpbackList?: JumpbackEntry[] }).jumpbackList || [];
+            if (metadataDeepEqual(current, this.jumpbacks)) {
+                return;
+            }
+            await updateNotebookMetadata(notebook, ['jumpbackList'], this.jumpbacks);
             return;
         }
         if (!extensionContext) {
