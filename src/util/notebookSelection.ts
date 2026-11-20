@@ -165,19 +165,19 @@ export function getActiveCells(): vscode.NotebookCell[] | undefined {
 }
 
 export function getTagsFromNotebook(notebook: vscode.NotebookDocument): string[] {
-    const all_tags: string[] = [];
+    // ⚡ Bolt Optimization: Use a Set to aggregate unique tags to avoid O(n*m) complexity
+    // with Array.includes(). This significantly speeds up tag aggregation for large notebooks.
+    const all_tags_set = new Set<string>();
     for (let i = 0; i < notebook.cellCount; i++) {
         const cell = notebook.cellAt(i);
         if (!cell) {
             continue;
         }
         for (const tag of getCellTags(cell)) {
-            if (!all_tags.includes(tag)) {
-                all_tags.push(tag);
-            }
+            all_tags_set.add(tag);
         }
     }
-    return all_tags;
+    return Array.from(all_tags_set);
 }
 
 export function getAllTagsFromActiveNotebook() {
